@@ -4,9 +4,13 @@
 
 Le GA raconte une histoire en 3 zones dans un cadre panoramique (1100×560, V1). Le pédiatre lit de gauche à droite : Problème → Intervention → Résolution. Pas de quadrants statiques. Drives B4 (cercle vicieux brisé), B1→B2→B3 (progression zone par zone).
 
+**Evidence:** Jambor & Bornhäuser 2024, rule #4 (expert consensus). Direction de lecture naturelle L→R améliore la compréhension.
+
 ## P2: Framework dynamique des 3 Versions
 
 À chaque itération, Silas définit 3 axes de variation pertinents pour l'obstacle cognitif à résoudre. Les axes changent à chaque boucle. Pas d'axes statiques prédéfinis. Toutes les versions sont qualité maximale (VN3). Voir → `PROCESS.md`. Implements A2 (orchestration des 3 agents).
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P3: Compression métaphorique
 
@@ -21,29 +25,43 @@ Chaque produit est encodé par une métaphore visuelle justifiée scientifiqueme
 
 Source : `Blueprint d'Impact Stratégique...md`
 
+**Evidence:** Jambor & Bornhäuser 2024, rule #3 (expert consensus). Intégration fluide texte+visuels > exhaustivité.
+
 ## P4: Agents autonomes en parallèle
 
 Chaque axe de variation est un agent qui produit, documente, s'auto-critique (3 filtres), et re-itère sans feedback humain. Le feedback d'Aurore n'est demandé que pour les décisions scientifiques/esthétiques non-automatisables.
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P5: La science se prend en compte elle-même
 
 Le design du GA n'est pas séparé de la science — c'est la science qui encode ses propres mécanismes de transmission. Insight d'Aurore. Voir → `narrative:scisense:meta_science` dans le workspace.
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P6: Mobile-first
 
 Le GA est vu principalement sur téléphone (table des matières MDPI). La lisibilité à petite taille prime sur la richesse à grande taille. Validated by V7 (lisibilité 50% zoom). Health: H1 (conformité inclut lisibilité).
+
+**Evidence:** Lee & Yoo 2023 (expert consensus). 87% des sens = vision, GA vus en TOC mobile.
 
 ## P7: Cohérence chromatique produit-identité
 
 Chaque produit a une couleur unique et constante sur tout le GA — icônes, barres, flèches, légendes. Le pédiatre associe couleur=produit sans légende explicite. Implemented by B5. Health: H1 (palette check inclus dans conformité).
 
+**Evidence:** Jambor & Bornhäuser 2024, rule #8 (expert consensus). Changement de couleur = changement de sens.
+
 ## P8: Itération E2E, pas waterfall
 
 Chaque boucle d'itération produit un **rendu complet évaluable** (pas juste un wireframe). Le cycle est : SVG → PNG full res → PNG delivery → auto-critique → correction → re-render. On ne passe PAS par des phases séparées (wireframe seul → éléments seuls → assemblage seul). L'agent voit le résultat final à chaque tour et s'ajuste. Fail loud si le rendu est cassé (cf. v3 delivery blank). Health: H5.
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P9: Provenance des assets
 
 Chaque élément visuel du GA a une source traçable : SVG programmatique (libre de droits par construction), icône vectorielle sourcée (URL + licence), ou élément original créé par Silas. Pas d'éléments IA génératifs dans le livrable final (VN4). Pas de BioRender sans licence commerciale vérifiée (V6). Un fichier `artefacts/PROVENANCE.md` liste chaque élément et sa source. Health: H1 (S1e).
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P10: Rendu multi-résolution
 
@@ -53,9 +71,13 @@ Le GA existe toujours en 3 résolutions simultanées :
 - **Delivery** : PNG 1100×560 (soumission MDPI + test mobile)
 Si l'une des 3 est manquante ou corrompue, le pipeline est en échec. Health: H5.
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P11: Version archival
 
 Chaque itération est numérotée et préservée dans `artefacts/wireframes/`. On ne surécrit jamais un artefact précédent. Chaque version porte son numéro (v1, v2, v3, v4...). Les fichiers de dérivation sont dans `iterations/`. L'historique complet est dans SYNC.
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P12: IA générative comme accélérateur, pas comme producteur
 
@@ -72,6 +94,8 @@ NotebookLM analyse le wireframe courant
 
 L'IA générative calibre les volumes, les couleurs, l'équilibre spatial AVANT que Silas code. Le livrable final combine la lisibilité clinique d'un concept humain/IA (R2) avec la conformité technique d'un fichier scripté (R1). Les infographies concept sont archivées dans `artefacts/concepts/` comme sources de dérivation, jamais comme livrables.
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P13: Multi-intelligence collaborative
 
 La mission utilise 3 formes d'intelligence en synergie :
@@ -81,13 +105,19 @@ La mission utilise 3 formes d'intelligence en synergie :
 
 Chaque intelligence a son domaine. Aucune ne fait le travail d'une autre. Le flux est cyclique, pas hiérarchique : NotebookLM informe → Silas implémente → Aurore tranche → NotebookLM analyse le résultat → boucle.
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P14: Compositeur paramétrique à générateurs
 
 Le script ne dessine plus des formes hardcodées. Il appelle des **fonctions génératrices** avec des paramètres du YAML. Pas d'assets statiques — tout est généré dynamiquement. Changer une posture = éditer un nombre dans le YAML, pas réécrire du code ni re-sourcer un fichier. Implements A5 (pipeline E2E), A7 (compositeur).
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P15: Vecteur de Santé ($H$)
 
 Tous les éléments visuels qui évoluent entre Zone 1 et Zone 3 sont des **fonctions d'une variable unique $H$** (Health Vector, 0.0→1.0). Le mur de briques, la posture de l'enfant, la couleur de fond — tout est paramétré par $H$. Zone 1 = H(0.0), Zone 3 = H(1.0). La transformation est continue, pas un collage de 3 images distinctes.
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P16: Cinématique posturale (squelette paramétrique)
 
@@ -99,11 +129,15 @@ H=0.5 → transition → neutre
 H=1.0 → spine droit, tête haute, bras ouverts (célébration) → résolution
 ```
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P17: Référence IA → calibration des paramètres
 
 Les infographies NotebookLM ne sont pas des assets ni des livrables. Ce sont des **blueprints pour calibrer les paramètres** des générateurs. On regarde la posture de l'enfant dans l'infographie, on en déduit les angles/courbures, on ajuste le YAML. L'IA informe la géométrie, le code produit le résultat. Extends P12.
 
 **Élargissement V10 : Calibration Intégrale.** L'infographie IA n'est pas un calibrateur de volumes uniquement. C'est un **calibrateur multi-dimensionnel** qui produit une réponse intégrée à : volumes, couleurs en contexte, textures, espacements, espaces négatifs, ancrage, hiérarchie de lecture, et tonalité émotionnelle. Silas extrait de chaque infographie non seulement les contours (approche iii) mais aussi les **ratios d'espacement**, la **densité locale**, et le **poids visuel relatif** des éléments pour recalibrer ses paramètres YAML. Chaque infographie IA informe les patterns P7, P18, P20, P21, P22, P26-P31.
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P24: Concept ASCII avant wireframe
 
@@ -115,9 +149,13 @@ DIAGNOSTIC → AXES DE VARIATION → 3 PROPOSITIONS ASCII → PDF → VÉRIFICAT
 
 L'ASCII art suffit pour qu'Aurore valide la direction. Pas besoin de code pour trancher entre 3 architectures visuelles. Économise des jours de wireframing dans la mauvaise direction.
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P25: Vérification visuelle obligatoire
 
 **Tout artefact généré (PDF, PNG, SVG) doit être relu visuellement avant envoi ou validation.** Un fichier qui compile n'est pas un fichier qui communique. Utiliser le Read tool pour voir le rendu réel. Cela attrape : texte tronqué, ASCII art cassé, pages blanches, encodage Unicode, mise en page décalée.
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P26: Espace Négatif — le silence visuel
 
@@ -130,6 +168,8 @@ Règles :
 - L'espace négatif encode aussi l'information : un lumen vide côté sain = "l'air passe librement" = résolution
 
 Calibré par : infographie IA (P17 élargi). Tradeoff T1 (densité vs lisibilité).
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P27: Texture et Matérialité — le tissu vivant
 
@@ -145,6 +185,8 @@ Ce que la texture ne fait PAS : ajouter du détail photoréaliste. On reste en l
 
 Calibré par : infographie IA (P17 élargi). Renforce P20 (abstraction professionnelle).
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P28: Hiérarchie Typographique — les 30 mots qui comptent
 
 Le budget de 30 mots (V3) n'est pas juste un plafond — c'est un système de hiérarchie. Chaque mot a un poids visuel qui encode son importance.
@@ -158,6 +200,8 @@ Règle : le test de lisibilité V7 (50% zoom = 550×280) doit passer pour TOUS l
 
 Placement : les labels de Niveau 1 sont toujours HORS de la bronche (marges ou légende). Les labels de Niveau 2 sont dans ou près de leurs éléments. Le Niveau 3 est collé à son objet.
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P29: Densité Locale — le gradient d'information
 
 La densité d'information n'est pas uniforme sur le GA. Elle suit un gradient qui encode la narration :
@@ -169,6 +213,8 @@ La densité d'information n'est pas uniforme sur le GA. Elle suit un gradient qu
 Ce gradient suit naturellement le flux de lecture L→R (P1) : accroche simple → complexité justifiée → conclusion actionable.
 
 Si une zone est trop dense, la correction n'est pas de compresser les éléments mais de vérifier si tous les éléments de cette zone sont nécessaires (P3 compression métaphorique).
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P30: Flux de Lecture Secondaire — l'axe vertical
 
@@ -183,6 +229,8 @@ Le regard du pédiatre fait un L inversé :
 2. Scan vertical dans la zone d'intérêt : "comment ça guérit" = les 4 couches
 
 Ce flux vertical est ce qui distingue V2-A des designs classiques 3-zones. La topologie spatiale (P19) ne peut fonctionner que si le pédiatre lit AUSSI de haut en bas.
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P31: Poids Visuel Relatif — la balance des éléments
 
@@ -200,7 +248,13 @@ Ce qui viole P31 : un arc CRL1505 aussi épais que le bouclier OM-85 (le précli
 
 Renforce P21 (gravité clinique) au niveau de l'image entière, pas juste de la Zone 3.
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ---
+
+> **Note:** Les patterns VEC génériques (P24-P34) sont maintenus dans `docs/vec/design_system/03_PATTERNS.md`.
+> Les patterns ci-dessous sont conservés ici pour référence historique et parce qu'ils contiennent
+> des détails spécifiques à la mission immunomodulateur.
 
 ## Design System Biologique — Méta-Patterns (extraits de l'audit SD1)
 
@@ -218,6 +272,8 @@ Les métaphores visuelles ne doivent jamais léviter. Elles doivent **s'encastre
 
 Source: Faille 3 (OM-85 flottant), Faille 2 (PMBL cartoon). Implements B2.
 
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
+
 ## P19: Topologie Spatiale — position = mécanisme
 
 La localisation d'une métaphore dans l'espace du GA encode son mécanisme biologique. Intracellulaire ≠ surface ≠ systémique. Si deux agents sont au même endroit, le pédiatre ne distingue pas leurs modes d'action.
@@ -227,6 +283,8 @@ La localisation d'une métaphore dans l'espace du GA encode son mécanisme biolo
 - **Systémique** → Arc partant du BAS de l'image : CRL1505 (axe intestin-poumon, action orale à distance)
 
 L'arc CRL1505 doit pointer indépendamment vers barrière + DC, sans croiser l'hélice MV130. Source: Faille 4, 5. Implements V13.
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P20: Abstraction Professionnelle — tonalité visuelle Q2
 
@@ -238,6 +296,8 @@ Une revue Q2 (MDPI Children) requiert une esthétique de rigueur clinique. Prosc
 - Virus : icône stylisée (cercle + spikes), pas monstre cartoon
 
 Validé par NotebookLM : corps irrégulier + branches courbes = reconnaissable par immunologiste en <2s. Source: Faille 2, 7, 8.
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.
 
 ## P21: Gravité Clinique — proportionnalité volumétrique
 
@@ -252,6 +312,8 @@ L'aire visuelle d'un élément est proportionnelle à sa robustesse clinique. L'
 
 Le bloc OM-85 bleu doit être 3-4x plus massif que le bloc CRL1505 vert. Si Z3 paraît faible, augmenter la masse du bloc OM-85, PAS la largeur de la zone (ratio 27/46/27 validé). Source: Faille 9. Implements B3.
 
+**Evidence:** Cleveland & McGill 1984 + loi de Stevens (RCT + psychophysique). Aire compresse les différences (beta~0.7) ; longueur recommandée comme canal primaire.
+
 ## P22: Micro-Ancres Moléculaires — ponctuation visuelle
 
 L'interdiction des listes de cytokines (VN1) ne doit pas vider l'image de ses repères biologiques. Utiliser des pictogrammes universels microscopiques pour "ponctuer" l'action sans surcharger.
@@ -261,6 +323,8 @@ L'interdiction des listes de cytokines (VN1) ne doit pas vider l'image de ses re
 - **Pas de texte supplémentaire** — ces sont des ancres visuelles, pas des labels
 
 Le spécialiste y trouve la plausibilité biologique ; le clinicien généraliste n'est pas noyé. Source: Faille 8. Validé par NotebookLM (positionnement lumen apical).
+
+**Evidence:** Jambor & Bornhäuser 2024, rule #7 (expert consensus). Le texte désambiguïse les pictogrammes.
 
 ## P23: Résolution Topologique — fractalisme narratif
 
@@ -272,3 +336,5 @@ Une pathologie chronique auto-entretenue est un **cercle fermé**. Sa résolutio
 **Précision SD3 (slide 15)** : La flèche verte de santé (health arrow) doit **physiquement FRACTURER** le tracé rouge du cercle vicieux. Ce n'est pas une transition implicite gauche→droite — c'est un élément graphique explicite : la lance verte coupe net le cycle rouge. "La coupure visuelle nette symbolise l'arrêt de la morbidité. C'est le climax cognitif du design." La fracture doit être perceptible comme un acte — un moment de rupture, pas un fondu. Renforce B4 (le cercle vicieux est brisé).
 
 Validé par NotebookLM (SD1 + SD3) comme application exacte de P3 (Compression Métaphorique) et B4 (Breaking the Cycle). Ce n'est pas une sur-simplification — c'est le climax cognitif du GA. Source: Faille 6, 10 (SD1), Slide 15 (SD3).
+
+**Evidence:** Design heuristic (non validé empiriquement). Cible Vague 2 de recherche.

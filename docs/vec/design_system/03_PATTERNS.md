@@ -1,6 +1,6 @@
 # Patterns — vec/design_system
 
-14 patterns visuels : 6 du Design System Biologique (lexique semiotique SciSense) + 8 du Langage Visuel Generique. Tous valides par NotebookLM (24 mars 2026, SD1 + SD3).
+17 patterns visuels : 6 du Design System Biologique (lexique semiotique SciSense) + 8 du Langage Visuel Generique + 3 issus de la Litterature (VEC Literature Analysis). Les 14 premiers valides par NotebookLM (24 mars 2026, SD1 + SD3).
 
 ---
 
@@ -24,6 +24,8 @@ Source: Faille 3 (OM-85 flottant), Faille 2 (PMBL cartoon). Implements B2.
 
 **Verification:** Chaque agent doit etre en contact physique avec son substrat biologique dans le SVG. Un agent qui flotte = violation.
 
+**Evidence:** Design heuristic (non valide empiriquement). Cible Vague 2 de recherche.
+
 ---
 
 ### P19: Topologie Spatiale — position = mecanisme
@@ -37,6 +39,8 @@ La localisation d'une metaphore dans l'espace du GA encode son mecanisme biologi
 L'arc CRL1505 doit pointer independamment vers barriere + DC, sans croiser l'helice MV130. Implements V13.
 
 **Verification:** Verifier que les 3 niveaux topologiques (intracellulaire, surface, systemique) sont spatialement distincts dans le rendu.
+
+**Evidence:** Design heuristic (non valide empiriquement). Cible Vague 2 de recherche.
 
 ---
 
@@ -53,6 +57,8 @@ Une revue Q2 (MDPI Children) requiert une esthetique de rigueur clinique. Proscr
 | Enfants | Contours organiques vectorises (approche iii) | Stick figures geometriques |
 
 Valide par NotebookLM : corps irregulier + branches courbes = reconnaissable par immunologiste en < 2s.
+
+**Evidence:** Design heuristic (non valide empiriquement). Cible Vague 2 de recherche.
 
 ---
 
@@ -71,6 +77,8 @@ Le bloc OM-85 bleu doit etre 3-4x plus massif que le bloc CRL1505 vert. Si Z3 pa
 
 Implements B3 (decision). Renforce par P31 (poids visuel) au niveau de l'image entiere.
 
+**Evidence:** Cleveland & McGill 1984 + loi de Stevens (RCT + psychophysique). Aire compresse les differences (beta~0.7) ; longueur recommandee comme canal primaire.
+
 ---
 
 ### P22: Micro-Ancres Moleculaires — ponctuation visuelle
@@ -85,6 +93,8 @@ Le specialiste y trouve la plausibilite biologique ; le clinicien generaliste n'
 
 **Positionnement IgA valide par NotebookLM :** lumen apical = correct biologiquement. Les IgA sont secretees a travers l'epithelium, pas produites dans le mur.
 
+**Evidence:** Jambor & Bornhauser 2024, rule #7 (expert consensus). Le texte desambiguise les pictogrammes.
+
 ---
 
 ### P23: Resolution Topologique — fractalisme narratif
@@ -97,6 +107,8 @@ Une pathologie chronique auto-entretenue est un cercle ferme. Sa resolution est 
 **Precision SD3 (slide 15):** La fleche verte de sante (health arrow) doit physiquement FRACTURER le trace rouge du cercle vicieux. Ce n'est pas une transition implicite gauche→droite — c'est un element graphique explicite. "La coupure visuelle nette symbolise l'arret de la morbidite. C'est le climax cognitif du design."
 
 La fracture doit etre perceptible comme un acte — un moment de rupture, pas un fondu. Implements B4, DS-R4.
+
+**Evidence:** Design heuristic (non valide empiriquement). Cible Vague 2 de recherche.
 
 ---
 
@@ -122,6 +134,8 @@ Chaque produit a une couleur unique et constante sur tout le GA — icones, barr
 
 Implements B5 (couleurs constantes). Verified by H1 (palette sub-check).
 
+**Evidence:** Jambor & Bornhauser 2024, rule #8 (expert consensus). Changement de couleur = changement de sens.
+
 ---
 
 ### P26: Espace Negatif — le silence visuel
@@ -135,6 +149,8 @@ Ce qui n'est PAS dessine est aussi important que ce qui l'est. L'espace negatif 
 - L'espace negatif encode aussi l'information : un lumen vide cote sain = "l'air passe librement" = resolution
 
 Calibre par infographie IA (P17 elargi). Tradeoff DS-T1 (densite vs lisibilite).
+
+**Evidence:** Design heuristic (non valide empiriquement). Cible Vague 2 de recherche.
 
 ---
 
@@ -152,6 +168,8 @@ Ce que la texture ne fait PAS : ajouter du detail photorealiste. On reste en lin
 
 Calibre par infographie IA (P17 elargi). Renforce P20 (abstraction professionnelle). Tradeoff DS-T2 (organicite vs reproductibilite).
 
+**Evidence:** Design heuristic (non valide empiriquement). Cible Vague 2 de recherche.
+
 ---
 
 ### P28: Hierarchie Typographique — les 30 mots qui comptent
@@ -168,6 +186,8 @@ Le budget de 30 mots (V3) n'est pas juste un plafond — c'est un systeme de hie
 
 **Regle de survie:** Le test de lisibilite V7 (50% zoom = 550x280) doit passer pour TOUS les niveaux. Si le Niveau 3 ne passe pas, le supprimer plutot que le reduire.
 
+**Evidence:** Design heuristic (non valide empiriquement). Cible Vague 2 de recherche.
+
 ---
 
 ### P29: Densite Locale — le gradient d'information
@@ -181,6 +201,8 @@ La densite d'information n'est pas uniforme sur le GA. Elle suit un gradient qui
 Ce gradient suit le flux de lecture L→R (P1) : accroche simple → complexite justifiee → conclusion actionable.
 
 Si une zone est trop dense, la correction n'est pas de compresser les elements mais de verifier si tous les elements de cette zone sont necessaires (P3 compression metaphorique).
+
+**Evidence:** Design heuristic (non valide empiriquement). Cible Vague 2 de recherche.
 
 ---
 
@@ -206,6 +228,8 @@ Ce flux vertical est ce qui distingue V2-A des designs classiques 3-zones. La to
 
 Le gradient L→R (malade→sain) s'applique a chaque bande independamment. Chaque bande raconte la meme histoire (degradation→restauration) a son niveau anatomique.
 
+**Evidence:** Design heuristic (non valide empiriquement). Cible Vague 2 de recherche.
+
 ---
 
 ### P31: Poids Visuel Relatif — la balance des elements
@@ -226,3 +250,46 @@ Chaque element du GA a un poids visuel (aire x opacite x contraste x saturation)
 **Violation type:** Un arc CRL1505 aussi epais que le bouclier OM-85 (le preclinique ne doit pas avoir le meme poids visuel que 18 RCTs). Une legende plus grande que les barres d'evidence.
 
 Renforce P21 (gravite clinique) au niveau de l'image entiere, pas juste de la Zone 3. Tradeoff DS-T4 (poids visuel vs evidence).
+
+**Evidence:** Design heuristic (non valide empiriquement). Cible Vague 2 de recherche.
+
+---
+
+## Patterns issus de la Litterature (VEC Literature Analysis)
+
+Les 3 patterns P32-P34 sont derives de l'analyse systematique de la litterature sur l'encodage perceptif de l'evidence (VEC_Literature_Analysis_SciSense.md, 24 mars 2026).
+
+---
+
+### P32: Encodage Perceptif Hierarchique de l'Evidence
+
+Chaque produit est encode sur 3 canaux perceptifs simultanes (du plus au moins precis) :
+- **Primaire : Longueur** (barre de remplissage) — proportionnelle au nombre de RCTs. beta approx 1.0 (Cleveland & McGill rang 3)
+- **Secondaire : Luminance** (clair→fonce) — plus fonce = evidence plus forte. MacEachren 2012 : haute intuitivite, quantifiable
+- **Tertiaire : Aire** (masse visuelle) — plus grand = plus robuste. beta approx 0.7, renforce mais ne porte pas seul
+
+Les 3 canaux sont **redondants** (encodent la meme information) pour maximiser la comprehension en scan rapide.
+
+Source: VEC_Literature_Analysis section 4.2, Cleveland & McGill 1984, MacEachren 2012.
+
+**Evidence:** Cleveland & McGill 1984, MacEachren 2012 (RCT + psychophysique). Hierarchie perceptive validee experimentalement ; luminance = haute intuitivite pour l'incertitude.
+
+---
+
+### P33: Frequences Naturelles, Pas de Categories Abstraites
+
+Les labels d'evidence utilisent des frequences naturelles : "18 RCTs", "5 RCTs", "1 RCT", "Preclinical". PAS de "Level A", "Strong", "Moderate". Les frequences naturelles ameliorent la comprehension de ~50% a >80% chez les cliniciens (Gigerenzer, McDowell & Jacobs 2017).
+
+Source: VEC_Literature_Analysis section 4.2.
+
+**Evidence:** Gigerenzer 2003, McDowell & Jacobs 2017 (psychophysique + meta-analyse). Frequences naturelles ameliorent la comprehension de ~50% a >80%.
+
+---
+
+### P34: Encodage de l'Incertitude par Luminance, Pas par Saturation
+
+Contre-intuitivement, la saturation de couleur n'est PAS percue comme un marqueur d'incertitude par les non-specialistes (MacEachren 2012, classee en bas d'intuitivite ; Kinkeldey 2017, explicitement deconseillee). La luminance (clair/fonce) est le canal recommande. Application : les blocs CRL1505 (preclinique) doivent etre visuellement plus CLAIRS (pas juste plus petits) que les blocs OM-85. La teinte reste constante, la luminance varie.
+
+Source: VEC_Literature_Analysis section 4.2, Kinkeldey et al. 2017.
+
+**Evidence:** MacEachren 2012, Kinkeldey 2017 (psychophysique + revue systematique). Saturation deconseillee ; luminance = canal recommande pour l'incertitude.

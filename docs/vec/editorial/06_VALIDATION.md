@@ -57,3 +57,19 @@ Health: Code review. Supports P2 (separation producteur/validateur).
 **VP3: Le rapport DOIT etre archive dans chaque session SYNC.**
 Chaque execution du validateur qui precede une decision (presentation, soumission) DOIT avoir son rapport consigne dans le handoff SYNC pour tracabilite. Un verdict sans trace est un verdict invoquable.
 Health: Verification SYNC. Supports V10 (archivage versionne).
+
+---
+
+## Invariants issus de la Litterature (VEC Literature Analysis)
+
+**V14: Accessibilite Daltoniens.**
+~8% des hommes sont daltoniens (deuteranopie, protanopie). La palette actuelle teal (#0D9488) / vert (#059669) est potentiellement confuse pour cette population. Test : passer chaque rendu dans un simulateur Coblis. Les 4 couleurs produit doivent rester distinguables sous les 3 types de daltonisme (deuteranopie, protanopie, tritanopie). Automation : integrable dans validate_ga.py via distance perceptive CIEDE2000.
+Source: VEC_Literature_Analysis section 4.3.
+
+**Evidence:** Jambor 2024 + WCAG 2.1 (expert consensus + standard). Palette doit rester distinguable sous deuteranopie, protanopie, tritanopie.
+
+**V15: Absence de Spin Visuel.**
+Vorland et al. (2024) montrent que les visual abstracts ont un taux eleve de spin. Le VEC doit verifier que la representation visuelle n'amplifie pas les resultats au-dela de ce que le manuscrit supporte. Test : la masse visuelle relative des 4 produits doit correspondre a la hierarchie d'evidence. Si MV130 (1 RCT) parait visuellement aussi imposant que PMBL (5 RCTs), c'est du spin.
+Source: VEC_Literature_Analysis section 4.3.
+
+**Evidence:** Vorland 2024 (cross-sectional). Visual abstracts ont un taux eleve de spin ; la masse visuelle doit correspondre a la hierarchie d'evidence.

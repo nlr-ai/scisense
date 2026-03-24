@@ -1,5 +1,5 @@
 """
-Parametric GA Compositor V10.3 — "La Bronche Vivante"
+Parametric GA Compositor V10.4 — "La Bronche Vivante"
 
 4-band bronchial cross-section (longitudinal view):
   Band 1: LUMEN — virus entry (left) -> IgA protection (right)
@@ -22,6 +22,13 @@ V10.3 changes:
   - Fix 8: Visible dormant DC (darker gray + dim red halo)
   - Fix 9: More lumen content (mucus droplets left, 6 IgA right)
   - Fix 10: Evidence bar label overflow fix (abbreviate Preclinical)
+
+V10.4 changes (calibrated from V2A_4 NotebookLM infographic):
+  - Fix 1: Cilia on epithelium cells (defining feature of respiratory epithelium)
+  - Fix 2: Horizontal band gradients (sick red -> healthy green inside tissue)
+  - Fix 3: Evidence bars darker for stronger evidence (luminance = strength)
+  - Fix 4: CRL1505 relay arc opacity reduced (0.7 -> 0.55)
+  - Fix 5: Vicious cycle repositioned to wrap around bronchus left entrance
 """
 
 import yaml
@@ -182,18 +189,29 @@ def draw_bronchus_frame(dwg, layout, palette, W, H):
         stroke_width=bc["border_width"]
     ))
 
-    # Band background fills (subtle alternation)
+    # === V10.4 FIX 2: Band-level horizontal gradients (sick->healthy tissue color) ===
     bands = get_band_rects(layout, W, H)
-    band_fills = {
-        "lumen": palette["bands"]["lumen"],
-        "epithelium": palette["bands"]["lamina_bg"],
-        "lamina": palette["bands"]["lumen"],
-        "muscle": palette["bands"]["lamina_bg"],
+    band_gradient_pairs = {
+        "lumen":      ("#FEF2F2", "#F0FDF4"),   # pale red -> pale green
+        "epithelium": ("#FECDD3", "#D1FAE5"),   # pink -> mint
+        "lamina":     ("#FEE2E2", "#ECFDF5"),   # pale red -> pale green
+        # muscle already has its own gradient from draw_muscle(), skip
     }
     for bname, (bx2, by2, bw2, bh2) in bands.items():
-        dwg.add(dwg.rect((bx2, by2), (bw2, bh2),
-                         fill=band_fills.get(bname, "#FFFFFF"),
-                         opacity=0.3))
+        if bname in band_gradient_pairs:
+            sick_col, healthy_col = band_gradient_pairs[bname]
+            grad_id = f"band_grad_{bname}"
+            band_lg = dwg.linearGradient(("0%", "0%"), ("100%", "0%"), id=grad_id)
+            band_lg.add_stop_color("0%", sick_col)
+            band_lg.add_stop_color("100%", healthy_col)
+            dwg.defs.add(band_lg)
+            dwg.add(dwg.rect((bx2, by2), (bw2, bh2),
+                             fill=f"url(#{grad_id})", opacity=0.4))
+        elif bname == "muscle":
+            # Keep subtle fill for muscle (gradient handled by draw_muscle)
+            dwg.add(dwg.rect((bx2, by2), (bw2, bh2),
+                             fill=palette["bands"]["lamina_bg"],
+                             opacity=0.3))
 
     # Separator lines between bands
     sep_w = bc["separator_width"]
@@ -444,6 +462,24 @@ def draw_epithelium(dwg, layout, palette, W, H):
                 rx=2, ry=2
             ))
 
+            # === V10.4 FIX 1: CILIA on top of intact cells ===
+            # Cilia only appear in transition zone and healthy side (t > 0.3)
+            # Height increases with health (t)
+            if t > 0.3:
+                n_cilia = 4
+                cilia_h_base = int(cell_h * 0.18)
+                # Scale cilia height with health: 0.3->1.0 maps to 0.4->1.0 of base height
+                cilia_scale = 0.4 + 0.6 * ((t - 0.3) / 0.7)
+                cilia_h = max(2, int(cilia_h_base * cilia_scale))
+                cilia_color = lerp_color(cell_base, "#1F2937", 0.3)
+                for c in range(n_cilia):
+                    cx_cilia = cx + int(cell_w * (c + 1) / (n_cilia + 1))
+                    dwg.add(dwg.line(
+                        (cx_cilia, cell_y - 1), (cx_cilia, cell_y - cilia_h),
+                        stroke=cilia_color,
+                        stroke_width=1.5, stroke_linecap="round"
+                    ))
+
             # PMBL staples between cells (right portion)
             if t > 0.45 and i > 0 and i not in gap_indices:
                 staple_x = cx
@@ -595,8 +631,12 @@ def draw_vicious_cycle(dwg, layout, palette, W, H):
     ml_x, _, ml_w, _ = get_zone_rect(layout, "margin_left", W, H)
     vc = layout["vicious_cycle"]
 
-    cx = ml_x + int(ml_w * vc["center_x_pct"])
-    cy = int(H * vc["center_y_pct"])
+    # === V10.4 FIX 5: Position cycle at bronchus left edge (wrapping entrance) ===
+    bx_bronch, by_bronch, bw_bronch, bh_bronch = get_bronchus_rect(layout, W, H)
+    # Center horizontally at the border between margin and bronchus
+    cx = bx_bronch
+    # Center vertically at the bronchus midpoint
+    cy = by_bronch + bh_bronch // 2
     rx, ry = vc["radius_x"], vc["radius_y"]
     font_family = layout["font"]["family"]
 
@@ -726,6 +766,14 @@ def draw_evidence_bars(dwg, layout, palette, W, H):
                      font_weight="bold",
                      text_anchor="middle"))
 
+    # === V10.4 FIX 3: Evidence strength opacity (darker = stronger evidence) ===
+    evidence_opacity = {
+        "om85": 1.0,       # darkest (18 RCTs)
+        "pmbl": 0.85,      # medium
+        "mv130": 0.70,     # lighter
+        "crl1505": 0.55,   # lightest (P34)
+    }
+
     for item in ev["items"]:
         bar_w = int(max_bar_w * item["width_pct"])
         color = resolve_color(palette, f"products.{item['product']}")
@@ -737,8 +785,9 @@ def draw_evidence_bars(dwg, layout, palette, W, H):
         if label == "Preclinical" and bar_w < 80:
             label = "Preclin."
 
+        bar_opacity = evidence_opacity.get(item["product"], 0.85)
         dwg.add(dwg.rect((bar_x, y), (bar_w, ev["bar_height"]),
-                         fill=color, rx=4, ry=4, opacity=0.85))
+                         fill=color, rx=4, ry=4, opacity=bar_opacity))
         label_fs = ev["title_font_size"] - 4
         if bar_w > 80:
             dwg.add(dwg.text(label,
@@ -788,13 +837,14 @@ def draw_crl1505_relay(dwg, layout, palette, W, H):
     # Arc from gut to lamina
     mid_x = (gut_x + target_x) / 2 + 60
     mid_y = (gut_y + target_y) / 2
+    # === V10.4 FIX 4: CRL1505 arc opacity reduced (0.7 -> 0.55) ===
     arc_path = f"M {gut_x},{gut_y - 15} Q {mid_x},{mid_y} {target_x},{target_y}"
     dwg.add(dwg.path(d=arc_path, fill="none",
                      stroke=crl_color, stroke_width=relay["arc_width"],
-                     stroke_dasharray="10,5", opacity=0.7))
+                     stroke_dasharray="10,5", opacity=0.55))
     dwg.add(dwg.polygon(
         [(target_x - 6, target_y + 2), (target_x, target_y - 10), (target_x + 6, target_y + 2)],
-        fill=crl_color, opacity=0.7
+        fill=crl_color, opacity=0.55
     ))
 
 
@@ -935,7 +985,7 @@ def main():
     print("Rendering PNG...")
     render_png(svg_path, full_png, delivery_png, W, H, dw, dh)
 
-    print("\nV10.3 compilation complete.")
+    print("\nV10.4 compilation complete.")
 
 
 if __name__ == "__main__":

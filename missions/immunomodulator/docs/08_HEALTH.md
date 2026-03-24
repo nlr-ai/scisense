@@ -99,83 +99,14 @@ L'éditrice accepte les livrables sans révision et fait avancer le manuscrit ve
 
 ---
 
-## H5: Pipeline de rendu E2E → validates V8, V9, P8, P10
+## H5-H9: VEC Engine Health Checks
 
-Chaque itération produit 3 fichiers. Si l'un est manquant ou corrompu, Fail Loud.
-
-### Sense signals
-
-| ID | Signal | Checks | Automation |
-|----|--------|--------|------------|
-| S5a | SVG non-vide | Fichier > 1 KB, parseable XML | Auto — `xml.etree.ElementTree.parse()` |
-| S5b | PNG full res correct | Dimensions = 3300×1680, fichier > 50 KB | Auto — Pillow `Image.open().size` |
-| S5c | PNG delivery correct | Dimensions = 1100×560, fichier > 5 KB, PAS blanc | Auto — Pillow size + mean pixel > 10 |
-| S5d | Palette présente | Les 4 hex (#2563EB, #0D9488, #7C3AED, #059669) dans le SVG | Auto — grep |
-| S5e | Archivé sans écrasement | Fichiers vN dans artefacts/wireframes/, pas de vN-1 modifié | Auto — file exists check |
-| S5f | Config coherence | palette.yaml colors match GA_SPEC.md palette section | Auto — yaml parse + compare |
-| S5g | Asset injection | All assets referenced in layout.yaml exist in assets/ | Auto — file exists check |
-| S5h | Word count from source | Count words in content.yaml = same as count in rendered SVG | Auto — yaml parse |
-
-**Checker:** Intégré dans A5 (pipeline de rendu via compose_ga_v10.py). Chaque step valide le précédent. Le rendu full res utilise Playwright HTML wrapper (SVG enveloppé dans HTML, rendu à la taille de livraison avec 2x device_scale_factor). Delivery via Pillow resize depuis le full res.
-
-**Bug résolu:** Playwright timeout à 3300x1680 → résolu par HTML wrapper qui rend à la taille de livraison avec 2x device_scale_factor au lieu de rendre directement à la taille full.
-
-**Carrier:** Silas (tout automatisable).
-
-**Status:** Implémenté dans A5/A7 (compose_ga_v10.py). Script `validate_ga.py` consolidera tous les checks.
-
----
-
-## H6: Audit NotebookLM cycle → validates A9
-
-Chaque cycle d'audit NotebookLM produit un rapport exploitable et les corrections sont intégrées.
-
-### Sense signals
-
-| ID | Signal | Checks | Automation |
-|----|--------|--------|------------|
-| S6a | Export S0N/ créé | Répertoire S0N/ contient tous les fichiers requis (17+ fichiers) | Auto — file count check |
-| S6b | System prompt V2.4 chargé | config/notebooklm_system_prompt.md présent et version = 2.4 | Auto — file exists + version grep |
-| S6c | Réponse audit reçue | NotebookLM a retourné un report ou slide deck | Manuel — vérification Silas |
-| S6d | Problèmes traités | Tous les problèmes identifiés soit corrigés, soit documentés comme gaps connus | Semi-auto — checklist |
-
-**Carrier:** Silas + NotebookLM.
-
-**Status:** Loop ouverte — processus défini, première exécution à lancer.
-
----
-
-## H7: Convergence IgA → validates B8
-
-La convergence IgA est visible dans la bande lumen du GA.
-
-### Sense signals
-
-| ID | Signal | Checks | Automation |
-|----|--------|--------|------------|
-| S7a | 4 lignes de convergence colorées | 4 lignes de convergence visibles dans la bande lumen, chacune d'une couleur produit distincte | Semi-auto — vérification visuelle |
-| S7b | Formes Y IgA au point focal | Formes Y (IgA) regroupées au point de convergence | Semi-auto — vérification visuelle |
-
-**Carrier:** Silas (vérification visuelle) + NotebookLM (audit).
-
-**Status:** Loop ouverte — à vérifier sur wireframe_GA_v10.
-
----
-
-## H8: Cycle fracture → validates B4 (renforcé par SD3)
-
-La rupture du cercle vicieux par CRL1505 est visuellement explicite.
-
-### Sense signals
-
-| ID | Signal | Checks | Automation |
-|----|--------|--------|------------|
-| S8a | Flèche/lance verte brise le cycle rouge | L'élément vert (CRL1505) traverse visuellement le cercle vicieux rouge | Semi-auto — vérification visuelle |
-| S8b | Marques de fracture au point d'impact | Éclats ou lignes de rupture visibles à l'endroit où la lance traverse le cycle | Semi-auto — vérification visuelle |
-
-**Carrier:** Silas (vérification visuelle) + Aurore.
-
-**Status:** Loop ouverte — à vérifier sur wireframe_GA_v10.
+These health checkers are now maintained in the VEC module doc chain:
+- H5 (Pipeline E2E) → `docs/vec/pipeline/08_HEALTH.md`
+- H6 (Audit NotebookLM) → `docs/vec/audit/08_HEALTH.md`
+- H7 (Convergence IgA) → `docs/vec/design_system/08_HEALTH.md`
+- H8 (Cycle fracture) → `docs/vec/design_system/08_HEALTH.md`
+- H9 (Premier Regard) → `docs/vec/audit/08_HEALTH.md`
 
 ---
 

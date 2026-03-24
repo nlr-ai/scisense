@@ -16,7 +16,7 @@ C'est le module le plus lourd du VEC : il definit le lexique semiotique complet 
 |---------|--------|---------|
 | 01_RESULTS | done | 6 resultats mesurables (DS-R1 a DS-R6) + guarantee loop |
 | 02_OBJECTIVES | done | 1 goal, 4 non-goals, 4 tradeoffs, 5 priorites ranked |
-| 03_PATTERNS | done | 14 patterns : P18-P23 (Design System Biologique) + P7, P26-P31 (Langage Visuel Generique) |
+| 03_PATTERNS | done | 17 patterns : P18-P23 (Design System Biologique) + P7, P26-P31 (Langage Visuel Generique) + P32-P34 (Litterature) |
 | 04_BEHAVIORS | done | 3 behaviors (DS-B4 fracture, DS-B5 couleurs, DS-B8 convergence) + relations inter-behaviors |
 | 05_ALGORITHM | done | 5 algorithmes (DS-A1 chromatique, DS-A2 PH1, DS-A3 spatial, DS-A4 convergence, DS-A5 fracture) |
 | 06_VALIDATION | done | 17 invariants (DS-V1 a DS-V17) en 5 familles + checklist compacte |
@@ -74,3 +74,4 @@ DS-R6 (equilibre spatial)        ← DS-H4 ← DS-S4a-d      [ouvert — protoco
 |------|--------|
 | 2026-03-24 | Creation du module vec/design_system. Doc chain 10 facets initiee. |
 | 2026-03-24 | 10 facets ecrites. 6 results, 14 patterns, 3 behaviors, 5 algorithmes, 17 invariants, 6 health checkers, 18 sense signals, phenomenologie PH1 detaillee. Module complet. |
+| 2026-03-24 | VEC Literature Analysis integrated — P32-P34 added to 03_PATTERNS (encodage perceptif hierarchique, frequences naturelles, luminance pour incertitude). V14 (accessibilite daltoniens) et V15 (absence de spin visuel) added to vec/editorial 06_VALIDATION. H9 (Premier Regard — comprehension clinique directe) added to vec/audit 08_HEALTH. Pattern count: 14 → 17. |

@@ -13,10 +13,12 @@ Exit code 0 = all pass, exit code 1 = any fail.
 """
 
 import argparse
+import math
 import os
 import re
 import sys
 import xml.etree.ElementTree as ET
+from itertools import combinations
 from pathlib import Path
 
 
@@ -415,6 +417,92 @@ def check_s5a_files(svg_path: str, full_png_path: str | None, delivery_png_path:
     return status, "; ".join(details)
 
 
+def check_v14_colorblind_accessibility() -> tuple[str, str]:
+    """V14 — Verify product colors remain distinguishable under CVD simulation.
+
+    Simulates deuteranopia, protanopia, and tritanopia using simplified
+    Brettel 1997 linear RGB transforms.  Computes Euclidean distance in
+    RGB space for all 6 colour pairs.  WARNs (not FAIL) if any pair
+    distance < 50.
+    """
+
+    product_hex = ["#2563EB", "#0D9488", "#7C3AED", "#059669"]
+    product_labels = ["OM-85", "PMBL", "MV130", "CRL1505"]
+    MIN_DISTANCE = 50
+
+    def hex_to_rgb(h: str) -> tuple[int, int, int]:
+        h = h.lstrip("#")
+        return int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+
+    def simulate_deuteranopia(r: int, g: int, b: int) -> tuple[int, int, int]:
+        return (
+            int(0.625 * r + 0.375 * g),
+            int(0.700 * r + 0.300 * g),
+            int(0.300 * g + 0.700 * b),
+        )
+
+    def simulate_protanopia(r: int, g: int, b: int) -> tuple[int, int, int]:
+        return (
+            int(0.567 * r + 0.433 * g),
+            int(0.558 * r + 0.442 * g),
+            int(0.242 * g + 0.758 * b),
+        )
+
+    def simulate_tritanopia(r: int, g: int, b: int) -> tuple[int, int, int]:
+        return (
+            int(0.950 * r + 0.050 * g),
+            int(0.433 * g + 0.567 * b),
+            int(0.475 * g + 0.525 * b),
+        )
+
+    def rgb_distance(c1: tuple[int, int, int], c2: tuple[int, int, int]) -> float:
+        return math.sqrt(sum((a - b) ** 2 for a, b in zip(c1, c2)))
+
+    simulations = {
+        "deuteranopia": simulate_deuteranopia,
+        "protanopia": simulate_protanopia,
+        "tritanopia": simulate_tritanopia,
+    }
+
+    original_rgbs = [hex_to_rgb(h) for h in product_hex]
+    details = []
+    any_violation = False
+
+    for cvd_name, sim_fn in simulations.items():
+        simulated = [sim_fn(*rgb) for rgb in original_rgbs]
+
+        # Format simulated colors for report
+        sim_strs = [
+            f"{product_labels[i]}=({simulated[i][0]},{simulated[i][1]},{simulated[i][2]})"
+            for i in range(len(simulated))
+        ]
+
+        # Compute all 6 pairwise distances
+        min_dist = float("inf")
+        min_pair = ("", "")
+        for (i, ci), (j, cj) in combinations(enumerate(simulated), 2):
+            d = rgb_distance(ci, cj)
+            if d < min_dist:
+                min_dist = d
+                min_pair = (product_labels[i], product_labels[j])
+
+        if min_dist < MIN_DISTANCE:
+            any_violation = True
+            details.append(
+                f"{cvd_name}: min_dist={min_dist:.1f} < {MIN_DISTANCE} "
+                f"({min_pair[0]} vs {min_pair[1]}); "
+                f"sim=[{', '.join(sim_strs)}]"
+            )
+        else:
+            details.append(
+                f"{cvd_name}: min_dist={min_dist:.1f} OK; "
+                f"sim=[{', '.join(sim_strs)}]"
+            )
+
+    status = "WARN" if any_violation else "PASS"
+    return status, "; ".join(details)
+
+
 def check_s5h_content_sync(text_elements: list[tuple[str, str]], svg_word_count: int, config_dir: str | None) -> tuple[str, str]:
     """S5h — Word count from content.yaml matches SVG text count."""
     if config_dir is None:
@@ -502,6 +590,7 @@ def validate(svg_path: str, full_png_path: str | None = None,
             "S1e No GA Heading": ("FAIL", "SVG parse error"),
             "S5a Files": ("FAIL", "SVG parse error"),
             "S5h Content Sync": ("FAIL", "SVG parse error"),
+            "V14 Colorblind": ("FAIL", "SVG parse error"),
         })
         return False, report
 
@@ -531,6 +620,9 @@ def validate(svg_path: str, full_png_path: str | None = None,
 
     s5h_status, s5h_detail = check_s5h_content_sync(text_elements, svg_word_count, config_dir)
     results["S5h Content Sync"] = (s5h_status, s5h_detail)
+
+    v14_status, v14_detail = check_v14_colorblind_accessibility()
+    results["V14 Colorblind"] = (v14_status, v14_detail)
 
     report = _format_report(results)
 
