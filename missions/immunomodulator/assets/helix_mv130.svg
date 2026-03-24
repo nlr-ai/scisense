@@ -1,0 +1,14 @@
+<!-- DNA double helix. ~60x120 viewbox. Two intertwined sinusoidal paths. -->
+<g>
+  <!-- Strand A -->
+  <path d="M 30,5 C 50,15 50,25 30,35 C 10,45 10,55 30,65 C 50,75 50,85 30,95 C 10,105 10,115 30,120"
+        fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.7"/>
+  <!-- Strand B -->
+  <path d="M 30,5 C 10,15 10,25 30,35 C 50,45 50,55 30,65 C 10,75 10,85 30,95 C 50,105 50,115 30,120"
+        fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.7"/>
+  <!-- Rungs (horizontal connectors) -->
+  <line x1="18" y1="20" x2="42" y2="20" stroke="currentColor" stroke-width="1.2" opacity="0.35"/>
+  <line x1="18" y1="50" x2="42" y2="50" stroke="currentColor" stroke-width="1.2" opacity="0.35"/>
+  <line x1="18" y1="80" x2="42" y2="80" stroke="currentColor" stroke-width="1.2" opacity="0.35"/>
+  <line x1="18" y1="110" x2="42" y2="110" stroke="currentColor" stroke-width="1.2" opacity="0.35"/>
+</g>

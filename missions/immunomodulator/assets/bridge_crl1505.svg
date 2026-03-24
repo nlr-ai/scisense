@@ -1,0 +1,17 @@
+<!-- Arch/bridge with gut icon (left) and lung icon (right). ~200x100 viewbox. -->
+<g>
+  <!-- Main bridge arch -->
+  <path d="M 20,85 Q 100,5 180,85"
+        fill="none" stroke="currentColor" stroke-width="3.5" opacity="0.9"/>
+  <!-- Second arch (lighter, wider) -->
+  <path d="M 15,88 Q 100,0 185,88"
+        fill="none" stroke="currentColor" stroke-width="1.8" opacity="0.4"/>
+  <!-- Gut icon (left end) — squiggly intestine in circle -->
+  <circle cx="20" cy="85" r="15" fill="currentColor" opacity="0.1" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M 13,80 Q 17,75 20,80 Q 23,85 20,88 Q 17,92 24,90"
+        fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
+  <!-- Lung icon (right end) — two lobes -->
+  <circle cx="180" cy="85" r="15" fill="currentColor" opacity="0.1" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M 180,78 C 172,80 172,90 177,92 M 180,78 C 188,80 188,90 183,92"
+        fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
+</g>

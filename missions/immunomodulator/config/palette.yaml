@@ -1,0 +1,30 @@
+# Palette — Single source of truth
+# Referenced by compose_ga.py. Edit here, not in the script.
+
+products:
+  om85: "#2563EB"
+  pmbl: "#0D9488"
+  mv130: "#7C3AED"
+  crl1505: "#059669"
+
+zones:
+  z1_bg: "#FEF2F2"
+  z2_bg: "#FFFBEB"
+  z3_bg: "#ECFDF5"
+
+wall:
+  sick: "#F87171"
+  sick_mortar: "#FCA5A5"
+  transition: "#D4A574"
+  transition_mortar: "#C4956A"
+  healthy: "#34D399"
+  healthy_mortar: "#6EE7B7"
+
+text:
+  primary: "#1F2937"
+  secondary: "#6B7280"
+  light: "#9CA3AF"
+
+virus: "#DC2626"
+
+background: "#FAFAFA"

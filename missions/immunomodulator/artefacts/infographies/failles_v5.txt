@@ -1,0 +1,46 @@
+1. LA SURVIE ÉDITORIALE (Le Filtre MDPI)
+1. L'Hémorragie Textuelle (Violation de la Règle R3)
+Le Constat : L'image est saturée de longs blocs de texte sous forme de paragraphes (ex: "The Epithelial Barrier Gap: Recurrent viral infections (RSV/RV) penetrate porous respiratory walls...", "Targeted repair and clinical resolution...")
+.
+La Faille : C'est un motif de rejet éditorial immédiat. Le budget texte maximal autorisé par l'éditrice Mindy Ma est d'environ 30 mots au total
+. L'image actuelle compte plus de 70 mots et se transforme en une diapositive de présentation, violant la règle R4 (le GA doit raconter une histoire autonome, pas être un résumé textuel illustré)
+.
+2. LA DYNAMIQUE PATHOLOGIQUE (Zone 1)
+2. L'Absence de la Morphologie du "Cercle Vicieux"
+Le Constat : Il y a un titre indiquant "The Pathogenic Vicious Cycle", mais visuellement, on ne voit qu'un mur détruit de gauche à droite
+.
+La Faille Cognitive (B1 & B4) : Notre spécification (P1) exigeait une flèche explicitement circulaire à gauche
+. Sans cette boucle fermée (RTI ➔ Inflammation ➔ Remodelage ➔ RTI), le pédiatre ne visualise pas la chronicité du problème. Si le cycle n'est pas dessiné, la résolution visuelle finale (la rupture du cycle en Zone 3) perd tout son sens clinique
+.
+3. LA RIGUEUR MÉTAPHORIQUE ET SCIENTIFIQUE (Zone 2)
+3. Le Hub Dendritique Déconnecté et Erroné
+Le Constat : Au centre (Zone 2), la cellule censée être la Cellule Dendritique (DC) est une boule violette à pointes qui ressemble davantage à un pathogène (virus) qu'à une cellule immunitaire
+.
+La Faille Scientifique : Le manuscrit martèle que les 4 agents convergent vers l'activation de l'immunité innée (les DCs et macrophages)
+. Ici, la cellule flotte seule et ne sert pas de "commutateur"
+.
+4. L'Hélice ADN (MV130) Flottante
+Le Constat : La grande hélice violette (illustrant la reprogrammation épigénétique du MV130) flotte dans l'air entre le mur et la cellule violette
+.
+La Faille Scientifique : L'immunité entraînée (Trained Immunity) se produit à l'intérieur du noyau des cellules myéloïdes
+. L'hélice doit s'encastrer ou fusionner avec la Cellule Dendritique centrale, sinon la plausibilité biologique est rompue
+.
+5. Le Bouclier OM-85 Passif
+Le Constat : Le grand bouclier bleu lévite passivement devant les briques cassées
+.
+La Faille Clinique : L'OM-85 agit en réduisant l'expression des récepteurs viraux (ACE2, TMPRSS2)
+. Pour respecter la "Compression Métaphorique" (P3), le bouclier doit s'encastrer physiquement sur la surface des briques, bloquant activement un virus (RSV)
+. Un bouclier qui flotte ne protège pas.
+6. La Matérialisation du CRL1505 (Axe Gut-Lung)
+Le Constat : L'intestin est relié au poumon par une sorte de tunnel/tuyau vert massif et droit
+.
+La Faille Scientifique : Cela ressemble à une connexion anatomique littérale (un œsophage ou une trachée) plutôt qu'à un axe de "communication systémique" immunitaire
+. L'arc doit être un vecteur (une flèche lumineuse ou un faisceau) qui souligne la migration des effecteurs (IFN, IgA) de l'intestin vers la muqueuse respiratoire, sans ressembler à un organe tubulaire
+.
+4. LA RÉSOLUTION ET LA DÉCISION (Zone 3)
+7. Le Gradient d'Évidence Noyé
+Le Constat : Les blocs 3D sont empilés, mais le label du CRL1505 est poussé dans l'ombre en bas à gauche, tandis que les autres reposent sur l'escalier
+.
+La Faille de Décision (B3) : Bien que l'idée des blocs massifs soit excellente (le bloc bleu de l'OM-85 domine bien, traduisant ses 18 RCTs)
+, la topologie est confuse. La hiérarchie translationnelle doit être un escalier parfait (Laboratory ➔ Bedside) où l'œil du clinicien glisse de la base verte (préclinique) au sommet bleu (clinique robuste) sans chercher les labels
+.

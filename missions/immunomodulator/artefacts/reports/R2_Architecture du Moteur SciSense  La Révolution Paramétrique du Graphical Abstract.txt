@@ -1,0 +1,84 @@
+Architecture du Moteur SciSense : La Révolution Paramétrique du Graphical Abstract
+
+1. Vision et Proposition de Valeur du Moteur SciSense
+
+Le Moteur SciSense n'est pas un outil d'illustration, mais un module d'ingénierie logicielle conçu pour transformer des données cliniques brutes en vecteurs narratifs programmatiques. Il automatise la transition entre la gestion réactive de la vulnérabilité et la protection proactive de la santé, en brisant mathématiquement le cycle vicieux des infections respiratoires (RTI).
+
+L'architecture est compilée pour répondre rigoureusement aux standards de publication Q1 (MDPI Children) avec une optimisation "Mobile-First". Chaque pixel produit est le résultat d'une logique de vérification, garantissant une intégrité scientifique absolue là où les méthodes traditionnelles et l'IA générative échouent par imprécision.
+
+2. Le Vecteur de Santé (V_S) : La Variable Maîtresse
+
+Le pivot de l'architecture est la variable V_S, un flottant (Float) normalisé entre 0.0 (Pathologie/Vulnérabilité) et 1.0 (Santé/Résolution). Cette variable pilote la posture de la silhouette clinique via une fonction d'interpolation linéaire (LERP) :
+
+\text{Posture}(V_S) = \text{Vulnerable} \times (1 - V_S) + \text{Healthy} \times (V_S)
+
+Matrice de Diagnostic Paramétrique
+
+Paramètre Géométrique	État Malade (V_S = 0)	État Sain (V_S = 1)	Impact Physiologique
+Angle Thoracique (\theta_{\text{spine}})	Affaissé (< 90^\circ)	Érigé (90^\circ)	Capacité respiratoire / Obstruction
+Position Tête (X, Y)	Décalage +X, -Y	Alignement Axe 0	Tension cervicale et réflexe de toux
+Vecteurs Bras	Angles fermés (Contraction)	Ouverture radiale	Libération des voies aériennes
+Tension Bézier (Torse)	Tangentes courtes (Creusé)	Tangentes longues (Gonflé)	Volume pulmonaire / Expiration
+
+3. Cinématique Vectorielle et Pipeline de Rendu
+
+Le rendu est une fonction mathématique pure, excluant toute "hallucination" IA. Le pipeline suit trois étapes prescriptives :
+
+1. Calcul du Squelette : Application de la cinématique inverse (Inverse Kinematics) pour définir l'intention posturale de l'enfant en fonction de V_S.
+2. Enveloppe Organique (Bezier Skinning) : Calcul dynamique des tangentes pour envelopper le squelette. Cette méthode permet de "gonfler" ou "creuser" le torse sans distorsion de volume, simulant fidèlement la détresse respiratoire ou l'homéostasie.
+3. Lissage Algorithmique : Garantie d'une silhouette élégante en SVG natif, exempte d'artefacts, préservant une lisibilité critique à un zoom de 50%.
+
+4. Orchestration Bilateral Bond (IA/Humain/Code)
+
+Le flux de production repose sur une répartition de charge optimisée pour éliminer la paralysie décisionnelle :
+
+* IA (Silas - Contextualisation) : Extraction d'entités (cytokines, RCTs) depuis le Source Context et génération des wireframes initiaux.
+* Humain (Aurore - Arbitrage) : Validation scientifique. Silas soumet impérativement trois versions finies de qualité maximale. Aurore tranche parmi ces options, orientant le raffinement final sans jamais partir d'une page blanche.
+* Code (Exécution) : Script compose_ga.py utilisant svgwrite et Pillow pour compiler les artefacts finaux en 300 DPI.
+
+5. Standards de Conformité Q1 (Invariants MDPI)
+
+Le moteur applique des filtres de validation stricts (V1-V13) pour garantir l'acceptation éditoriale immédiate :
+
+* V1 : Ratio panoramique impératif de 1100 x 560 px.
+* V2 & V3 : Zéro titre/affiliation. Budget texte strict \le 30 mots (labels de 1-3 mots).
+* V4 (Non-redondance) : Interdiction de reproduire la Figure 1 (Manufacturing) ou la Figure 2 (Quadrants) du manuscrit.
+* V7 : Lisibilité des indices (ex: IFN-\gamma) maintenue à 50% de zoom.
+* V12 (Pictogramme Enfant) : Présence obligatoire d'un pictogramme enfant dans les Zones 1 et 3 pour permettre la projection clinique immédiate du pédiatre.
+* V13 (Logique Spatiale) : L'agent CRL1505 doit être spatialement séparé et son arc doit originier du bas de l'image (Axe Intestin-Poumon).
+* Typographie : Usage exclusif de Helvetica Neue ou Inter.
+
+6. Application Clinique : Mission Immunomodulateur
+
+Le Graphical Abstract est structuré en trois zones de transition chromatique (Rouge \to Vert) :
+
+* Zone 1 (L'Agression - V_S=0) : Identification clinique du patient. Visualisation d'un épithélium poreux (perte d'E-cadherin), cycle RTI-Wheezing activé par les virus (RSV/RV). Pictogramme enfant malade obligatoire.
+* Zone 2 (Le Hub de Modulation) : Point de convergence métaphorique vers la cellule dendritique.
+  * OM-85 (Bouclier), PMBL (Maçon), MV130 (Programmateur).
+  * CRL1505 (Pont) : Arc vert séparé partant du bas (action systémique).
+* Zone 3 (La Résolution - V_S=1) : Payoff visuel. Épithélium restauré, jonctions scellées, cycle brisé. Pictogramme enfant protégé obligatoire.
+
+Hiérarchie des Preuves et Confiance Prescriptive (V5)
+
+Le design encode la force de l'évidence clinique via un gradient (barres de remplissage) :
+
+* OM-85 (18 RCTs) : Remplissage plein \to Confiance prescriptive maximale.
+* PMBL (5 RCTs) : Remplissage élevé.
+* MV130 (1 RCT) : Remplissage émergent.
+* CRL1505 (Préclinique) : Remplissage minimal \to À surveiller.
+
+7. Automates de Validation (Health Checks)
+
+Le script validate_ga.py applique le principe "Fail Loud" : toute déviation interrompt le pipeline.
+
+* S1a-S1c : Vérification des dimensions (V1) et du word count (V3).
+* S5d (Palette Hexadécimale) : Validation stricte des codes agents :
+  * OM-85 : #2563EB (Bleu)
+  * PMBL : #0D9488 (Teal)
+  * MV130 : #7C3AED (Violet)
+  * CRL1505 : #059669 (Vert)
+* S5h : Cohérence entre content.yaml et les éléments <text> du SVG final.
+
+8. Conclusion : Le Design comme Récit Clinique
+
+La pipeline SciSense transforme le Graphical Abstract en un outil de communication autonome. En encodant géométriquement la santé respiratoire à travers le vecteur V_S, l'architecture démontre physiquement comment l'immunomodulation brise le cycle de l'asthme. Ce passage de la "trajectoire de vulnérabilité" à la "protection long-terme" n'est plus une simple assertion textuelle, mais une évidence mathématique et visuelle prête pour la publication Q1.

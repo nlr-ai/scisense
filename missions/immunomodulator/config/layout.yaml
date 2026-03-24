@@ -1,0 +1,143 @@
+# Layout — Parametric positions and sizes
+# All positions in fractions of canvas (0.0-1.0) unless noted.
+# Edit here to adjust layout. Re-run compose_ga.py to regenerate.
+
+canvas:
+  width: 3300
+  height: 1680
+  delivery_width: 1100
+  delivery_height: 560
+
+zones:
+  z1:
+    x_pct: 0.0
+    width_pct: 0.27
+  z2:
+    x_pct: 0.27
+    width_pct: 0.46
+  z3:
+    x_pct: 0.73
+    width_pct: 0.27
+
+wall:
+  y_center_pct: 0.40
+  height_px: 140
+  brick_rows: 4
+  brick_cols_per_zone: 10
+  brick_gap: 3
+  # Gaps in zone 1 (row, col) — missing bricks
+  z1_gaps: [[0,3],[0,7],[1,2],[1,5],[1,8],[2,1],[2,6],[3,4],[3,9]]
+  # Zone 2: PMBL bricks fill some gaps (teal colored)
+  z2_repair_bricks: [[0,2],[1,4],[1,7],[2,3],[2,8],[3,1]]
+  # Zone 3: all bricks present, healthy color
+
+titles:
+  z1: "Vulnerability"
+  z2: "Repair"
+  z3: "Resolution"
+  y_pct: 0.04
+  font_size: 42
+
+elements:
+  # Each element uses a GENERATOR function, not a static asset.
+  # Generator params are in config/generators.yaml
+  # Positions/scale here, shapes/details in generators.yaml
+
+  child_sick:
+    generator: child
+    params_key: sick       # references generators.yaml > child > sick
+    zone: z1
+    x_pct: 0.35
+    y_pct: 0.15
+    scale: 3.0
+    color_key: "virus"
+
+  child_healthy:
+    generator: child
+    params_key: healthy    # references generators.yaml > child > healthy
+    zone: z3
+    x_pct: 0.35
+    y_pct: 0.15
+    scale: 2.2
+    color_key: "products.crl1505"
+
+  shield_om85:
+    generator: shield
+    zone: z2
+    x_pct: 0.15               # FIX F3: left side of Z2, between virus entry and wall
+    y_pct: 0.27               # FIX F3: just above wall (0.40), shield overlaps wall top
+    scale: 2.8
+    color_key: "products.om85"
+
+  helix_mv130:
+    generator: helix
+    zone: z2
+    x_pct: 0.45               # FIX F4: match dc_cell.x_pct (inside DC nucleus)
+    y_pct: 0.38               # FIX F4: match dc_cell.y_pct
+    scale: 0.6                # FIX F4: tiny, inside the DC nucleus
+    color_key: "products.mv130"
+
+  bridge_crl1505:
+    generator: bridge
+    zone: z2
+    x_pct: 0.55
+    y_pct: 0.78
+    scale: 3.5
+    color_key: "products.crl1505"
+
+  dc_cell:
+    generator: dc_cell
+    zone: z2
+    x_pct: 0.45
+    y_pct: 0.38
+    scale: 2.5
+    color_key: "text.secondary"
+
+vicious_cycle:
+  zone: z1
+  center_x_pct: 0.5
+  center_y_pct: 0.70
+  radius_x: 200
+  radius_y: 150
+  stations:
+    - label: "Viral RTIs"
+      angle_deg: -90
+    - label: "Th2 bias"
+      angle_deg: 0
+    - label: "Remodeling"
+      angle_deg: 90
+    - label: "Re-susceptibility"
+      angle_deg: 180
+  bottom_label: "Wheezing / Asthma"
+  font_size: 28
+
+evidence_blocks:
+  zone: z3
+  y_start_pct: 0.52
+  block_height: 110
+  block_gap: 14
+  max_width: 420
+  items:
+    - product: om85
+      width_pct: 1.0
+      label: "18 RCTs"
+    - product: pmbl
+      width_pct: 0.65
+      label: "5 RCTs"
+    - product: mv130
+      width_pct: 0.35
+      label: "1 RCT"
+    - product: crl1505
+      width_pct: 0.15
+      label: "Preclinical"
+      offset_right: true
+  title: "Clinical evidence"
+  title_font_size: 32
+
+labels:
+  protected_airways: "Protected airways"
+  broken_cycle: "Broken Cycle"
+
+font:
+  family: "Helvetica, Arial, sans-serif"
+  min_size: 24  # at 3x = 8pt at delivery

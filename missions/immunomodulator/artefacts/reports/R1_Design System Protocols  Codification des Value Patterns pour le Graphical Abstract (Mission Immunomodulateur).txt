@@ -1,0 +1,88 @@
+Design System Protocols : Codification des Value Patterns pour le Graphical Abstract (Mission Immunomodulateur)
+
+Ce document établit les protocoles paramétriques et les standards de rendu pour le Graphical Abstract (GA) destiné à la revue MDPI Children. En tant que référentiel technique, il transmute les données cliniques du manuscrit en un système visuel de "Zéro Tolérance" garantissant la survie éditoriale et l'impact cognitif auprès des pédiatres.
+
+1. Fondations Stratégiques et Invariants Éditoriaux
+
+La conformité aux règles MDPI est traitée comme un invariant de pipeline. Tout écart par rapport aux paramètres ci-dessous déclenche une condition Fail Loud.
+
+Tableau de Conformité "Zéro Tolérance"
+
+Paramètre	Spécification Technique	Règle Métier
+Dimensions	1100 x 560 px (Ratio 1:1.96)	Invariant géométrique strict.
+Anonymat	Aucun titre, affiliation ou référence	Exclusion totale des métadonnées textuelles.
+Budget Texte	27 mots (Hard Limit)	Cible impérative pour passage audit SVG.
+Lisibilité (R6)	Seuil de zoom 50%	IFN-γ, ACE2, IL-12p70 (Indices critiques).
+Typographie	Helvetica Neue ou Inter	Rigueur clinique contemporaine.
+Droits (V6/V11)	Original / Licencié	Traçabilité via PROVENANCE.md.
+
+Note sur la règle R6 : Le rendu des glyphes en indice (ex: le "γ" de IFN-γ) doit être testé manuellement à une résolution de 550x280 px. Si le caractère devient une masse informe, augmenter le kerning ou la taille du subscript.
+
+2. Architecture Topologique : Le "Parcours de Protection"
+
+L'espace est segmenté en trois zones de flux horizontal (Gauche → Droite).
+
+* Zone 1 (L'Agression / Rouge) : Fond #FEE2E2. Illustration de l'immaturité immunitaire.
+  * Le Cercle Vicieux : Doit comporter exactement trois nœuds : Viral RTIs, Dysregulated Inflammation, et Airway Remodeling.
+  * L'Épithélium : Représentation par "briques disjointes" (perte de E-cadherine).
+* Zone 2 (Le Hub de Modulation / Neutre) : Fond #FAFAFA. Convergence des 4 agents vers une Cellule Dendritique (DC) centrale.
+  * Détachement Spatial (V13) : Le CRL1505 (Gut-Lung Bridge) doit être spatialement isolé des agents inhalés. Son arc de communication doit partir de la base de l'image pour signifier l'action systémique (orale) vs locale.
+* Zone 3 (La Résolution / Vert) : Fond #ECFDF5. Payoff clinique.
+  * Homéostasie : Épithélium restauré, jonctions scellées, présence obligatoire de macrophages de phénotype M2.
+
+3. Sémiotique Chromatique : Palette "Active" et Contrastes
+
+Les agents immunomodulateurs utilisent des couleurs "Actives" sans aucun dégradé (Solid Fill uniquement) pour se détacher des zones "Passives".
+
+Codification Produit-Signification
+
+Entité	Code Hex	Signification Sémantique
+OM-85	#2563EB	Bleu : Force, robustesse, ancrage des preuves.
+PMBL	#0D9488	Teal : Maçonnerie moléculaire, scellage épithélial.
+MV130	#7C3AED	Violet : Programmation, mémoire épigénétique.
+CRL1505	#059669	Vert : Probiotique, axe systémique Gut-Lung.
+
+Ratios de Contraste : Les teintes de fond (#FEE2E2 et #ECFDF5) sont calibrées pour garantir l'accessibilité "Mobile-First" contre les agents actifs et le texte #1F2937 (Gris foncé).
+
+4. Embodiment : Métaphores et Invariants Pictogrammiques
+
+L'incarnation visuelle des mécanismes d'action utilise des "Embodiment Patterns" précis.
+
+* OM-85 (Bouclier de Verrouillage) : Icône combinant capsule et serrure (Réduction ACE2/TMPRSS2).
+* PMBL (Maçon Épithélial) : Icône de briques et d'agrafes (E-cadherine).
+* MV130 (Programmateur Inné) : Intégration hybride Hélice ADN + Horloge pour symboliser la mémoire épigénétique entraînée.
+* CRL1505 (Pont Gut-Lung) : Arc protecteur partant du bas du cadre.
+* Invariants de Projection (V12) : La présence de deux pictogrammes enfants est obligatoire : un enfant malade/toussant en Zone 1 et un enfant protégé/sain en Zone 3. Leur absence déclenche un rejet automatique.
+
+5. Gravité Visuelle : Encodage du Gradient d'Évidence
+
+La Zone 3 encode la maturité clinique par la masse visuelle. OM-85 est l'ancre (Visual Anchor) ; CRL1505 est la ligne de base (Baseline).
+
+Produit	Maturité (RCTs)	Rendu de Gravité
+OM-85	18 RCTs	Emprise maximale / Barre pleine (100%).
+PMBL	5 RCTs	Barre ~60% (Maturité intermédiaire).
+MV130	1 RCT	Barre ~30% (Signal émergent).
+CRL1505	Préclinique	Barre ~10% + Icône fiole de laboratoire.
+
+6. Sémiotique Fonctionnelle : Dynamique de Flux
+
+Rupture du Cycle ("Breaking the Cycle")
+
+L'élément mémorable est une collision physique. Le flux de résolution (Zone 2 → Zone 3) doit littéralement percuter et briser la flèche circulaire du "Cercle Vicieux" de la Zone 1.
+
+Hiérarchie des Biomarqueurs (↑/↓)
+
+Les effecteurs sont regroupés par clusters fonctionnels :
+
+* Health Effectors (↑) : IFN-β, IFN-γ, IgA, IL-10 (Positionnement : Supérieur/Dynamique).
+* Pathology Effectors (↓) : Th2 (IL-4, IL-5, IL-13) et Éosinophiles (Positionnement : Inférieur/Atténué).
+
+7. Protocoles de Validation Paramétrique (QA Pipeline)
+
+Tout rendu doit être soumis à un audit automatisé via validate_ga.py :
+
+1. Grep Hex Codes : Vérification de l'exactitude des 4 codes produits.
+2. Word Count Audit : Analyse des balises <text> du SVG. Le compte doit être strictement égal ou inférieur à 30 (cible optimale : 27).
+3. Check de Provenance (V11) : Chaque élément graphique doit pointer vers une entrée dans PROVENANCE.md.
+4. Multi-Resolution Fail-Safe : Downsampling automatique à 550x280 px. Le pipeline échoue si la luminance moyenne d'un caractère de 8pt descend sous le seuil de discrimination visuelle.
+5. Invariant Check : Vérification de la présence des nœuds (Sick Child, Healthy Child, M2 Macrophage).

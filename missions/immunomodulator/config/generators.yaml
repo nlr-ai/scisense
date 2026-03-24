@@ -1,0 +1,86 @@
+# Generators — Parametric element generation
+# Each element is a FUNCTION call, not a file reference.
+# The compositor calls draw_{generator}(**params) for each element.
+# Calibrated from infographic references V4_notebook_feedback.png + V5_notebook.png
+
+child:
+  # Kinematic rig: 8 anchor points + Bézier skinning
+  # All angles in degrees, positions relative to anchor center
+  # Convention: 0°=up, 90°=outward, 180°=down. Left arm X is mirrored in code.
+  sick:  # H = 0.0 — hunched, coughing, arms crossed/near body
+    spine_bend: 35         # strong forward lean (θ_spine < 90°, SD2 slide 10)
+    head_tilt: -20         # drooping forward (tension cervicale)
+    head_radius: 28        # px at 3x
+    shoulder_width: 42     # narrower (shoulders hunched)
+    arm_angle_L: 160       # hanging down along body
+    arm_angle_R: -30       # up toward mouth (coughing gesture)
+    arm_length: 50
+    leg_spread: 8          # legs close together (unstable)
+    leg_length: 60
+    body_width: 32         # narrower torso (creased)
+    # Expression marks
+    cough_marks: true      # arcs near mouth
+    distress_lines: 3      # stress lines near head
+  healthy:  # H = 1.0 — upright, arms open, proud stance
+    spine_bend: -5         # slight backward lean (proud)
+    head_tilt: 10          # looking up
+    head_radius: 28
+    shoulder_width: 55     # wide stance
+    arm_angle_L: 50        # spread up and outward (liberation)
+    arm_angle_R: 50        # symmetric
+    arm_length: 58
+    leg_spread: 22         # stable wide stance
+    leg_length: 60
+    body_width: 38         # wider torso (inflated)
+    # Expression marks
+    sparkle_marks: true    # celebration sparkles
+    smile: true
+
+virus:
+  radius: 22
+  spike_count: 8
+  spike_length: 14
+  spike_tip_radius: 4
+  expression: "angry"      # angry = frown lines on face
+
+shield:
+  width: 100
+  height: 120
+  border_thickness: 6
+  lock_size: 20            # keyhole/lock icon in center
+  curvature: 0.3           # how rounded the bottom is
+
+helix:
+  wavelength: 40           # px per full wave
+  amplitude: 20            # px displacement
+  num_rungs: 6             # connecting rungs between strands
+  length: 150              # total vertical length
+  strand_width: 4          # stroke width
+
+bridge:
+  arc_height: 180          # px from base to peak
+  arc_width: 350           # horizontal span
+  thickness: 7             # stroke width of arc
+  gut_icon_radius: 25      # squiggly circle at bottom
+  lung_icon_radius: 20     # two-lobe shape at top
+  pillar_count: 5          # vertical support lines
+
+dc_cell:
+  num_branches: 7
+  branch_length_min: 25
+  branch_length_max: 45
+  body_radius: 20
+  branch_width: 3
+  irregularity: 0.3        # 0=perfect star, 1=very irregular
+
+brick:
+  width: 70                # single brick width at 3x
+  height: 32               # single brick height at 3x
+  mortar_gap: 3
+  corner_radius: 2
+
+block_3d:
+  depth: 12                # pseudo-3D depth offset
+  top_face_opacity: 0.5
+  right_face_opacity: 0.3
+  front_face_opacity: 0.8

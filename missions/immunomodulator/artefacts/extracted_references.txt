@@ -1,0 +1,252 @@
+References extracted from: Manuscript 06112025.docx
+Total references: 124
+================================================================================
+
+1. He L, Weng J, Zhu F, Zhang Y, Chen J, Chen S, et al. The morbidity spectrum of influenza, respiratory syncytial virus, human metapneumovirus and human parainfluenza virus in young children by age and country income level: A systematic review and meta-analysis. Int J Infect Dis. 2025;157:107938. https://doi.org/10.1016/j.ijid.2025.107938.
+
+2. Vandini S, Biagi C, Fischer M, Lanari M. Impact of Rhinovirus Infections in Children. Viruses. 2019;11:521. https://doi.org/10.3390/v11060521.
+
+3. Suleiman-Martos N, Caballero-Vázquez A, Gómez-Urquiza JL, Albendín-García L, Romero-Béjar JL, Cañadas-De La Fuente GA. Prevalence and Risk Factors of Respiratory Syncytial Virus in Children under 5 Years of Age in the WHO European Region: A Systematic Review and Meta-Analysis. J Pers Med. 2021;11:416. https://doi.org/10.3390/jpm11050416.
+
+4. Li Y, Wang X, Blau DM, Caballero MT, Feikin DR, Gill CJ, et al. Global, regional, and national disease burden estimates of acute lower respiratory infections due to respiratory syncytial virus in children younger than 5 years in 2019: a systematic analysis. The Lancet. 2022;399:2047–64. https://doi.org/10.1016/S0140-6736(22)00478-0.
+
+5. McLaughlin JM, Khan F, Schmitt H-J, Agosti Y, Jodar L, Simões EAF, et al. Respiratory Syncytial Virus–Associated Hospitalization Rates among US Infants: A Systematic Review and Meta-Analysis. J Infect Dis. 2022;225:1100–11. https://doi.org/10.1093/infdis/jiaa752.
+
+6. Del Riccio M, Spreeuwenberg P, Osei-Yeboah R, Johannesen CK, Fernandez LV, Teirlinck AC, et al. Burden of Respiratory Syncytial Virus in the European Union: estimation of RSV-associated hospitalizations in children under 5 years. J Infect Dis. 2023;228:1528–38. https://doi.org/10.1093/infdis/jiad188.
+
+7. Yu JC, Khodadadi H, Malik A, Davidson B, Salles É da SL, Bhatia J, et al. Innate Immunity of Neonates and Infants. Front Immunol. 2018;9. https://doi.org/10.3389/fimmu.2018.01759.
+
+8. Moraes-Pinto MID, Suano-Souza F, Aranda CS. Immune system: development and acquisition of immunological competence. J Pediatr (Rio J). 2021;97:S59–66. https://doi.org/10.1016/j.jped.2020.10.006.
+
+9. Pieren DKJ, Boer MC, De Wit J. The adaptive immune system in early life: The shift makes it count. Front Immunol. 2022;13:1031924. https://doi.org/10.3389/fimmu.2022.1031924.
+
+10. Goenka A, Kollmann TR. Development of immunity in early life. J Infect. 2015;71 Suppl 1:S112-120. https://doi.org/10.1016/j.jinf.2015.04.027.
+
+11. Tregoning JS, Schwarze J. Respiratory Viral Infections in Infants: Causes, Clinical Symptoms, Virology, and Immunology. Clin Microbiol Rev. 2010;23:74–98. https://doi.org/10.1128/CMR.00032-09.
+
+12. Edwards MR, Walton RP, Jackson DJ, Feleszko W, Skevaki C, Jartti T, et al. The potential of anti‐infectives and immunomodulators as therapies for asthma and asthma exacerbations. Allergy. 2018;73:50–63. https://doi.org/10.1111/all.13257.
+
+13. Kloepfer KM, Jackson DJ, Jartti T, Liu AH, Gern JE. How Infections and Immune Development Relate to Preschool Recurrent Wheezing and Asthma. J Allergy Clin Immunol Pract. 2025;13:2553–61. https://doi.org/10.1016/j.jaip.2025.08.017.
+
+14. Mikhail I, Grayson MH. Asthma and viral infections. Ann Allergy Asthma Immunol. 2019;123:352–8. https://doi.org/10.1016/j.anai.2019.06.020.
+
+15. Liu L, Pan Y, Zhu Y, Song Y, Su X, Yang L, et al. Association between rhinovirus wheezing illness and the development of childhood asthma: a meta-analysis. BMJ Open. 2017;7:e013034. https://doi.org/10.1136/bmjopen-2016-013034.
+
+16. Ma R, Zhang C, Zhang Y, Tan H, Zhang Y, Li Q, et al. The impact of respiratory syncytial virus on asthma development and exacerbation. Ann Allergy Asthma Immunol. 2025;135:268–75. https://doi.org/10.1016/j.anai.2025.05.011.
+
+17. Dang AT, Pasquali C, Ludigs K, Guarda G. OM-85 is an immunomodulator of interferon-β production and inflammasome activity. Sci Rep. 2017;7:43844. https://doi.org/10.1038/srep43844.
+
+18. Troy NM, Strickland D, Serralha M, De Jong E, Jones AC, Read J, et al. Protection against severe infant lower respiratory tract infections by immune training: Mechanistic studies. J Allergy Clin Immunol. 2022;150:93–103. https://doi.org/10.1016/j.jaci.2022.01.001.
+
+19. Cazzola M, Anapurapu S, Page CP. Polyvalent mechanical bacterial lysate for the prevention of recurrent respiratory infections: A meta-analysis. Pulm Pharmacol Ther. 2012;25:62–8. https://doi.org/10.1016/j.pupt.2011.11.002.
+
+20. Nieto A, Mazón A, Nieto M, Calderón R, Calaforra S, Selva B, et al. Bacterial Mucosal Immunotherapy with MV130 Prevents Recurrent Wheezing in Children: A Randomized, Double-Blind, Placebo-controlled Clinical Trial. Am J Respir Crit Care Med. 2021;204:462–72. https://doi.org/10.1164/rccm.202003-0520OC.
+
+21. Montalbán-Hernández K, Cogollo-García A, Girón De Velasco-Sada P, Caballero R, Casanovas M, Subiza JL, et al. MV130 in the Prevention of Recurrent Respiratory Tract Infections: A Retrospective Real-World Study in Children and Adults. Vaccines. 2024;12:172. https://doi.org/10.3390/vaccines12020172.
+
+22. Du T, Lei A, Zhang N, Zhu C. The Beneficial Role of Probiotic Lactobacillus in Respiratory Diseases. Front Immunol. 2022;13:908010. https://doi.org/10.3389/fimmu.2022.908010.
+
+23. Kenmoe S, Atenguena Okobalemba E, Takuissu GR, Ebogo-Belobo JT, Oyono MG, Magoudjou-Pekam JN, et al. Association between early viral lower respiratory tract infections and subsequent asthma development. World J Crit Care Med. 2022;11:298–310. https://doi.org/10.5492/wjccm.v11.i4.298.
+
+24. Binns E, Tuckerman J, Licciardi PV, Wurzel D. Respiratory syncytial virus, recurrent wheeze and asthma: A narrative review of pathophysiology, prevention and future directions. J Paediatr Child Health. 2022;58:1741–6. https://doi.org/10.1111/jpc.16197.
+
+25. Le Souëf P. Viral infections in wheezing disorders. Eur Respir Rev. 2018;27:170133. https://doi.org/10.1183/16000617.0133-2017.
+
+26. Kombe Kombe AJ, Fotoohabadi L, Gerasimova Y, Nanduri R, Lama Tamang P, Kandala M, et al. The Role of Inflammation in the Pathogenesis of Viral Respiratory Infections. Microorganisms. 2024;12:2526. https://doi.org/10.3390/microorganisms12122526.
+
+27. Mthembu N, Ikwegbue P, Brombacher F, Hadebe S. Respiratory Viral and Bacterial Factors That Influence Early Childhood Asthma. Front Allergy. 2021;2:692841. https://doi.org/10.3389/falgy.2021.692841.
+
+28. Luo W, Hu J, Xu W, Dong J. Distinct spatial and temporal roles for Th1, Th2, and Th17 cells in asthma. Front Immunol. 2022;13:974066. https://doi.org/10.3389/fimmu.2022.974066.
+
+29. Semmes EC, Chen J-L, Goswami R, Burt TD, Permar SR, Fouda GG. Understanding Early-Life Adaptive Immunity to Guide Interventions for Pediatric Health. Front Immunol. 2021;11:595297. https://doi.org/10.3389/fimmu.2020.595297.
+
+30. Suleiman-Martos N, Caballero-Vázquez A, Gómez-Urquiza JL, Albendín-García L, Romero-Béjar JL, Cañadas-De La Fuente GA. Prevalence and Risk Factors of Respiratory Syncytial Virus in Children under 5 Years of Age in the WHO European Region: A Systematic Review and Meta-Analysis. J Pers Med. 2021;11:416. https://doi.org/10.3390/jpm11050416.
+
+31. Di Gioacchino M, Santilli F, Pession A. Is There a Role for Immunostimulant Bacterial Lysates in the Management of Respiratory Tract Infection? Biomolecules. 2024;14:1249. https://doi.org/10.3390/biom14101249.
+
+32. Mastrangelo P, Chin AA, Tan S, Jeon AH, Ackerley CA, Siu KK, et al. Identification of RSV Fusion Protein Interaction Domains on the Virus Receptor, Nucleolin. Viruses. 2021;13:261. https://doi.org/10.3390/v13020261.
+
+33. Ganjian H, Rajput C, Elzoheiry M, Sajjan U. Rhinovirus and Innate Immune Function of Airway Epithelium. Front Cell Infect Microbiol. 2020;10:277. https://doi.org/10.3389/fcimb.2020.00277.
+
+34. Pace E, Di Vincenzo S, Ferraro M, Lanata L, Scaglione F. Role of airway epithelium in viral respiratory infections: Can carbocysteine prevent or mitigate them? Immunology. 2024;172:329–42. https://doi.org/10.1111/imm.13762.
+
+35. Roan F, Obata-Ninomiya K, Ziegler SF. Epithelial cell–derived cytokines: more than just signaling the alarm. J Clin Invest. 2019;129:1441–51. https://doi.org/10.1172/JCI124606.
+
+36. Sasaki H, Miyata J, Kawana A, Fukunaga K. Antiviral roles of eosinophils in asthma and respiratory viral infection. Front Allergy. 2025;6:1548338. https://doi.org/10.3389/falgy.2025.1548338.
+
+37. Malinczak C-A, Fonseca W, Hrycaj SM, Morris SB, Rasky AJ, Yagi K, et al. Early-life pulmonary viral infection leads to long-term functional and lower airway structural changes in the lungs. Am J Physiol-Lung Cell Mol Physiol. 2024;326:L280–91. https://doi.org/10.1152/ajplung.00300.2023.
+
+38. Rosas-Salazar C, Chirkova T, Gebretsadik T, Chappell JD, Peebles RS, Dupont WD, et al. Respiratory syncytial virus infection during infancy and asthma during childhood in the USA (INSPIRE): a population-based, prospective birth cohort study. Lancet Lond Engl. 2023;401:1669–80. https://doi.org/10.1016/S0140-6736(23)00811-5.
+
+39. Rossi GA, Pohunek P, Feleszko W, Ballarini S, Colin AA. Viral infections and wheezing–asthma inception in childhood: is there a role for immunomodulation by oral bacterial lysates? Clin Transl Allergy. 2020;10:17. https://doi.org/10.1186/s13601-020-00322-1.
+
+40. Beigelman A, Bacharier LB. Early-life respiratory infections and asthma development: role in disease pathogenesis and potential targets for disease prevention. Curr Opin Allergy Clin Immunol. 2016;16:172–8. https://doi.org/10.1097/ACI.0000000000000244.
+
+41. Achten NB, Van Rossum AMC, Bacharier LB, Fitzpatrick AM, Hartert TV. Long-Term Respiratory Consequences of Early-Life Respiratory Viral Infections: A Pragmatic Approach to Fundamental Questions. J Allergy Clin Immunol Pract. 2022;10:664–70. https://doi.org/10.1016/j.jaip.2021.12.005.
+
+42. Kaczynska A, Klosinska M, Janeczek K, Zarobkiewicz M, Emeryk A. Promising Immunomodulatory Effects of Bacterial Lysates in Allergic Diseases. Front Immunol. 2022;13:907149. https://doi.org/10.3389/fimmu.2022.907149.
+
+43. Loisel DA, Du G, Ahluwalia TS, Tisler CJ, Evans MD, Myers RA, et al. Genetic associations with viral respiratory illnesses and asthma control in children. Clin Exp Allergy. 2016;46:112–24. https://doi.org/10.1111/cea.12642.
+
+44. Castro-Rodriguez JA, Wolters AAB, Rodriguez-Martinez CE, Biagini JM, Celedón JC, Custovic A, et al. Risk Factors and Mechanisms Leading to Preschool Recurrent Wheeze and Asthma. J Allergy Clin Immunol Pract. 2025;13:2537–51. https://doi.org/10.1016/j.jaip.2025.07.051.
+
+45. Koppelman GH, Pino-Yanes M, Melén E, Powell P, Bracke KR, Celedón JC, et al. Genetic and environmental risk factors for asthma: towards prevention. Lancet Respir Med. 2025;13:1011–25. https://doi.org/10.1016/S2213-2600(25)00256-5.
+
+46. Benedetto FD, Sevieri G. Prevention of respiratory tract infections with bacterial lysate OM-85 bronchomunal in children and adults: a state of the art.
+
+47. Kearney SC, Dziekiewicz M, Feleszko W. Immunoregulatory and immunostimulatory responses of bacterial lysates in respiratory infections and asthma. Ann Allergy Asthma Immunol. 2015;114:364–9. https://doi.org/10.1016/j.anai.2015.02.008.
+
+48. Morandi B, Agazzi A, D’Agostino A, Antonini F, Costa G, Sabatini F, et al. A mixture of bacterial mechanical lysates is more efficient than single strain lysate and of bacterial-derived soluble products for the induction of an activating phenotype in human dendritic cells. Immunol Lett. 2011;138:86–91. https://doi.org/10.1016/j.imlet.2011.03.006.
+
+49. Brandi P, Conejero L, Cueto FJ, Martínez-Cano S, Dunphy G, Gómez MJ, et al. Trained immunity induction by the inactivated mucosal vaccine MV130 protects against experimental viral respiratory infections. Cell Rep. 2022;38:110184. https://doi.org/10.1016/j.celrep.2021.110184.
+
+50. Ozen M, Kocabas Sandal G, Dinleyici EC. Probiotics for the prevention of pediatric upper respiratory tract infections: a systematic review. Expert Opin Biol Ther. 2015;15:9–20. https://doi.org/10.1517/14712598.2015.980233.
+
+51. Pasquali C, Salami O, Taneja M, Gollwitzer ES, Trompette A, Pattaroni C, et al. Enhanced Mucosal Antibody Production and Protection against Respiratory Infections Following an Orally Administered Bacterial Extract. Front Med. 2014;1. https://doi.org/10.3389/fmed.2014.00041.
+
+52. Huber M, Mossmann H, Bessler WG. TH1-ORIENTATED IMMUNOLOGICAL PROPERTIES OF THE BACTERIAL EXTRACT OM-85-BV.
+
+53. Bessler WG, Vor Dem Esche U, Masihi N. The bacterial extract OM-85 BV protects mice against Influenza and Salmonella infection. Int Immunopharmacol. 2010;10:1086–90. https://doi.org/10.1016/j.intimp.2010.06.009.
+
+54. Roth M, Pasquali C, Stolz D, Tamm M. Broncho Vaxom (OM-85) modulates rhinovirus docking proteins on human airway epithelial cells via Erk1/2 mitogen activated protein kinase and cAMP. PLOS ONE. 2017;12:e0188010. https://doi.org/10.1371/journal.pone.0188010.
+
+55. Roth M, Khameneh HJ, Fang L, Tamm M, Rossi GA. Distinct Antiviral Properties of Two Different Bacterial Lysates. Can Respir J. 2021;2021:1–11. https://doi.org/10.1155/2021/8826645.
+
+56. Pivniouk V, Pivniouk O, DeVries A, Uhrlaub JL, Michael A, Pivniouk D, et al. The OM-85 bacterial lysate inhibits SARS-CoV-2 infection of epithelial cells by downregulating SARS-CoV-2 receptor expression. J Allergy Clin Immunol. 2022;149:923-933.e6. https://doi.org/10.1016/j.jaci.2021.11.019.
+
+57. Fang L, Zhou L, Tamm M, Roth M. OM-85 Broncho-Vaxom®, a Bacterial Lysate, Reduces SARS-CoV-2 Binding Proteins on Human Bronchial Epithelial Cells. Biomedicines. 2021;9:1544. https://doi.org/10.3390/biomedicines9111544.
+
+58. Triantafillou V, Workman AD, Patel NN, Maina IW, Tong CCL, Kuan EC, et al. Broncho‐Vaxom® (OM‐85 BV) soluble components stimulate sinonasal innate immunity. Int Forum Allergy Rhinol. 2019;9:370–7. https://doi.org/10.1002/alr.22276.
+
+59. Pivniouk V, Gimenes-Junior JA, Ezeh P, Michael A, Pivniouk O, Hahn S, et al. Airway administration of OM-85, a bacterial lysate, blocks experimental asthma by targeting dendritic cells and the epithelium/IL-33/ILC2 axis. J Allergy Clin Immunol. 2022;149:943–56. https://doi.org/10.1016/j.jaci.2021.09.013.
+
+60. Navarro S, Cossalter G, Chiavaroli C, Kanda A, Fleury S, Lazzari A, et al. The oral administration of bacterial extracts prevents asthma via the recruitment of regulatory T cells to the airways. Mucosal Immunol. 2011;4:53–65. https://doi.org/10.1038/mi.2010.51.
+
+61. Fu R, Li J, Zhong H, Yu D, Zeng X, Deng M, et al. Broncho-Vaxom Attenuates Allergic Airway Inflammation by Restoring GSK3β-Related T Regulatory Cell Insufficiency. PLoS ONE. 2014;9:e92912. https://doi.org/10.1371/journal.pone.0092912.
+
+62. Khameneh HJ, Bolis M, Ventura PMO, Cassanmagnago GA, Fischer BA, Zenobi A, et al. The bacterial lysate OM-85 engages Toll-like receptors 2 and 4 triggering an immunomodulatory gene signature in human myeloid cells. Mucosal Immunol. 2024;17:346–58. https://doi.org/10.1016/j.mucimm.2024.02.010.
+
+63. Parola C, Salogni L, Vaira X, Scutera S, Somma P, Salvi V, et al. Selective Activation of Human Dendritic Cells by OM-85 through a NF-kB and MAPK Dependent Pathway. PLoS ONE. 2013;8:e82867. https://doi.org/10.1371/journal.pone.0082867.
+
+64. Zelle-Rieser C, Ramoner R, Bartsch G, Thurnher M. A clinically approved oral vaccine against pneumotropic bacteria induces the terminal maturation of CD83+ immunostimulatory dendritic cells. Immunol Lett. 2001;76:63–7. https://doi.org/10.1016/s0165-2478(00)00326-6.
+
+65. Antunes KH, Cassão G, Santos LD, Borges SG, Poppe J, Gonçalves JB, et al. Airway Administration of Bacterial Lysate OM-85 Protects Mice Against Respiratory Syncytial Virus Infection. Front Immunol. 2022;13:867022. https://doi.org/10.3389/fimmu.2022.867022.
+
+66. Rossi GA, Bessler W, Ballarini S, Pasquali C. Evidence that a primary anti-viral stimulation of the immune response by OM-85 reduces susceptibility to a secondary respiratory bacterial infection in mice. Ital J Pediatr. 2018;44:112. https://doi.org/10.1186/s13052-018-0569-7.
+
+67. Byl B, Libin M, Gérard M, Clumeck N, Goldman M, Mascart-Lemone F. Bacterial Extract OM85-BV Induces Interleukin-12-Dependent IFN-γ Production by Human CD4+ T Cells. J Interferon Cytokine Res. 1998;18:817–21. https://doi.org/10.1089/jir.1998.18.817.
+
+68. Lanzilli G, Falchetti R, Tricarico M, Ungheri D, Fuggetta MP. In Vitro Effects of an Immunostimulating Bacterial Lysate on Human Lymphocyte Function. Int J Immunopathol Pharmacol. 2005;18:245–54. https://doi.org/10.1177/039463200501800207.
+
+69. Banche G, Allizond V, Mandras N, Garzaro M, Cavallo GP, Baldi C, et al. Improvement of Clinical Response in Allergic Rhinitis Patients Treated with an Oral Immunostimulating Bacterial Lysate: In Vivo Immunological Effects. Int J Immunopathol Pharmacol. 2007;20:129–38. https://doi.org/10.1177/039463200702000115.
+
+70. Sidoti Migliore G, Campana S, Barberi C, De Pasquale C, Pezzino G, Cavaliere R, et al. Mechanical bacterial lysate enhances antimicrobial barrier mechanisms in human airway epithelial cells. J Leukoc Biol. 2023;113:535–40. https://doi.org/10.1093/jleuko/qiad003.
+
+71. Ferrara F, Rial A, Suárez N, Chabalgoity JA. Polyvalent Bacterial Lysate Protects Against Pneumonia Independently of Neutrophils, IL-17A or Caspase-1 Activation. Front Immunol. 2021;12:562244. https://doi.org/10.3389/fimmu.2021.562244.
+
+72. Braido F, Melioli G, Nicolini G, Ferraris M, Di Girolamo S, Di Gioacchino M, et al. Sublingually administered bacterial lysates: rationale, mechanisms of action and clinical outcomes. Drugs Context. 2024;13:1–9. https://doi.org/10.7573/dic.2024-1-5.
+
+73. Lanzilli G, Falchetti R, Cottarelli A, Macchi A, Ungheri D, Fuggetta MP. In Vivo Effect of an Immunostimulating Bacterial Lysate on Human B Lymphocytes. Int J Immunopathol Pharmacol. 2006;19:551–9. https://doi.org/10.1177/039463200601900311.
+
+74. Cirauqui C, Benito‐Villalvilla C, Sánchez‐Ramón S, Sirvent S, Diez‐Rivero CM, Conejero L, et al. Human dendritic cells activated with MV130 induce Th1, Th17 and IL‐10 responses via RIPK2 and MyD88 signalling pathways. Eur J Immunol. 2018;48:180–93. https://doi.org/10.1002/eji.201747024.
+
+75. Sevilla-Ortega C, Angelina A, Martín-Cruz L, Pérez-Diego M, Maldonado A, Lavín B, et al. A mucosal vaccine prevents eosinophilic allergic airway inflammation by modulating immune responses to allergens in a murine model of airway disease. Nat Commun. 2025;16:7129. https://doi.org/10.1038/s41467-025-62632-x.
+
+76. Del Fresno C, García-Arriaza J, Martínez-Cano S, Heras-Murillo I, Jarit-Cabanillas A, Amores-Iniesta J, et al. The Bacterial Mucosal Immunotherapy MV130 Protects Against SARS-CoV-2 Infection and Improves COVID-19 Vaccines Immunogenicity. Front Immunol. 2021;12:748103. https://doi.org/10.3389/fimmu.2021.748103.
+
+77. Vázquez A, Fernández-Sevilla LM, Jiménez E, Pérez-Cabrera D, Yañez R, Subiza JL, et al. Involvement of Mesenchymal Stem Cells in Oral Mucosal Bacterial Immunotherapy. Front Immunol. 2020;11:567391. https://doi.org/10.3389/fimmu.2020.567391.
+
+78. Villena J, Chiba E, Vizoso-Pinto M, Tomosada Y, Takahashi T, Ishizuka T, et al. Immunobiotic Lactobacillus rhamnosus strains differentially modulate antiviral immune response in porcine intestinal epithelial and antigen presenting cells. BMC Microbiol. 2014;14:126. https://doi.org/10.1186/1471-2180-14-126.
+
+79. Garcia-Castillo V, Tomokiyo M, Raya Tonetti F, Islam MdA, Takahashi H, Kitazawa H, et al. Alveolar Macrophages Are Key Players in the Modulation of the Respiratory Antiviral Immunity Induced by Orally Administered Lacticaseibacillus rhamnosus CRL1505. Front Immunol. 2020;11:568636. https://doi.org/10.3389/fimmu.2020.568636.
+
+80. Albarracin L, Garcia-Castillo V, Masumizu Y, Indo Y, Islam MA, Suda Y, et al. Efficient Selection of New Immunobiotic Strains With Antiviral Effects in Local and Distal Mucosal Sites by Using Porcine Intestinal Epitheliocytes. Front Immunol. 2020;11:543. https://doi.org/10.3389/fimmu.2020.00543.
+
+81. Zhou B, Elean M, Arce L, Fukuyama K, Tomotsune K, Dentice Maidana S, et al. The Mucus-Binding Factor Mediates Lacticaseibacillus rhamnosus CRL1505 Adhesion but Not Immunomodulation in the Respiratory Tract. Microorganisms. 2024;12:1209. https://doi.org/10.3390/microorganisms12061209.
+
+82. Dentice Maidana S, Imamura Y, Elean M, Albarracín L, Nishiyama K, Suda Y, et al. Oral Administration of Lacticaseibacillus rhamnosus CRL1505 Modulates Lung Innate Immune Response against Klebsiella pneumoniae ST25. Microorganisms. 2023;11:1148. https://doi.org/10.3390/microorganisms11051148.
+
+83. Tomotsune K, Raya Tonetti F, Mizuno H, Elean M, Fukuyama K, Zhou B, et al. The Mucus Binding Factor Is Not Necessary for Lacticaseibacillus rhamnosus CRL1505 to Exert Its Immunomodulatory Activities in Local and Distal Mucosal Sites. Int J Mol Sci. 2022;23:14357. https://doi.org/10.3390/ijms232214357.
+
+84. Clua P, Kanmani P, Zelaya H, Tada A, Kober AKMH, Salva S, et al. Peptidoglycan from Immunobiotic Lactobacillus rhamnosus Improves Resistance of Infant Mice to Respiratory Syncytial Viral Infection and Secondary Pneumococcal Pneumonia. Front Immunol. 2017;8:948. https://doi.org/10.3389/fimmu.2017.00948.
+
+85. Clua P, Tomokiyo M, Raya Tonetti F, Islam MdA, García Castillo V, Marcial G, et al. The Role of Alveolar Macrophages in the Improved Protection against Respiratory Syncytial Virus and Pneumococcal Superinfection Induced by the Peptidoglycan of Lactobacillus rhamnosus CRL1505. Cells. 2020;9:1653. https://doi.org/10.3390/cells9071653.
+
+86. Raya Tonetti F, Clua P, Fukuyama K, Marcial G, Sacur J, Marranzino G, et al. The Ability of Postimmunobiotics from L. rhamnosus CRL1505 to Protect against Respiratory Syncytial Virus and Pneumococcal Super-Infection Is a Strain-Dependent Characteristic. Microorganisms. 2022;10:2185. https://doi.org/10.3390/microorganisms10112185.
+
+87. Berber A, Del-Río-Navarro BE, Reyes-Noriega N, Sienra-Monge JJL. Immunostimulants for preventing respiratory tract infection in children: A systematic review and meta-analysis. World Allergy Organ J. 2022;15:100684. https://doi.org/10.1016/j.waojou.2022.100684.
+
+88. De Boer GM, Żółkiewicz J, Strzelec KP, Ruszczyński M, Hendriks RW, Braunstahl G-J, et al. Bacterial lysate therapy for the prevention of wheezing episodes and asthma exacerbations: a systematic review and meta-analysis. Eur Respir Rev. 2020;29:190175. https://doi.org/10.1183/16000617.0175-2019.
+
+89. Cao C, Wang J, Li Y, Li Y, Ma L, Abdelrahim MEA, et al. Efficacy and safety of OM‐85 in paediatric recurrent respiratory tract infections which could have a possible protective effect on COVID‐19 pandemic: A meta‐analysis. Int J Clin Pract. 2021;75. https://doi.org/10.1111/ijcp.13981.
+
+90. Yin J, Xu B, Zeng X, Shen K. Broncho-Vaxom in pediatric recurrent respiratory tract infections: A systematic review and meta-analysis. Int Immunopharmacol. 2018;54:198–209. https://doi.org/10.1016/j.intimp.2017.10.032.
+
+91. Schaad UB. OM-85 BV, an immunostimulant in pediatric recurrent respiratory tract infections: a systematic review. World J Pediatr. 2010;6:5–12. https://doi.org/10.1007/s12519-010-0001-x.
+
+92. Del‐Rio‐Navarro BE, Espinosa‐Rosales FJ, Flenady V, Sienra‐Monge JJ. Immunostimulants for preventing respiratory tract infection in children - Del‐Rio‐Navarro, BE - 2006 | Cochrane Library.
+
+93. Zhang W, Huang J, Liu H, Wen X, Zheng Q, Li L. Whether Immunostimulants Are Effective in Susceptible Children Suffering From Recurrent Respiratory Tract Infections: A Modeling Analysis Based on Literature Aggregate Data. J Clin Pharmacol. 2022;62:245–53. https://doi.org/10.1002/jcph.1969.
+
+94. Esposito S, Bianchini S, Bosis S, Tagliabue C, Coro I, Argentiero A, et al. A randomized, placebo-controlled, double-blinded, single-centre, phase IV trial to assess the efficacy and safety of OM-85 in children suffering from recurrent respiratory tract infections. J Transl Med. 2019;17:284. https://doi.org/10.1186/s12967-019-2040-y.
+
+95. Schaad UB, Mütterlein R, Goffin H. Immunostimulation with OM-85 in Children with Recurrent Infections of the Upper Respiratory Tract. Chest. 2002;122:2042–9. https://doi.org/10.1378/chest.122.6.2042.
+
+96. Bitar MA, Saade R. The role of OM-85 BV (Broncho-Vaxom) in preventing recurrent acute tonsillitis in children. Int J Pediatr Otorhinolaryngol. 2013;77:670–3. https://doi.org/10.1016/j.ijporl.2013.01.009.
+
+97. Cantarutti A, Barbieri E, Scamarcia A, Cantarutti L, Canova C, Giaquinto C. Use of the Bacterial Lysate OM-85 in the Paediatric Population in Italy: A Retrospective Cohort Study. Int J Environ Res Public Health. 2021;18:6871. https://doi.org/10.3390/ijerph18136871.
+
+98. Rosaschino F, Cattaneo L. Strategies for optimizing compliance of paediatric patients for seasonal antibacterial vaccination with sublingually administered Polyvalent Mechanical Bacterial Lysates (PMBL). Acta Bio-Medica Atenei Parm. 2004;75:171–8.
+
+99. Bartkowiak-Emeryk M, Emeryk A, Roliński J, Wawryk-Gawda E, Markut-Miotła E. Impact of Polyvalent Mechanical Bacterial Lysate on lymphocyte number and activity in asthmatic children: a randomized controlled trial. Allergy Asthma Clin Immunol. 2021;17:10. https://doi.org/10.1186/s13223-020-00503-4.
+
+100. Emeryk A, Bartkowiak-Emeryk M, Raus Z, Braido F, Ferlazzo G, Melioli G. Mechanical bacterial lysate administration prevents exacerbation in allergic asthmatic children-The EOLIA study. Pediatr Allergy Immunol Off Publ Eur Soc Pediatr Allergy Immunol. 2018;29:394–401. https://doi.org/10.1111/pai.12894.
+
+101. Janeczek K, Kowalska W, Zarobkiewicz M, Suszczyk D, Mikołajczyk M, Markut-Miotła E, et al. Effect of immunostimulation with bacterial lysate on the clinical course of allergic rhinitis and the level of γδT, iNKT and cytotoxic T cells in children sensitized to grass pollen allergens: A randomized controlled trial. Front Immunol. 2023;14:1073788. https://doi.org/10.3389/fimmu.2023.1073788.
+
+102. Janeczek K, Emeryk A, Zimmer Ł, Poleszak E, Ordak M. Nasal carriage of Staphylococcus aureus in children with grass pollen-induced allergic rhinitis and the effect of polyvalent mechanical bacterial lysate immunostimulation on carriage status: A randomized controlled trial. Immun Inflamm Dis. 2022;10:e584. https://doi.org/10.1002/iid3.584.
+
+103. Nieto A, Mazón A, Nieto M, Calderón R, Calaforra S, Selva B, et al. Bacterial Mucosal Immunotherapy with MV130 Prevents Recurrent Wheezing in Children: A Randomized, Double-Blind, Placebo-controlled Clinical Trial. Am J Respir Crit Care Med. 2021;204:462–72. https://doi.org/10.1164/rccm.202003-0520OC.
+
+104. Lehtoranta L, Pitkäranta A, Korpela R. Probiotics in respiratory virus infections. Eur J Clin Microbiol Infect Dis. 2014;33:1289–302. https://doi.org/10.1007/s10096-014-2086-y.
+
+105. Vouloumanou EK, Makris GC, Karageorgopoulos DE, Falagas ME. Probiotics for the prevention of respiratory tract infections: a systematic review. Int J Antimicrob Agents. 2009;34:197.e1-10. https://doi.org/10.1016/j.ijantimicag.2008.11.005.
+
+106. OM Pharma SA. A Randomised, Placebo-Controlled, 3-Arm, Double-Blind, Multicentre, Phase 4 Study to Assess the Efficacy of OM-85 (Broncho-Vaxom) Short- and Long-Term Treatment vs. Placebo in the Prevention of Respiratory Tract Infections in Children Aged Between 6 Months and 5 Years With Wheezing Lower Respiratory Illness. Clinical trial registration. clinicaltrials.gov; 2025.
+
+107. Tramper G. Protecting Late-moderate Preterm Infants From Respiratory Tract Infections and Wheeze in Their First Years of Life by Using Bacterial Lysates. Clinical trial registration. clinicaltrials.gov; 2024.
+
+108. Queen Mary University of London. Oral Bacterial Lysate to Prevent Persistent Wheeze in Infants After Severe Bronchiolitis; a Randomised Placebo-controlled Trial. Clinical trial registration. clinicaltrials.gov; 2025.
+
+109. OM Pharma SA. A Randomized, Placebo-Controlled, Double-Blind, Multicenter, Phase 2 Study to Assess the Efficacy and Safety of Daily OM-85 Treatment vs. Placebo Given in Children Aged 6 Months to 5 Years With Recurrent Wheezing. Clinical trial registration. clinicaltrials.gov; 2025.
+
+110. University of Arizona. Randomized, Placebo-controlled, Multicenter Study to Assess the Efficacy, Safety and Tolerability of ORal Bacterial EXtract for the Prevention of Wheezing Lower Respiratory Tract Illness (ORBEX). Clinical trial registration. clinicaltrials.gov; 2024.
+
+111. Bioithas SL. Randomized, Double-blind, Placebo-controlled Clinical Trial to Evaluate the Efficacy and Safety of Lacticaseibacillus Rhamnosus CRL1505 in the Prevention of Upper Respiratory Tract Infections in a Healthy Paediatric Population. Clinical trial registration. clinicaltrials.gov; 2025.
+
+112. Ochoa-Grullón J, Benavente Cuesta C, González Fernández A, Cordero Torres G, Pérez López C, Peña Cortijo A, et al. Trained Immunity-Based Vaccine in B Cell Hematological Malignancies With Recurrent Infections: A New Therapeutic Approach. Front Immunol. 2021;11:611566. https://doi.org/10.3389/fimmu.2020.611566.
+
+113. Castro‐Rodriguez JA, Turi KN, Forno E. A critical analysis of the effect of OM‐85 for the prevention of recurrent respiratory tract infections or wheezing/asthma from systematic reviews with meta‐analysis. Pediatr Allergy Immunol. 2024;35:e14186. https://doi.org/10.1111/pai.14186.
+
+114. Berber A, Del-Río-Navarro BE, Reyes-Noriega N, Sienra-Monge JJL. Immunostimulants for preventing respiratory tract infection in children: A systematic review and meta-analysis. World Allergy Organ J. 2022;15:100684. https://doi.org/10.1016/j.waojou.2022.100684.
+
+115. Mangino M, Roederer M, Beddall MH, Nestle FO, Spector TD. Innate and adaptive immune traits are differentially affected by genetic and environmental factors. Nat Commun. 2017;8:13850. https://doi.org/10.1038/ncomms13850.
+
+116. Hernandez‐Pacheco N, Kere M, Melén E. Gene‐environment interactions in childhood asthma revisited; expanding the interaction concept. Pediatr Allergy Immunol. 2022;33:e13780. https://doi.org/10.1111/pai.13780.
+
+117. Esposito S, Marchisio P, Prada E, Daleno C, Porretti L, Carsetti R, et al. Impact of a mixed bacterial lysate (OM-85 BV) on the immunogenicity, safety and tolerability of inactivated influenza vaccine in children with recurrent respiratory tract infection. Vaccine. 2014;32:2546–52. https://doi.org/10.1016/j.vaccine.2014.03.055.
+
+118. Hojsak I, Fabiano V, Pop TL, Goulet O, Zuccotti GV, Çokuğraş FC, et al. Guidance on the use of probiotics in clinical practice in children with selected clinical conditions and in specific vulnerable groups. Acta Paediatr. 2018;107:927–37. https://doi.org/10.1111/apa.14270.
+
+119. Szajewska H, Vinderola G. Current Regulatory Issues for the Use of Probiotics. In: Guandalini S, Indrio F, editors. Probiotics and Child Gastrointestinal Health: Advances in Microbiology, Infectious Diseases and Public Health Volume 19. Cham: Springer International Publishing; 2024. p. 187–93. https://doi.org/10.1007/978-3-031-58572-2_12.
+
+120. Merenstein DJ, Tancredi DJ, Karl JP, Krist AH, Lenoir-Wijnkoop I, Reid G, et al. Is There Evidence to Support Probiotic Use for Healthy People? Adv Nutr. 2024;15:100265. https://doi.org/10.1016/j.advnut.2024.100265.
+
+121. Berber A, Del-Rio-Navarro BE. Cost-effectiveness analysis of OM-85 vs placebo in the prevention of acute respiratory tract infections (ARTIs) in children that attend day-care centers. Health Econ Rev. 2019;9:12. https://doi.org/10.1186/s13561-019-0230-1.
+
+122. Cunningham M, Azcarate-Peril MA, Barnard A, Benoit V, Grimaldi R, Guyonnet D, et al. Shaping the Future of Probiotics and Prebiotics. Trends Microbiol. 2021;29:667–85. https://doi.org/10.1016/j.tim.2021.01.003.
+
+123. Huang X, Zhang X, Zhang Z, Liu M, Bai D, Yang R, et al. Bacterial lysates in allergic rhinitis and chronic rhinosinusitis: Mechanisms and clinical evidence. Sci Prog. 2025;108:00368504251355373. https://doi.org/10.1177/00368504251355373.
+
+124. Minute L, Montalbán-Hernández K, Bravo-Robles L, Conejero L, Iborra S, Del Fresno C. Trained immunity-based mucosal immunotherapies for the prevention of respiratory infections. Trends Immunol. 2025;46:270–83. https://doi.org/10.1016/j.it.2025.02.012.
+

@@ -1,0 +1,38 @@
+# Content — All text that appears on the GA
+# Word budget: ≤ 30 (V3)
+# Edit here to change labels. Re-run compose_ga.py to regenerate.
+
+zone_titles:
+  - "Vulnerability"      # 1
+  - "Repair"             # 2
+  - "Resolution"         # 3
+
+product_names:
+  - "OM-85"              # 4
+  - "PMBL"               # 5
+  - "MV130"              # 6
+  - "CRL1505"            # 7
+
+cycle_stations:
+  - "Viral RTIs"         # 8-9
+  - "Th2 bias"           # 10-11
+  - "Remodeling"         # 12
+  - "Re-susceptibility"  # 13
+
+cycle_bottom: "Wheezing / Asthma"  # 14-15-16 (/ counts as separator)
+
+evidence_title: "Clinical evidence"  # 17-18
+evidence_labels:
+  - "18 RCTs"            # 19-20
+  - "5 RCTs"             # 21-22
+  - "1 RCT"              # 23-24
+  - "Preclinical"        # 25
+
+other_labels:
+  protected: "Protected airways"   # 26-27
+  iga: "IgA"                       # 28
+  # "Broken Cycle" removed — now visual via F10 (line fracture), not text
+  # "IFN" removed — now visual via F8 (arrow icons only), not text
+
+# TOTAL: 28 words — V3 PASS (2 words under limit)
+# Budget freed by F10 (visual cycle fracture) and F8 (visual IFN arrows).

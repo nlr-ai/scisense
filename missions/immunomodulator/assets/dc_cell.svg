@@ -1,0 +1,18 @@
+<!-- Dendritic cell: irregular star with 6 branching extensions. ~80x80 viewbox. -->
+<g>
+  <!-- Core body -->
+  <circle cx="40" cy="40" r="12" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.5"/>
+  <!-- Branching dendrites (6 extensions with forked tips) -->
+  <!-- Extension 1 (top) -->
+  <path d="M 40,28 L 40,8 M 38,12 L 40,8 L 42,12" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <!-- Extension 2 (top-right) -->
+  <path d="M 49,31 L 65,12 M 61,16 L 65,12 L 62,18" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <!-- Extension 3 (bottom-right) -->
+  <path d="M 49,49 L 68,62 M 64,58 L 68,62 L 63,63" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <!-- Extension 4 (bottom) -->
+  <path d="M 40,52 L 40,74 M 38,70 L 40,74 L 42,70" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <!-- Extension 5 (bottom-left) -->
+  <path d="M 31,49 L 14,65 M 18,61 L 14,65 L 19,64" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <!-- Extension 6 (top-left) -->
+  <path d="M 31,31 L 12,15 M 16,19 L 12,15 L 17,17" fill="none" stroke="currentColor" stroke-width="1.8"/>
+</g>
