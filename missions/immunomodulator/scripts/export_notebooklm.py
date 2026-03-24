@@ -67,6 +67,27 @@ MISSIONS = {
                  "Spec complete GA (contraintes MDPI, pipeline, 3V framework)"),
             ],
         },
+        "D_vec_docs": {
+            "label": "Architecture VEC (Visual Evidence Compiler)",
+            "files": [
+                (r"docs\vec\ARCHITECTURE.md",
+                 "Architecture VEC - 7 modules, guarantee loops, 7 intelligences"),
+                (r"docs\vec\pipeline\10_SYNC.md",
+                 "Pipeline module - status et open loops"),
+                (r"docs\vec\editorial\10_SYNC.md",
+                 "Editorial module - tribunal MDPI status"),
+                (r"docs\vec\design_system\10_SYNC.md",
+                 "Design System module - 14 patterns, 17 invariants"),
+                (r"docs\vec\calibration\10_SYNC.md",
+                 "Calibration module - contour extraction status"),
+                (r"docs\vec\audit\10_SYNC.md",
+                 "Audit module - NLM + Aurore loops status"),
+                (r"docs\vec\exploration\10_SYNC.md",
+                 "Exploration module - sub-agents status"),
+                (r"docs\vec\orchestration\10_SYNC.md",
+                 "Orchestration module - 4 phases, 5 gates"),
+            ],
+        },
         "banned": [
             (r"missions\immunomodulator\artefacts\wireframes\wireframe_GA_v8_delivery.png",
              "Design stick-figures obsolete, elements flottants"),
@@ -127,7 +148,7 @@ def export(mission_name, session_num=None):
     total_missing = 0
     total_size = 0
 
-    for section_key in ["A_science", "B_doc_chain", "C_anchors"]:
+    for section_key in ["A_science", "B_doc_chain", "C_anchors", "D_vec_docs"]:
         section = config[section_key]
         section_label = section["label"]
 
@@ -137,6 +158,10 @@ def export(mission_name, session_num=None):
         for rel_path, description in section["files"]:
             src = os.path.join(BASE, rel_path)
             filename = os.path.basename(src)
+            # Disambiguate collisions by prefixing parent dir name
+            if os.path.exists(os.path.join(session_dir, filename)):
+                parent = os.path.basename(os.path.dirname(src))
+                filename = f"{parent}_{filename}"
             dst = os.path.join(session_dir, filename)
 
             if os.path.exists(src):
