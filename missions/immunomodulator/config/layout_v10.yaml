@@ -1,0 +1,147 @@
+# Layout V10 — "La Bronche Vivante"
+# 4-band bronchial cross-section, longitudinal view
+# All positions in fractions of canvas (0.0-1.0)
+
+canvas:
+  width: 3300
+  height: 1680
+  delivery_width: 1100
+  delivery_height: 560
+
+zones:
+  margin_left:
+    x_pct: 0.0
+    width_pct: 0.17
+  bronchus:
+    x_pct: 0.17
+    width_pct: 0.66
+  margin_right:
+    x_pct: 0.83
+    width_pct: 0.17
+
+# Bronchus vertical bounds (relative to canvas height)
+bronchus:
+  y_start_pct: 0.10
+  y_end_pct: 0.80
+  corner_radius: 20
+  border_width: 3
+  border_color: "#9CA3AF"
+  # Band heights relative to total bronchus height (must sum to 1.0)
+  bands:
+    lumen:
+      height_pct: 0.15
+    epithelium:
+      height_pct: 0.28
+    lamina:
+      height_pct: 0.35
+    muscle:
+      height_pct: 0.22
+  # Separator lines between bands
+  separator_width: 4
+  separator_color: "#9CA3AF"
+  separator_dash: "12,6"
+
+# Gradient background (L->R across full canvas)
+gradient:
+  left_color: "#FFF0F0"    # very pale red (malade)
+  center_color: "#FFFFFF"  # white (transition)
+  right_color: "#F0FFFB"   # very pale green (sain)
+
+# Child silhouettes (margin positions)
+child_sick:
+  x_pct: 0.50             # within margin_left
+  y_pct: 0.18
+  scale: 2.0
+
+child_healthy:
+  x_pct: 0.50             # within margin_right
+  y_pct: 0.18
+  scale: 1.6
+
+# Vicious cycle (below sick child, in margin_left)
+vicious_cycle:
+  center_x_pct: 0.50
+  center_y_pct: 0.68
+  radius_x: 170
+  radius_y: 130
+  stations:
+    - label: "Viral RTIs"
+      angle_deg: -90
+    - label: "Th2 bias"
+      angle_deg: 0
+    - label: "Remodeling"
+      angle_deg: 90
+    - label: "Re-suscept."
+      angle_deg: 170
+  bottom_label: "Wheezing/Asthma"
+  font_size: 32
+
+# Evidence bars (in margin_right, below healthy child)
+evidence:
+  y_start_pct: 0.52
+  bar_height: 42
+  bar_gap: 14
+  max_width_pct: 0.80      # of margin width
+  title: "Clinical evidence"
+  title_font_size: 34
+  items:
+    - product: om85
+      width_pct: 1.0
+      label: "18 RCTs"
+    - product: pmbl
+      width_pct: 0.55
+      label: "5 RCTs"
+    - product: mv130
+      width_pct: 0.30
+      label: "1 RCT"
+    - product: crl1505
+      width_pct: 0.12
+      label: "Preclinical"
+
+# Product legend (below bronchus, centered)
+legend:
+  y_pct: 0.86
+  square_size: 34
+  gap: 40
+  font_size: 36
+
+# CRL1505 relay arc (from bottom to lamina propria)
+crl1505_relay:
+  gut_icon_y_pct: 0.94     # intestine icon position
+  gut_icon_x_pct: 0.60     # within bronchus zone
+  target_band: "lamina"
+  target_x_pct: 0.75       # where it enters the bronchus (right side)
+  arc_width: 6
+
+# Band content parameters
+band_content:
+  lumen:
+    virus_count: 3
+    virus_radius: 24
+    virus_x_range: [0.05, 0.30]   # left portion of bronchus
+    iga_count: 4
+    iga_height: 35
+    iga_x_range: [0.70, 0.95]     # right portion
+  epithelium:
+    cell_count: 24                 # total cells across width
+    cell_height_pct: 0.60          # of band height
+    gap_count_sick: 6              # number of gaps in left portion
+    gap_count_healthy: 0
+    shield_x_pct: 0.55            # OM-85 shield position (transition zone)
+    staple_x_range: [0.50, 0.85]  # PMBL staples range
+  lamina:
+    # Two sub-zones: upper = adaptive (balance), lower = innate (DC + trained)
+    split_pct: 0.45               # upper portion for adaptive
+    dc_sick_x_pct: 0.20
+    dc_healthy_x_pct: 0.75
+    dc_radius: 42
+    helix_scale: 0.5
+    balance_x_pct: 0.70           # Th1/Th2 balance position
+    balance_width: 120
+  muscle:
+    thickness_sick_pct: 1.0       # full band height
+    thickness_healthy_pct: 0.45   # thinner = resolved
+
+font:
+  family: "Helvetica, Arial, sans-serif"
+  min_size: 28

@@ -1,5 +1,5 @@
 # Palette — Single source of truth
-# Referenced by compose_ga.py. Edit here, not in the script.
+# Referenced by compose_ga.py and compose_ga_v10.py
 
 products:
   om85: "#2563EB"
@@ -7,11 +7,24 @@ products:
   mv130: "#7C3AED"
   crl1505: "#059669"
 
+# V10 band colors
+bands:
+  lumen: "#F8FAFC"          # near-white (air space)
+  epithelium_sick: "#FECACA"  # pale red (broken barrier)
+  epithelium_healthy: "#D1FAE5"  # pale green (intact)
+  epithelium_cell: "#E5E7EB"    # gray cell blocks
+  lamina_bg: "#F3F4F6"      # light gray (tissue)
+  muscle_sick: "#FBBF24"    # amber (inflamed, thickened)
+  muscle_healthy: "#86EFAC"  # light green (resolved)
+  trained_glow: "#FDE68A"   # gold glow for trained immunity
+
+# Legacy V1 zones (kept for backwards compat with compose_ga.py)
 zones:
   z1_bg: "#FEF2F2"
   z2_bg: "#FFFBEB"
   z3_bg: "#ECFDF5"
 
+# Legacy V1 wall (kept for compose_ga.py)
 wall:
   sick: "#F87171"
   sick_mortar: "#FCA5A5"

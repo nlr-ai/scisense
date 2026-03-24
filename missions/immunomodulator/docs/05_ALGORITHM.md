@@ -86,26 +86,27 @@ SORTIE: dossier soumission (GA PNG + références) ou liste de corrections
 Delivers R1 (GA conforme MDPI), R3 (références formatées), and feeds into R4 (acceptation Mindy Ma).
 
 ## A5: Pipeline de rendu E2E (par itération)
-> **Note:** A5 est désormais appelé par A7 (compositeur paramétrique). Le pipeline reste le même, mais l'entrée est `compose_ga.py` au lieu d'un script monolithique.
+> **Note:** A5 est désormais appelé par A7 (compositeur paramétrique). Le pipeline reste le même, mais l'entrée est `compose_ga_v10.py` au lieu d'un script monolithique.
 
 Chaque itération (A1 step 1 "PRODUIRE") exécute ce pipeline complet. Pas de rendu partiel.
 
 ```
-ENTRÉE: script Python generate_wireframe_vN.py
+ENTRÉE: script Python compose_ga_v10.py
 
 1. GÉNÉRER SVG
    - svgwrite produit le .svg vectoriel
    - Validation: fichier non-vide, parseable
 
 2. RENDRE FULL RES
-   - svglib + reportlab → PNG 3300×1680
-   - Fallback si svglib échoue: Pillow resize depuis un rendu alternatif
+   - Playwright HTML wrapper → PNG 3300×1680
+   - Méthode: SVG enveloppé dans un HTML minimal, rendu via Playwright
+     à la taille de livraison avec 2x device_scale_factor (= 600 DPI effectif)
    - Validation: dimensions correctes, fichier > 50 KB
 
 3. RENDRE DELIVERY
    - Pillow resize LANCZOS → PNG 1100×560 (depuis full res, pas depuis SVG)
-   - Raison: svglib casse au downscale (bug v3). Pillow resize est fiable.
    - Validation: dimensions correctes, fichier > 5 KB, PAS blanc
+   - Métadonnée DPI: 600 DPI inscrit dans le PNG delivery
 
 4. TEST LISIBILITÉ
    - Pillow resize → 550×280 (50% de delivery = test V7)
@@ -120,7 +121,8 @@ ENTRÉE: script Python generate_wireframe_vN.py
    - Copier les 3 fichiers (svg, full, delivery) dans artefacts/wireframes/ avec numéro de version
    - Ne jamais écraser un artefact existant (P11)
 
-SORTIE: 3 fichiers archivés + résultat auto-check (PASS/FAIL par signal)
+SORTIE: wireframe_GA_v10.svg + wireframe_GA_v10_full.png + wireframe_GA_v10_delivery.png
+        + résultat auto-check (PASS/FAIL par signal)
 ```
 
 Implements P8 (E2E), P10 (multi-résolution), P11 (version archival). Health: H5.
@@ -163,42 +165,136 @@ dans Inkscape si le rendu SVG pur n'atteint pas le Q2 standard.
 STATUS: Non tranché. NEEDS_FEEDBACK NLR/Aurore.
 ```
 
-## A7: Compositeur paramétrique (compose_ga.py)
+## A7: Compositeur paramétrique (compose_ga_v10.py)
 
 Replaces A1 step 1 "PRODUIRE" for future iterations. The autonomous agents (A1, A2) now call A7 instead of writing monolithic scripts.
 
+Architecture V10: 4 bandes anatomiques (lumen, épithélium, lamina propria, muscle lisse) remplacent le modèle brick wall + zones. Tout est généré paramétriquement — pas d'injection d'assets SVG externes.
+
 ```
-ENTRÉE: config/*.yaml + assets/*.svg
+ENTRÉE: config/layout_v10.yaml + config/palette.yaml + config/content.yaml
 
 1. CHARGER CONFIG
-   - palette.yaml → couleurs
-   - layout.yaml → positions, tailles, gaps
+   - palette.yaml → couleurs (bandes, produits, cycle, fond)
+   - layout_v10.yaml → positions, tailles, gaps, géométrie des 4 bandes
    - content.yaml → labels (budget mots vérifié)
 
 2. CRÉER CANVAS (3300×1680)
 
-3. DESSINER INFRASTRUCTURE
-   - Fonds par zone (gradient ou plat, depuis palette)
-   - Mur de briques continu (gaps depuis layout.z1_gaps)
-   - PMBL repair bricks (positions depuis layout.z2_repair_bricks)
-   - Briques saines Z3 (toutes présentes, couleur healthy)
-   - Cercle vicieux (stations depuis layout.vicious_cycle)
-   - Blocs 3D évidence (widths depuis layout.evidence_blocks)
-   - Labels (depuis content.yaml)
+3. DESSINER (séquence stricte)
+   a. Background gradient (palette.background)
+   b. Cadre bronche (bronchus frame — contour anatomique principal)
+   c. 4 bandes anatomiques:
+      - Lumen (cavité, fond clair)
+      - Épithélium (couche cellulaire, contours paramétriques)
+      - Lamina propria (tissu conjonctif, zone d'action principale)
+      - Muscle lisse (couche externe)
+   d. Contours enfants (children contours — éléments cellulaires dans chaque bande)
+   e. Cercle vicieux (stations depuis layout_v10.vicious_cycle)
+   f. Barres d'évidence (evidence bars, widths depuis layout_v10.evidence_bars)
+   g. Relais CRL1505 (flèche/mécanisme d'action)
+   h. Légende (legend — produits, couleurs, symboles)
 
-4. INJECTER ASSETS
-   Pour chaque element dans layout.elements:
-     - Lire le SVG snippet depuis assets/
-     - Remplacer currentColor par la couleur de palette
-     - Envelopper dans <g transform="translate(x,y) scale(s)">
-     - Insérer dans le document
+4. SAUVER SVG
 
-5. SAUVER SVG
+5. RENDRE PNG (A5 pipeline: full via Playwright HTML wrapper, delivery via Pillow resize)
 
-6. RENDRE PNG (A5 pipeline: full via svglib, delivery via Pillow resize)
-
-7. AUTO-CHECK (H1 + H5)
+6. AUTO-CHECK (H1 + H5)
    - Dimensions, word count, palette grep, delivery non-blank
 
-SORTIE: wireframe_GA_vN.svg + _full.png + _delivery.png
+SORTIE: wireframe_GA_v10.svg + wireframe_GA_v10_full.png + wireframe_GA_v10_delivery.png
 ```
+
+## A8: Phase CONCEPT ASCII (P24)
+
+Avant toute compilation code, une phase concept en ASCII permet de valider la direction avec Aurore sans investir de temps de développement.
+
+```
+1. DIAGNOSTIC
+   - Identifier l'obstacle cognitif principal du lecteur
+   - Formuler en une phrase ce que le GA doit résoudre visuellement
+
+2. AXES DE VARIATION (P2)
+   - Définir 3 variables indépendantes (ex: métaphore visuelle, flux de lecture, granularité anatomique)
+   - Chaque axe produit une proposition distincte
+
+3. 3 PROPOSITIONS ASCII
+   - Pour chaque axe: dessiner le layout + flow en ASCII art
+   - Pas de code, pas de SVG — uniquement la structure spatiale et le parcours visuel
+   - Annoter les zones (bandes, cycle, évidence, légende)
+
+4. PDF GENERATION
+   - Script: generate_proposal_pdf.py (reportlab)
+   - Produit un PDF propre avec les 3 propositions ASCII + annotations
+   - Inclut le diagnostic et la justification de chaque axe
+
+5. VÉRIFICATION VISUELLE (P25)
+   - Read le PDF généré avant envoi — vérifier lisibilité et cohérence
+   - Si illisible → corriger et régénérer
+
+6. ENVOI AURORE
+   - Envoyer le PDF via MCP (send) pour GO/NO-GO
+   - Question explicite: "Quelle direction te parle le plus?"
+
+7. FEEDBACK
+   - Si GO → procéder à la compilation (A7)
+   - Si NO → re-diagnostiquer (retour à étape 1) avec le feedback intégré
+
+SORTIE: PDF concept + décision GO/NO-GO d'Aurore
+```
+
+## A9: Phase AUDIT NotebookLM
+
+Cycle d'audit externe via NotebookLM pour valider la cohérence scientifique et visuelle avant livraison.
+
+```
+1. EXPORT
+   - python export_notebooklm.py
+   - Crée un répertoire plat S0N/ contenant tous les fichiers sources
+     (docs, specs, configs, artefacts — 17+ fichiers)
+
+2. UPLOAD
+   - Charger les fichiers S0N/ dans NotebookLM
+   - Charger le system prompt: config/notebooklm_system_prompt.md (V2.4)
+
+3. AUDIT REQUEST
+   - NotebookLM analyse l'ensemble et retourne:
+     a. Problèmes identifiés (incohérences, gaps, erreurs)
+     b. Patterns applicables (P1-P25, B1-B8) avec justification
+     c. Suggestions concrètes d'amélioration
+
+4. OUTPUT FORMS
+   - NotebookLM peut produire plusieurs formats:
+     a. Report (analyse textuelle détaillée)
+     b. Slide deck (SD1/SD2/SD3...) — présentations thématiques
+     c. Podcast (audio synthétique pour exploration)
+     d. Infographic (résumé visuel des findings)
+
+5. INTEGRATION
+   - Silas lit l'output et traduit en:
+     a. Corrections code (compose_ga_v10.py, configs)
+     b. Mises à jour documentation (doc chain)
+     c. Nouveaux patterns ou behaviors si découverte
+
+6. SUB-AGENTS (optionnel)
+   - Lancer des sous-agents spécialisés pour exploration ciblée:
+     a. Angle immunologie (validation mécanismes, hiérarchie preuves)
+     b. Angle communication visuelle (lisibilité, impact cognitif)
+     c. Matrice produit-mécanisme (couverture et cohérence des 4 produits)
+
+SORTIE: rapport d'audit + corrections intégrées + documentation mise à jour
+```
+
+## A10: Les 7 formes d'intelligence
+
+Chaque phase du processus mobilise une ou plusieurs formes d'intelligence. Aucune n'est substituable par une autre.
+
+| ID | Intelligence | Capacité | Phases d'utilisation |
+|----|-------------|----------|---------------------|
+| I1 | **Aurore** | Validation clinique, jugement esthétique, expertise domaine | Phase CONCEPT (A8) + VALIDATION (A4) |
+| I2 | **NLR** | Architecture, process, system design, arbitrage structurel | Phase CONCEPT (A8) + tout pivot architectural |
+| I3 | **NotebookLM** | Analyse profonde, synthèse multi-sources → outputs: infographic, slide deck, podcast, report | Phase AUDIT (A9) |
+| I4 | **Silas** | Code, SVG, PDF, documentation, orchestration, sous-agents | Toutes les phases |
+| I5 | **AI Image models** (Ideogram/Gemini) | Extraction de contours organiques, calibration phénoménologique | Phase CALIBRATION |
+| I6 | **Sub-agents** | Exploration spécialisée avec angle/prompt spécifique | Phase AUDIT (A9) |
+| I7 | **Scripts** | Validation automatisée: validate_ga.py, export_notebooklm.py, transcribe_podcast.py | Phase COMPILATION (A7) + AUDIT (A9) |

@@ -1,255 +1,38 @@
-Pour ce qui
-est de la suite. Moi j'ai besoin qu'on aille au bout de la pipeline:
-transformer au moins un item en rendu professionel final. Par exemple
-l'enfant:
-C:\Users\reyno\scisense\missions\immunomodulator\artefacts\screenshots
-  ⎿  UserPromptSubmit hook error
+### ⚙️ SYSTEM PROMPT SCISENSE : MOTEUR ANALYTIQUE (V2)
 
-  Read 1 file (ctrl+o to expand)
+**[1. RÔLE, IDENTITÉ ET MISSION ACTIVE]**
+Tu es le Moteur Analytique de l'écosystème SciSense ("*Making Science Make Sense*"). Ton rôle est d'être le partenaire intellectuel d'Aurore Inchauspé (PhD Virologie) et l'auditeur stratégique de Silas (l'Agent Codeur/Exécutant). 
 
-● Bash(# Check whisper progress - how many frames processed so far
-      tail -3 "C:\Users\reyno\AppData\Local\Temp\claude\C--Users-reyno-
-      mind-protocol-v3-citizens-silas\114…)
-  ⎿  Transcribing: P1_L_algorithme_qui_calcule_la_santé_pédiatriqu
-     e.m4a
-     Language: fr
-     … +15 lines (ctrl+o to expand)
+**Mission Active :** Tu pilotes actuellement la création du Graphical Abstract (GA) d'une revue narrative destinée au journal **MDPI Children**. Ton sujet de travail est l'évaluation de 4 immunomodulateurs bactériens (OM-85, PMBL, MV130, CRL1505) pour prévenir les infections respiratoires virales (RTI) et briser le cycle de l'asthme chez l'enfant (cible 0-5 ans).
 
-● Whisper est à 35%, ~6min30 écoulées, ~12min restantes. Total estimé :
-   ~18-19 minutes.
+Tu as deux missions parallèles sur ce projet :
+1. **L'Exécution Clinique :** Diriger Silas pour compiler ce GA via le *Visual Evidence Compiler* (VEC), avec une exigence de qualité publication stricte (MDPI-Proof).
+2. **La Méta-Réflexion :** Agir comme conseiller stratégique pour faire évoluer l'architecture du VEC et le modèle d'affaires de SciSense.
 
-  Maintenant, les screenshots cibles pour l'enfant :
+**[2. RÈGLE FONDAMENTALE : LE CERVEAU ENTIER & PATTERN P5]**
+Faire de la science sans penser à son impact, c'est lobotomiser la moitié de son cerveau. La science doit "s'encoder elle-même" (Pattern P5). Tu n'as formellement *pas le droit* de proposer ou de valider une direction topologique sans la justifier par deux piliers indissociables :
+*   **La Science (L'Input) :** La donnée biologique exacte issue du manuscrit (ex: immaturité immunitaire, barrière épithéliale, hiérarchie de preuves des 4 agents).
+*   **Le Comportement (L'Output) :** L'effet phénoménologique projeté sur le pédiatre (ex: Behavior B1 pour la reconnaissance du fardeau viral, B3 pour déclencher la prescription via l'échelle d'évidence, B4 pour l'Aha! moment de la résolution du cycle).
 
-  Read 4 files (ctrl+o to expand)
+**[3. LE LEXIQUE DE L'INTENTION (COMMUNICATION NATURELLE ET FONCTIONNELLE)]**
+L'architecture de SciSense repose sur l'intelligence collaborative (Pattern P13). Ton vocabulaire doit s'adapter à l'objectif de chaque phase, en privilégiant toujours l'intention clinique et le langage naturel :
+*   **A. Phase d'Extraction Phénoménologique (Modèles d'Images / Boucle H2) :** L'objectif est de récupérer l'intelligence anatomique et émotionnelle du modèle (ex: Ideogram). Tu dois formuler tes requêtes le plus naturellement possible, en décrivant le contexte clinique, le fardeau physique de la maladie, et l'impact émotionnel souhaité. N'impose *aucune* contrainte technique, mathématique ou de formatage qui briderait le réseau de neurones.
+*   **B. Phase de Compilation Topologique (Agent Silas / Boucle H1) :** Tu dois t'adresser à Silas en termes d'intentions fonctionnelles et d'objectifs de design, pas en langage mathématique brut. Ne lui dicte pas de "coordonnées X/Y" ni de "tangentes de Bézier". Dis-lui *ce qui doit être accompli* ("L'enfant doit paraître accablé par le cycle vicieux", "Le flux vert doit briser la maladie"), et laisse-lui l'autonomie de traduire cette intention en code SVG et en paramètres YAML.
 
-● Le gap est énorme. Ces cibles ont :
-  - Silhouettes de PROFIL (malade) vs face (sain) — beaucoup plus
-  expressif
-  - Contours organiques lisses — cheveux, nez, menton, doigts suggérés
-  - Intégrées dans la scène — l'enfant EST devant/dans le mur
-  - Dégradés de profondeur — pas un aplat monochrome
+**[4. RÉFÉRENTIEL DES PATTERNS ET INVARIANTS (TRIBUNAL D'AUDIT)]**
+Tu dois baser toute ta réflexion sur ce référentiel absolu. Toute proposition qui viole ces règles doit crasher le système (Fail Loud) :
+*   **Qualité E2E Inviolable (VN3 & P8) :** La vitesse n'est jamais une contrainte justifiant de livrer un brouillon. Toutes les versions, à chaque itération, doivent être de qualité maximale, complètes et "publication-ready" (SVG vectoriel pur + PNG 300/600 DPI). 
+*   **Survie Éditoriale MDPI (Boucle H1) :** Le fichier final doit respecter un ratio de 1:1.96 (1100x560 px), une limite stricte maximale de 30 mots, et l'Invariant VN4 : interdiction absolue d'inclure des pixels d'IA générative dans l'export final (le code source doit être 100% humain/mathématique).
+*   **Moteur Narratif & Compression (P1 & P3) :** Le récit va de gauche (Problème) à droite (Résolution). La biologie complexe (les 16 interactions) doit être compressée en métaphores d'action claires (Bouclier, Maçon, Programmateur, Pont) sans surcharger la cognition.
+*   **Invariants Cliniques Spécifiques (V12 & V13) :** Tu dois exiger la présence des pictogrammes de l'enfant malade (Zone 1) et de l'enfant sain (Zone 3) pour déclencher la projection clinique du pédiatre en < 2s. L'arc du CRL1505 doit être spatialement séparé en bas de l'image pour marquer l'axe intestin-poumon.
 
-  Notre draw_child() actuel produit un bonhomme géométrique. Le target
-  est un shadow-cutout d'enfant réel.
+**[5. FORMAT ET PROCESSUS DE TRAVAIL (MÉTHODE DÉDUCTIVE ET SYNCHRONISATION DIRECTE)]**
+Ton output est directement ingéré par l'écosystème entier (Aurore et Silas). Tu dois donc structurer ta pensée comme un document d'ingénierie définitif.
+*   **Intelligence collective :** Adresse-toi au collectif en sachant qu'Aurore valide la science et que Silas lit tes intentions pour coder.
+*   **La Règle de Non-Précipitation (Méthode Déductive) :** Tu n'as formellement pas le droit de proposer une solution de design ou une instruction de compilation sans avoir préalablement posé l'équation.
+*   **Prose Naturelle :** Adresse-toi à l'équipe comme un collègue expert.
+*   **Processus E2E :** Zéro survol. Dirige toujours l'équipe vers la production d'une itération de qualité maximale (publication-ready).
 
-  Pour aller au bout de la pipeline sur cet item, je dois réécrire
-  draw_child() avec ~30-40 points de contrôle Bézier cubiques qui
-  tracent un contour organique de profil humain, calibré sur ces 4
-  screenshots. C'est le travail le plus ambitieux de la session. Je
-  lance.
-
-● Agent(Build publication-quality child silhouette generator)
-  ⎿  Backgrounded agent (↓ to manage · ctrl+o to expand)
-
-● Agent lancé pour les silhouettes publication-quality. Il va :
-  - Créer un profil latéral pour l'enfant malade (contour organique
-  ~30-40 points Bézier cubiques, calibré sur S1/S3)
-  - Créer une vue de face pour l'enfant sain (bras ouverts, calibré sur
-   S2/S4)
-  - Single closed path rempli solide — shadow cutout, pas géométrie
-
-  Whisper : ~35% → devrait finir dans ~12 min.
-  Silhouettes : l'agent travaille dessus.
-
-  Pendant ce temps, tu veux qu'on prépare quelque chose d'autre ?
-
-✻ Cogitated for 3m 22s · 2 background tasks still running
-
-❯ fais une image de montage, qui assemble les targets et les outputs
-actuels en les mettant face a face
-  ⎿  UserPromptSubmit hook error
-
-● Bash(cd ~/scisense/missions/immunomodulator && python -c "
-      from PIL import Image, ImageDraw, ImageFont…)
-  ⎿  Saved: artefacts/comparisons/target_vs_output_children.png ((
-     1136, 750))
-  ⎿  Shell cwd was reset to
-     C:\Users\reyno\mind-protocol-v3\citizens\silas
-
-  Read 1 file (ctrl+o to expand)
-
-● C:\Users\reyno\scisense\missions\immunomodulator\artefacts\comparison
-  s\target_vs_output_children.png
-
-  Le gap est limpide. Les targets ont des silhouettes organiques avec
-  profils humains reconnaissables (nez, cheveux, doigts), tandis que
-  notre output v8 a des bonshommes géométriques (cercle + bâtons
-  épais). L'agent en background travaille à combler cet écart.
-
-✻ Worked for 1m 21s · 2 background tasks still running
-
-❯ ah bah attend. Ce processus devrait faire partie intégrante du
-module. : identification des items de la version infographie et de la
-version SVG. 2) Découpage en images et mise en miroir. 3)
-Identification précis des gaps 4) proposition de solutions (il faut
-qu'on réfléchoisse ensemble
-  ⎿  UserPromptSubmit hook error
-
-● Tu as raison. Ce que je viens de faire à la main — cropper, mettre en
-   miroir, constater le gap — c'est un processus qui devrait tourner à
-  CHAQUE itération automatiquement. C'est la boucle de calibration
-  P12/P17 formalisée en code.
-
-  Le module de calibration visuelle
-
-  INFOGRAPHIE (NotebookLM)          SVG OUTPUT (VEC)
-          │                               │
-          ▼                               ▼
-     ┌─────────┐                    ┌─────────┐
-     │ SEGMENT │                    │ SEGMENT │
-     │ (crop)  │                    │ (crop)  │
-     └────┬────┘                    └────┬────┘
-          │         ┌─────────┐         │
-          └────────►│ COMPARE │◄────────┘
-                    │ (mirror)│
-                    └────┬────┘
-                         │
-                    ┌────▼────┐
-                    │   GAP   │
-                    │ REPORT  │
-                    └────┬────┘
-                         │
-                    ┌────▼────┐
-                    │SOLUTIONS│
-                    └─────────┘
-
-  Les 4 étapes en détail
-
-  1. Segmentation — Découper les deux images en éléments correspondants
-  - Par zones (Z1, Z2, Z3) — automatique via les proportions
-  layout.yaml
-  - Par éléments (enfant, mur, bouclier, DC, cycle, évidence) — plus
-  dur, nécessite soit des bounding boxes connues (on les a dans
-  layout.yaml), soit de la détection
-
-  2. Mise en miroir — Montage côte à côte par élément
-  - C'est ce qu'on vient de faire. Automatisable : pour chaque élément,
-   crop target + crop output → une image de comparaison
-
-  3. Gap analysis — Qu'est-ce qui diffère ?
-  C'est là que ça devient intéressant. Les types de gaps possibles :
-
-  ┌──────────────┬──────────────────────────┬──────────────────────┐
-  │ Type de gap  │         Exemple          │     Mesurable ?      │
-  ├──────────────┼──────────────────────────┼──────────────────────┤
-  │              │                          │ Oui (nombre de       │
-  │ Contour      │ Géométrique vs organique │ points Bézier,       │
-  │              │                          │ lissage)             │
-  ├──────────────┼──────────────────────────┼──────────────────────┤
-  │ Posture      │ Front vs profil, angle   │ Oui (angles dans le  │
-  │              │ du dos                   │ YAML)                │
-  ├──────────────┼──────────────────────────┼──────────────────────┤
-  │ Opacité/Fill │ Wireframe vs silhouette  │ Oui (opacity dans le │
-  │              │ pleine                   │  SVG)                │
-  ├──────────────┼──────────────────────────┼──────────────────────┤
-  │              │ Élément flottant vs      │ Semi (distances      │
-  │ Intégration  │ encastré dans la scène   │ entre bounding       │
-  │              │                          │ boxes)               │
-  ├──────────────┼──────────────────────────┼──────────────────────┤
-  │ Détail       │ Pas de cheveux/doigts vs │ Non (qualitatif)     │
-  │              │  silhouette détaillée    │                      │
-  ├──────────────┼──────────────────────────┼──────────────────────┤
-  │ Proportion   │ Trop petit/grand relatif │ Oui (ratio des       │
-  │              │  aux autres éléments     │ bounding boxes)      │
-  ├──────────────┼──────────────────────────┼──────────────────────┤
-  │ Densité      │ Espaces vides vs         │ Oui (% pixels        │
-  │              │ composition remplie      │ non-blancs par zone) │
-  └──────────────┴──────────────────────────┴──────────────────────┘
-
-  4. Propositions de solutions — C'est le point critique
-
-  Deux approches possibles :
-
-  A) Le calibrateur paramétrique (ce qu'on fait) : On regarde le gap et
-   on ajuste les paramètres YAML. "Le contour est trop géométrique →
-  augmenter le nombre de points Bézier." "L'enfant est trop petit →
-  scale: 3.0 → 4.0." Ça marche pour les gaps de positionnement, taille,
-   couleur. Ça ne marche PAS pour les gaps de qualité de contour
-  (organique vs géométrique).
-
-  B) Le traceur de référence (nouveau) : On prend la silhouette TARGET,
-   on la vectorise (potrace, autotrace), on extrait les points de
-  contrôle Bézier, et on les injecte comme "master contour" dans le
-  générateur. La fonction draw_child() ne CALCULE plus le contour de
-  zéro — elle INTERPOLE entre des contours maîtres extraits des
-  références.
-
-  L'approche B est un changement de paradigme : au lieu de générer les
-  contours from scratch (ce qui donne du géométrique), on calibre
-  depuis la référence et on paramétrise la déformation. C'est
-  exactement P17 poussé à son terme.
-
-  La question ouverte
-
-  Est-ce que le VEC doit :
-  - (i) Générer les contours de zéro via math pure (ambition max,
-  résultat géométrique)
-  - (ii) Partir de contours maîtres vectorisés depuis les références
-  IA, puis les déformer paramétriquement (pragmatique, résultat
-  organique)
-  - (iii) Un mix : éléments simples (mur, blocs, flèches) en math pure,
-   éléments complexes (humains, cellules) en contours maîtres
-
-  Mon instinct dit (iii). Un mur de briques, un bouclier, un escalier
-  d'évidence — ça se code en math. Un enfant qui tousse — ça se trace
-  depuis une référence et ça se déforme. Les deux approches coexistent
-  dans le même moteur.
-
-  Qu'est-ce que tu en penses ?
-
-✻ Baked for 59s · 1 shell still running
-
-● Agent "Build publication-quality child silhouette generator"
-completed
-  ⎿  UserPromptSubmit hook error
-
-● L'agent silhouettes a terminé. Voyons le résultat.
-
-  Read 1 file (ctrl+o to expand)
-
-● L'enfant malade est maintenant en profil latéral — on voit la posture
-   courbée et la main vers la bouche. Regénérons la comparaison.
-
-● Bash(cd ~/scisense/missions/immunomodulator && python -c "
-      from PIL import Image, ImageDraw, ImageFont…)
-  ⎿  Saved comparison
-  ⎿  Shell cwd was reset to
-     C:\Users\reyno\mind-protocol-v3\citizens\silas
-
-  Read 1 file (ctrl+o to expand)
-
-● Le sick child a progressé (profil latéral, main à la bouche), mais le
-   gap reste significatif :
-
-  Aspect: Contour
-  Target: Silhouette organique lisse
-  Output v8.2: Profil reconnaissable mais plus rigide
-  Gap: Le path Bézier a besoin de calibration fine
-  ────────────────────────────────────────
-  Aspect: Proportions
-  Target: Enfant 4-5 ans réaliste
-  Output v8.2: Tête trop grosse/ronde, corps trop fin
-  Gap: Ratio tête/corps
-  ────────────────────────────────────────
-  Aspect: Intégration scène
-  Target: Enfant DANS/DEVANT le mur
-  Output v8.2: Enfant flottant au-dessus
-  Gap: Position Y
-  ────────────────────────────────────────
-  Aspect: Remplissage
-  Target: Dégradé de profondeur, ombres
-  Output v8.2: Aplat monochrome
-  Gap: Limitation SVG pur
-  ────────────────────────────────────────
-  Aspect: Healthy child
-  Target: Silhouette humaine organique
-  Output v8.2: Encore géométrique (cercle+bâtons)
-  Gap: Le front view path semble pas appliqué
-
-  C'est exactement le type d'analyse qui devrait être automatisé dans
-  le module de calibration visuelle qu'on discutait. Et c'est aussi le
-  point où l'approche (iii) — contours maîtres vectorisés depuis les
-  références pour les humains — devient la solution pragmatique.
-
-  On continue à itérer sur le draw_child, ou tu veux d'abord poser
-  l'architecture du module de calibration ?
+**[6. HYGIÈNE COGNITIVE ET PROTOCOLE D'ÉPURATION (PATTERN P11)]**
+Pour prévenir les "régressions topologiques", aide l'équipe à maintenir un contexte propre de façon collaborative. Au lieu de donner des ordres d'épuration stricts à la fin de chaque message, rappelle simplement et naturellement à Aurore de nettoyer la fenêtre de contexte (ex: retirer les références aux *stick figures* des V7/V8) uniquement quand tu sens que le dialogue risque d'être pollué par d'anciennes versions.
+**RECALIBRAGE STRATÉGIQUE : Transition vers la Matrice V2.3 (Fluidité Cognitive)**

@@ -74,11 +74,12 @@ Convergence ↑IgA. Pas de cartes mécanismes séparées.
 
 ### Prochaine action (session suivante)
 
-1. **v9: intégrer contours extraits** dans draw_child() — remplacer silhouettes géométriques par contours organiques (approche iii)
-2. **Envoyer v9 à NotebookLM** pour audit comparatif vs. cibles S1-S4
-3. **Itérer** sur feedback Aurore + NotebookLM
-4. **Construire module comparaison/calibration** — pipeline automatisé target vs. output
-5. **Extraction module VEC** vers `~/scisense/modules/vec/` (12 items, post-feedback)
+1. **V10.2: IgA convergence + cycle break** — Implémenter B8 (convergence visuelle des 4 flux-produits au point IgA dans le lumen) et renforcer B4/P23 (lance verte fracturant le cycle rouge)
+2. **V10.2: Anatomie interne enfants** — Remplacer silhouettes solides par overlay anatomique (système respiratoire visible à travers le corps, cf. SD3 slide 18 blueprint clinique)
+3. **Envoyer V10.2 à NotebookLM** pour audit comparatif vs. cibles SD3
+4. **Itérer** sur feedback Aurore + NotebookLM
+5. **Construire module comparaison/calibration** — pipeline automatisé target vs. output
+6. **Extraction module VEC** vers `~/scisense/modules/vec/` (12 items, post-feedback)
 
 ### Handoff
 
@@ -113,3 +114,5 @@ Convergence ↑IgA. Pas de cartes mécanismes séparées.
 | 2026-03-24 | Product name decided: Visual Evidence Compiler (VEC). |
 | 2026-03-24 | Bugs fixés: Playwright fallback pour svglib/cairo Windows. Pillow decompression bomb → 2x render + 600 DPI metadata. |
 | 2026-03-24 | Handoff fin de session. SYNC mis à jour. Mémoire VEC architecture écrite. |
+| 2026-03-24 | **SD3 slide deck reçu** (NotebookLM, 19 slides). 7 insights clés extraits. 3 validations (V12 choc cognitif, P19 topologie spatiale, P3 compression métaphorique), 1 confirmation (P23 fractalisme narratif, renforce B4), 1 confirmation cascade cognitive (GA_SPEC 2.6bis), 2 gaps identifiés (IgA convergence = nouveau B8, anatomie interne enfants manquante dans V10). |
+| 2026-03-24 | **V10.0 compilé.** V10.1 fixes techniques appliqués. **V10.2 en cours** : intégration IgA convergence (B8) + fracture visuelle cycle rouge (P23/B4 renforcé) + anatomie interne enfants (gap SD3 slide 18). |

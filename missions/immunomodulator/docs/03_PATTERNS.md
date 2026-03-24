@@ -103,6 +103,103 @@ H=1.0 → spine droit, tête haute, bras ouverts (célébration) → résolution
 
 Les infographies NotebookLM ne sont pas des assets ni des livrables. Ce sont des **blueprints pour calibrer les paramètres** des générateurs. On regarde la posture de l'enfant dans l'infographie, on en déduit les angles/courbures, on ajuste le YAML. L'IA informe la géométrie, le code produit le résultat. Extends P12.
 
+**Élargissement V10 : Calibration Intégrale.** L'infographie IA n'est pas un calibrateur de volumes uniquement. C'est un **calibrateur multi-dimensionnel** qui produit une réponse intégrée à : volumes, couleurs en contexte, textures, espacements, espaces négatifs, ancrage, hiérarchie de lecture, et tonalité émotionnelle. Silas extrait de chaque infographie non seulement les contours (approche iii) mais aussi les **ratios d'espacement**, la **densité locale**, et le **poids visuel relatif** des éléments pour recalibrer ses paramètres YAML. Chaque infographie IA informe les patterns P7, P18, P20, P21, P22, P26-P31.
+
+## P24: Concept ASCII avant wireframe
+
+Avant tout wireframe SVG, produire des **propositions en ASCII art** dans un PDF. Cette phase force la réflexion sur le flux narratif et la structure spatiale AVANT de toucher au code. Le cycle est :
+
+```
+DIAGNOSTIC → AXES DE VARIATION → 3 PROPOSITIONS ASCII → PDF → VÉRIFICATION VISUELLE → ENVOI AURORE → FEEDBACK → WIREFRAME
+```
+
+L'ASCII art suffit pour qu'Aurore valide la direction. Pas besoin de code pour trancher entre 3 architectures visuelles. Économise des jours de wireframing dans la mauvaise direction.
+
+## P25: Vérification visuelle obligatoire
+
+**Tout artefact généré (PDF, PNG, SVG) doit être relu visuellement avant envoi ou validation.** Un fichier qui compile n'est pas un fichier qui communique. Utiliser le Read tool pour voir le rendu réel. Cela attrape : texte tronqué, ASCII art cassé, pages blanches, encodage Unicode, mise en page décalée.
+
+## P26: Espace Négatif — le silence visuel
+
+Ce qui n'est PAS dessiné est aussi important que ce qui l'est. L'espace négatif (l'air autour des éléments) donne la lisibilité et guide le regard. Un GA surchargé est un GA illisible — le pédiatre décroche en <1s.
+
+Règles :
+- Chaque élément visuel majeur (enfant, bronche, barres d'évidence) doit avoir un espace de respiration d'au moins 5% de sa propre dimension autour de lui
+- Le lumen de la bronche est un espace négatif fonctionnel — il DOIT rester majoritairement vide (c'est de l'air) pour que les virus (gauche) et les IgA (droite) soient lisibles par contraste
+- Les marges gauche et droite (enfants + cycle/évidence) ne doivent pas coller au cadre de la bronche
+- L'espace négatif encode aussi l'information : un lumen vide côté sain = "l'air passe librement" = résolution
+
+Calibré par : infographie IA (P17 élargi). Tradeoff T1 (densité vs lisibilité).
+
+## P27: Texture et Matérialité — le tissu vivant
+
+La différence entre un épithélium qui "semble vivant" et des rectangles plats. Le rendu SVG programmatique a tendance à produire des formes géométriques froides. La texture encode la biologie sans ajouter de mots.
+
+Techniques de texture en SVG pur :
+- **Gradient subtil** sur les cellules épithéliales (pas de fill plat)
+- **Opacité variable** sur le muscle lisse (gradient amber→vert = inflammation qui se résout)
+- **Irrégularité contrôlée** sur les branches DC (P20 impose des branches courbes irrégulières, pas des étoiles symétriques)
+- **Bruit de Perlin** simulé via des micro-variations de position (seed aléatoire fixe pour reproductibilité)
+
+Ce que la texture ne fait PAS : ajouter du détail photoréaliste. On reste en line art médical (P20). La texture est une micro-variation, pas un rendu 3D.
+
+Calibré par : infographie IA (P17 élargi). Renforce P20 (abstraction professionnelle).
+
+## P28: Hiérarchie Typographique — les 30 mots qui comptent
+
+Le budget de 30 mots (V3) n'est pas juste un plafond — c'est un système de hiérarchie. Chaque mot a un poids visuel qui encode son importance.
+
+3 niveaux typographiques :
+- **Niveau 1 (ancre)** : les mots que le pédiatre lit en premier. Plus grands, plus gras. Ex: "Wheezing/Asthma", "Clinical evidence". Font-size ≥ 32 au format 3x.
+- **Niveau 2 (contexte)** : les labels de mécanismes et produits. Taille moyenne. Ex: "OM-85", "Viral RTIs", "18 RCTs". Font-size 24-30 au format 3x.
+- **Niveau 3 (ponctuation)** : les micro-labels optionnels. Petits mais lisibles. Ex: "Th1", "Th2", "gut". Font-size 18-22 au format 3x. Peuvent être supprimés si le budget est serré.
+
+Règle : le test de lisibilité V7 (50% zoom = 550×280) doit passer pour TOUS les niveaux. Si le Niveau 3 ne passe pas, le supprimer plutôt que le réduire.
+
+Placement : les labels de Niveau 1 sont toujours HORS de la bronche (marges ou légende). Les labels de Niveau 2 sont dans ou près de leurs éléments. Le Niveau 3 est collé à son objet.
+
+## P29: Densité Locale — le gradient d'information
+
+La densité d'information n'est pas uniforme sur le GA. Elle suit un gradient qui encode la narration :
+
+- **Zone 1 (gauche)** : densité FAIBLE. Le problème doit être immédiatement lisible. Un enfant, un cercle vicieux, quelques virus. Pas de surcharge.
+- **Zone 2 (centre/bronche)** : densité HAUTE. C'est le coeur scientifique. Les 4 bandes, les attributions produit, les transformations L→R. La densité est justifiée parce que le pédiatre y arrive APRÈS avoir compris le problème.
+- **Zone 3 (droite)** : densité MOYENNE. Résolution (enfant sain) + outil de décision (barres d'évidence). Clair et actionable.
+
+Ce gradient suit naturellement le flux de lecture L→R (P1) : accroche simple → complexité justifiée → conclusion actionable.
+
+Si une zone est trop dense, la correction n'est pas de compresser les éléments mais de vérifier si tous les éléments de cette zone sont nécessaires (P3 compression métaphorique).
+
+## P30: Flux de Lecture Secondaire — l'axe vertical
+
+P1 définit le flux principal gauche→droite. Mais la "Bronche Vivante" (V2-A) introduit un flux secondaire VERTICAL : du lumen (haut) vers le muscle lisse (bas). Ce flux encode la profondeur tissulaire.
+
+Les deux flux coexistent :
+- **Axe horizontal (P1)** : malade → sain (le temps / l'intervention)
+- **Axe vertical (P30)** : surface → profondeur (la localisation anatomique)
+
+Le regard du pédiatre fait un L inversé :
+1. Scan horizontal rapide (P1) : rouge à gauche, vert à droite = "ça guérit"
+2. Scan vertical dans la zone d'intérêt : "comment ça guérit" = les 4 couches
+
+Ce flux vertical est ce qui distingue V2-A des designs classiques 3-zones. La topologie spatiale (P19) ne peut fonctionner que si le pédiatre lit AUSSI de haut en bas.
+
+## P31: Poids Visuel Relatif — la balance des éléments
+
+Chaque élément du GA a un poids visuel (aire × opacité × contraste × saturation). Le poids visuel relatif doit refléter l'importance clinique ET le niveau de preuve.
+
+Hiérarchie de poids attendue :
+1. **Enfants** (Z1/Z3) : poids maximal — ce sont les ancrages émotionnels (B1, B7, V12)
+2. **Bronche** (centre) : poids majeur — c'est le sujet scientifique
+3. **Evidence bars** (Z3) : poids moyen-fort — c'est l'outil de décision (B3)
+4. **Cercle vicieux** (Z1) : poids moyen — contexte clinique (B4)
+5. **Légende** : poids faible — référence, pas contenu central
+6. **Arc CRL1505** : poids faible — information secondaire (préclinique)
+
+Ce qui viole P31 : un arc CRL1505 aussi épais que le bouclier OM-85 (le préclinique ne doit pas avoir le même poids visuel que 18 RCTs). Une légende plus grande que les barres d'évidence.
+
+Renforce P21 (gravité clinique) au niveau de l'image entière, pas juste de la Zone 3.
+
 ---
 
 ## Design System Biologique — Méta-Patterns (extraits de l'audit SD1)
@@ -172,4 +269,6 @@ Une pathologie chronique auto-entretenue est un **cercle fermé**. Sa résolutio
 - **Zone 1** : Cercle vicieux = flèche circulaire fermée (4 stations : Viral RTIs → Th2 bias → Remodeling → Re-susceptibility). La forme géométrique EST le message.
 - **Zone 3** : La ligne de flux vert/bleu (épithélium restauré) doit se prolonger comme une lance qui vient **fracturer physiquement** une ligne rouge de morbidité menant au Wheezing/Asthma. Coupure visuelle nette.
 
-Validé par NotebookLM comme application exacte de P3 (Compression Métaphorique) et B4 (Breaking the Cycle). Ce n'est pas une sur-simplification — c'est le climax cognitif du GA. Source: Faille 6, 10.
+**Précision SD3 (slide 15)** : La flèche verte de santé (health arrow) doit **physiquement FRACTURER** le tracé rouge du cercle vicieux. Ce n'est pas une transition implicite gauche→droite — c'est un élément graphique explicite : la lance verte coupe net le cycle rouge. "La coupure visuelle nette symbolise l'arrêt de la morbidité. C'est le climax cognitif du design." La fracture doit être perceptible comme un acte — un moment de rupture, pas un fondu. Renforce B4 (le cercle vicieux est brisé).
+
+Validé par NotebookLM (SD1 + SD3) comme application exacte de P3 (Compression Métaphorique) et B4 (Breaking the Cycle). Ce n'est pas une sur-simplification — c'est le climax cognitif du GA. Source: Faille 6, 10 (SD1), Slide 15 (SD3).

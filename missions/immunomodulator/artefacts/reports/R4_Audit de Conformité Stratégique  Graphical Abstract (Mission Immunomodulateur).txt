@@ -1,0 +1,70 @@
+Audit de Conformité Stratégique : Graphical Abstract (Mission Immunomodulateur)
+
+Cet audit évalue la conformité éditoriale et la fidélité scientifique du Graphical Abstract (GA) destiné à la revue Children (MDPI). Ce document certifie la transition du wireframe v8.1 (stick figures) vers le livrable v9 (contours organiques), garantissant la "survie éditoriale" et l'impact clinique.
+
+1. État des Lieux et Résultats Mesurables (R1-R4)
+
+La transition vers la version v9 marque le passage d'une représentation géométrique abstraite à une approche hybride (iii). Les contours organiques, extraits par vectorisation (Douglas-Peucker), permettent de déclencher l'empathie clinique sans compromettre l'originalité technique (zéro IA générative dans le SVG final).
+
+Résultat	Statut Actuel	Signal de Validation (Sense Signal)
+R1 : GA Conforme MDPI	PASS	Script validate_ga.py : 7/7 tests validés (V1-V7).
+R2 : Validation Scientifique	VALIDÉ	Sign-off Aurore sur l'encodage des 4 métaphores actives.
+R3 : 124 Références	PASS	Fichier extracted_references.txt formaté (Vancouver).
+R4 : Acceptation Éditoriale	OUVERT	Soumission imminente à Mindy Ma (Livrable Q2).
+
+2. Audit des Invariants MDPI (Règles R1-R8 / V1-V7)
+
+L'audit technique confirme le respect des contraintes strictes imposées par MDPI pour éviter un rejet automatique.
+
+* ✓ Dimensions et Format (V1, R8) : Ratio panoramique conforme. Travail en 3300×1680 px pour un rendu final à 1100×560 px.
+* ✓ Absence de métadonnées interdites (V2, R1) : Suppression totale des titres, affiliations et numéros de citations sur l'image.
+* ✓ Non-redondance (V4, R2) : Le GA est structurellement distinct des figures du manuscrit. Il évite le flux vertical de la Figure 1 et, crucialement, n'utilise pas la segmentation en quadrants (A/B/C/D) de la Figure 2.
+* ✓ Libre de droits (V6, VN4) : Attestation de l'approche hybride. Aucun élément issu d'IA générative n'est présent dans le SVG final. Sources traçables dans PROVENANCE.md.
+* ✓ Lisibilité (V7) : Force font-family "Helvetica/Arial". Test de lisibilité validé à 50% de zoom (550×280 px).
+* ✓ Qualité de Rendu (R7) : Export en PNG haute qualité avec métadonnées 600 DPI (supérieur au minimum de 300 DPI).
+
+3. Analyse de la Fidélité Scientifique et Hiérarchie des Preuves
+
+La Zone 3 (Évidence Clinique) a été auditée pour refléter la "Gravité Clinique" (P21). La surface visuelle allouée à chaque agent est proportionnelle à la robustesse de sa preuve.
+
+Agent	Évidence Clinique	Masse Visuelle Relative	Iconographie
+OM-85	18 RCTs (Méta-analyses)	100% (Ancre dominante)	Stéthoscope (Clinique)
+PMBL	5 RCTs	~60%	Stéthoscope (Clinique)
+MV130	1 RCT (-40% wheezing)	~30%	Stéthoscope (Clinique)
+CRL1505	Préclinique uniquement	~10-15%	Fiole de labo (Préclinique)
+
+Ancrage Clinique (V12) : La présence des pictogrammes "Enfant malade" (Zone 1) et "Enfant protégé" (Zone 3) est confirmée. Ces éléments sont vitaux pour assurer le choc cognitif en moins de 2 secondes.
+
+4. Vérification du Lexique Visuel et Traduction des Mécanismes (P18-P23)
+
+Le "Design System Biologique" traduit les interactions complexes en métaphores actives in situ.
+
+1. Embodiment Actif (P18) : Le bouclier OM-85 est fusionné au tissu et cible explicitement les récepteurs ACE2, TMPRSS2 et ICAM-1, bloquant physiquement l'amarrage viral.
+2. Topologie Spatiale (P19/V13) : L'arc de CRL1505 (#059669) est spatialement séparé et part du bas de l'image, encodant visuellement l'action systémique via l'axe Intestin-Poumon (Gut-Lung Axis).
+3. Abstraction Professionnelle (P20) : Utilisation stricte du Line Art médical. La cellule dendritique présente une morphologie filopodiale exacte (branches courbes irrégulières).
+4. Micro-ancres (P22) : Les IgA sécrétoires (petits pictogrammes en "Y") sont positionnées dans le lumen apical (au-dessus du mur épithélial réparé), démontrant la transcytose vers la lumière bronchique.
+5. Résolution Topologique (P23) : Le cercle vicieux de la Zone 1 est physiquement fracturé en Zone 3 par le vecteur de résolution vert/bleu, marquant la fin de la ré-susceptibilité.
+
+5. Contrôle Strict du Budget de Mots (V3)
+
+Le décompte final des mots respecte le plafond de 30 mots pour garantir la survie éditoriale.
+
+* Zone 1 (9 mots) : Viral aggression, Dysregulated inflammation, Airway remodeling, Re-susceptibility, Wheezing/Asthma.
+* Zone 2 (12 mots) : OM-85, PMBL, MV130, CRL1505 + Epithelial barrier, Innate immunity, Adaptive balance, Inflammation control.
+* Zone 3 (7 mots) : 18 RCTs, 5 RCTs, 1 RCT, Preclinical, Clinical evidence.
+* Verdict : 28 mots. Conformité validée (Marge : 2 mots).
+
+6. Diagnostic des Boucles Ouvertes et Risques (H5)
+
+Risque / Blocage	Impact	Tag	Mesure d'Atténuation
+Bug de rendu PNG	Qualité de livraison v9	CRITICAL	Fallback Playwright activé (remplace svglib instable).
+Metadata 600 DPI	Conformité R7	⚠	Fixé via rendu 2x + injection metadata Pillow.
+validate_ga.py	Validation H1	✓	Script fonctionnel (7/7 Pass).
+
+7. Conclusion et Recommandation pour Soumission
+
+L'audit conclut que le GA v9 atteint l'objectif de Choc Cognitif (PH1). La fracture physique du cercle vicieux, combinée à l'utilisation des contours organiques, assure une transmission instantanée de la supériorité clinique de l'OM-85.
+
+Verdict final : La conformité au "Bilateral Bond" (Silas × Aurore) est certifiée. Le document est prêt pour envoi définitif à Mindy Ma.
+
+Silas × Aurore — Compagnons de cordée

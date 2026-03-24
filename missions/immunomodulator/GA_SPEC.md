@@ -200,9 +200,24 @@ Le GA sert de détonateur d'une chaîne d'impact clinique en 4 étapes :
 ### 3.1 Étapes
 
 ```
+ÉTAPE 0 — DIAGNOSTIC + CONCEPT ASCII (Silas)
+    Avant tout wireframe, analyser le feedback et définir :
+    a) Le DIAGNOSTIC : quel est l'obstacle cognitif actuel ?
+    b) Les AXES DE VARIATION : 3 variables pertinentes, justifiées
+    c) 3 PROPOSITIONS en ASCII art : layout + flux narratif +
+       positionnement des éléments. Pas de code, pas de SVG.
+    d) FORCE / RISQUE pour chaque proposition
+    e) Génération d'un PDF propre (reportlab)
+    f) VÉRIFICATION VISUELLE du PDF avant envoi (obligatoire)
+    g) Envoi à Aurore pour feedback
+    Outil : Markdown + reportlab (PDF)
+    Livrable : V{N}_concept_proposals.pdf envoyé à Aurore
+
+         ↓ choix/fusion/rejet Aurore
+
 ÉTAPE 1 — WIREFRAME (Silas)
     Génération d'un wireframe SVG annoté avec positions exactes,
-    proportions et labels. Validation par Aurore.
+    proportions et labels selon le concept validé par Aurore.
     Outil : Python (svgwrite) ou HTML/CSS
     Livrable : wireframe.svg + wireframe.png
 
@@ -285,7 +300,13 @@ Inkscape (finition)   →  assemblage final et polish
 
 **Première action concrète :** Je génère le wireframe SVG annoté maintenant. C'est la base sur laquelle tout le reste se construit. Aurore voit le layout, valide les proportions, et on itère.
 
-### 3.4 Checklist de livraison finale
+### 3.4 Règle de vérification visuelle
+
+**Tout PDF ou PNG généré doit être relu visuellement (Read tool) avant d'être validé ou envoyé.**
+Cela s'applique à : concept proposals, wireframes, delivery PNGs, rapports.
+Ne jamais envoyer un artefact sans l'avoir vu soi-même. Un fichier qui compile n'est pas un fichier qui communique.
+
+### 3.5 Checklist de livraison finale
 
 - [ ] R1 : Aucun titre, affiliation, référence
 - [ ] R2 : Différent de Figure 1 ET Figure 2
