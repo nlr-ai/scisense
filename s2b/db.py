@@ -157,7 +157,10 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
               q1_first_keystroke_ms=None, q1_last_keystroke_ms=None,
               exposure_mode="spotlight", stream_position=None,
               stream_length=None, stream_selected_id=None, s10_hit=None,
-              q1_input_mode="text", q1_raw_transcript=None):
+              q1_input_mode="text", q1_raw_transcript=None,
+              screen_width=None, screen_height=None,
+              device_pixel_ratio=None, user_agent=None,
+              stream_target_dwell_ms=None):
     db = get_db()
     cursor = db.execute(
         """INSERT INTO tests
@@ -169,8 +172,10 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
             q1_first_keystroke_ms, q1_last_keystroke_ms,
             exposure_mode, stream_position, stream_length,
             stream_selected_id, s10_hit,
-            q1_input_mode, q1_raw_transcript)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            q1_input_mode, q1_raw_transcript,
+            screen_width, screen_height, device_pixel_ratio,
+            user_agent, stream_target_dwell_ms)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (participant_id, ga_image_id, q1_text, q1_time_ms,
          q2_choice, q2_time_ms, q3_choice, q3_time_ms,
          int(s9a_pass), float(s9a_score), int(s9b_pass), int(s9c_pass),
@@ -179,7 +184,9 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
          q1_first_keystroke_ms, q1_last_keystroke_ms,
          exposure_mode, stream_position, stream_length,
          stream_selected_id, s10_hit,
-         q1_input_mode, q1_raw_transcript),
+         q1_input_mode, q1_raw_transcript,
+         screen_width, screen_height, device_pixel_ratio,
+         user_agent, stream_target_dwell_ms),
     )
     test_id = cursor.lastrowid
     db.commit()

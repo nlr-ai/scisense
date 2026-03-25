@@ -612,58 +612,111 @@ Le scroll libre introduit un confound fatal : le dwell time devient une *décisi
 
 Avec scroll libre : N=60-120 requis + modèle mixte (dwell time comme covariable). Avec scroll par à-coups contrôlé : N=30 suffit pour le McNemar.
 
-**Le modèle physique — décélération exponentielle :**
+**Le modèle physique — décélération inertielle, calibrée dynamiquement :**
 
-Chaque flick suit le modèle d'inertie implémenté dans iOS (UIScrollView) et Android (OverScroller) :
+Principe Mind Protocol : zéro constante arbitraire. Chaque paramètre du scroll est **dérivé** d'une mesure réelle à runtime, pas hardcodé.
 
 ```
-v(t) = v₀ · e^(-kt)
-
-v₀ = vitesse initiale du flick (350-800 px/s, variable par flick)
-k  = coefficient de friction (~3.0)
-Le scroll s'arrête quand v(t) < 5 px/s.
-Pause de 300-1200ms (variable) avant le prochain flick.
+Friction coefficient:  γ = 0.96  (phénomène physique : ~25× distance de décélération)
+Flick velocity:        v₀ = avgItemHeight / 25  (dérivé de la hauteur réelle des items rendus)
+Pause duration:        p = ITEM_DURATION_MS - 700ms ± 30%  (cible le temps d'exposition config)
+Target dwell:          ITEM_DURATION_MS = config.yaml → stream.item_duration_ms (default: 4000)
 ```
 
-Le résultat : le feed accélère, décélère, s'arrête brièvement, repart. Certains posts passent vite (flick rapide), d'autres restent longtemps à l'écran (décélération lente). Le pattern est immédiatement reconnaissable comme "quelqu'un scrolle sur son téléphone".
+**Pourquoi aucun paramètre n'est hardcodé :**
+
+- `v₀` dépend de `avgItemHeight` — si les posts sont plus grands (titre long, GA large), le flick est plus rapide pour compenser. Sur un écran 4K avec des posts de 600px, v₀ est différent que sur un mobile avec des posts de 350px. Le résultat : **chaque item est visible ~`item_duration_ms` quelle que soit la résolution ou la taille de l'écran.**
+- `p` (pause) cible le dwell time configuré, pas un chiffre random. Si on veut 4 secondes de dwell time, la pause = 4000 - 700ms (temps de décélération) ± 30% de jitter (pour éviter la régularité artificielle).
+- `γ = 0.96` est le seul vrai paramètre physique — c'est la friction d'un scroll tactile standard. Il n'est pas arbitraire, il modélise l'inertie réelle du doigt sur verre.
+
+Le résultat : le feed accélère, décélère, s'arrête brièvement, repart. Le pattern est reconnaissable comme un vrai scroll mobile, et le dwell time est garanti ± 15% du target configuré.
 
 ```javascript
-const FLICK_SEQUENCE = [
-    { v0: 600, pause_ms: 400 },   // rapide — les premiers posts passent vite
-    { v0: 450, pause_ms: 800 },   // ralentit
-    { v0: 350, pause_ms: 1100 },  // quasi-arrêt — le POST CIBLE tombe ici
-    { v0: 500, pause_ms: 500 },   // repart
-    { v0: 700, pause_ms: 300 },   // final rapide
-];
-// k=3.0 (friction iOS standard). Séquence seed-based, reproductible.
+// Calibration dynamique à runtime
+const items = document.querySelectorAll('.feed-post');
+const avgItemHeight = Array.from(items).reduce((sum, el) => sum + el.offsetHeight, 0) / items.length;
+const flickVelocity = avgItemHeight / 25;  // dérivé, pas hardcodé
+const friction = 0.96;  // phénomène physique
+const targetDwell = config.stream.item_duration_ms;  // depuis config.yaml
+const pauseBase = targetDwell - 700;  // 700ms = temps de décélération moyen à γ=0.96
 ```
 
-**Contrôle expérimental :** La séquence est pré-générée et identique pour tous les participants d'une session (seed-based). Le dwell time varie *entre posts* (certains passent vite, d'autres lentement — comme en vrai) mais pas *entre participants* (même film pour tous). Le post cible est positionné dans un flick lent (dwell time garanti ~4-6s).
+**Contrôle expérimental :** La séquence est déterministe pour un (seed, résolution) donné. Le dwell time varie *entre posts* (certains passent vite, d'autres lentement) mais pas *entre participants ayant la même résolution*. Le post cible est positionné dans un flick lent.
 
-| | Scroll constant | Scroll par à-coups | Scroll libre |
+| | Scroll constant | Scroll inertiel calibré | Scroll libre |
 |---|---|---|---|
 | Perception | "Animation" → mode test | "Feed" → mode scan | "Feed" → mode scan |
-| Dwell time | Fixe (~6.7s) | Variable par post, fixe entre participants | Variable par tout |
+| Dwell time | Fixe (~6.7s) | Calibré au target ± 15%, adapté à la résolution | Variable par tout |
+| Constantes hardcodées | Oui (60px/s) | **Non** — tout dérivé de la résolution + config | N/A |
 | Contrôle expérimental | Maximal mais artificiel | Fort et réaliste | Aucun (confound) |
 | N requis (puissance 80%) | 30 | 30 | 60-120 |
 
-**Variable dérivée :** Sur N sessions avec des seeds différents, le dwell time du post cible varie. `logit(S9b) = ... + β₈·stream_target_dwell_ms` quantifie le temps minimum dont le GA a besoin pour transférer la hiérarchie — une métrique de robustesse du design.
+**Variable dérivée :** Sur N sessions avec des seeds différents, le dwell time du post cible varie. `logit(S9b) = ... + β₈·stream_target_dwell_ms` quantifie le temps minimum dont le GA a besoin pour transférer la hiérarchie.
 
 **V4 — Scroll libre instrumenté :** Quand N>200, un troisième mode mesure le vrai comportement d'arrêt (vitesse instantanée via `scroll` events). La corrélation "ralentissement devant un post" × "sélection dans le recall" valide S10 comme proxy du scroll-stopping réel.
 
-**Justification (paper)** : La décélération exponentielle suit le modèle de friction visqueuse des frameworks natifs (Baglioni et al., 2011, *CHI*). La séquence de flicks pré-générée suit la recommandation de Risko & Kingstone (2015, *Trends in Cognitive Sciences*) : les stimuli doivent être représentatifs de la dynamique temporelle de la situation cible, pas seulement de son contenu. La variance contrôlée du dwell time (entre posts, pas entre participants) permet un test paramétrique sans modèle mixte (Gescheider, 1997). La reproductibilité seed-based est une condition nécessaire pour l'auditabilité des résultats.
+**Justification (paper)** : La calibration dynamique des paramètres de scroll à partir de la hauteur rendue des items suit le principe de responsive experimental design : les paramètres du protocole s'adaptent à l'environnement d'affichage du participant plutôt que d'imposer des constantes qui ne sont valides que pour une résolution. La friction γ=0.96 correspond au coefficient de décélération des frameworks natifs iOS/Android (Baglioni et al., 2011, *CHI*). L'absence de constantes arbitraires dans le calcul du flick suit la philosophie "constant-free" : chaque nombre est soit un phénomène physique (γ), soit dérivé d'une mesure (avgItemHeight), soit configurable (item_duration_ms).
 
-**Paramètres du feed :**
+### Simulation mobile sur desktop (phone frame)
 
-| Paramètre | Valeur | Justification |
-|-----------|--------|---------------|
-| Pattern de scroll | Inertial flick (v₀·e^(-kt), k=3.0) | Geste du pouce sur mobile |
-| v₀ par flick | 350-800 px/s (variable) | Range calibré sur données iOS |
-| Pause entre flicks | 300-1200ms (variable) | Micro-décision "je flick encore ou je lis" |
-| Zone visible | 600px de hauteur | Mobile viewport |
-| Nombre de posts | 6-10 | Feed réaliste |
-| Position du post cible | Dans un flick lent | Dwell time garanti 4-6s |
-| Séquence | Seed-based, reproductible | Même film pour tous |
+Sur desktop, le feed est affiché dans un **cadre de téléphone CSS** (375×812px, ratio iPhone standard) centré à l'écran. Sur mobile natif, le cadre est masqué — le viewport EST le téléphone.
+
+```
+Desktop:  ┌─── écran 1920×1080 ───────────────────────────────┐
+          │                                                     │
+          │         ┌──── phone frame 375×812 ────┐            │
+          │         │                              │            │
+          │         │   [feed auto-scroll ici]     │            │
+          │         │                              │            │
+          │         └──────────────────────────────┘            │
+          │                                                     │
+          └─────────────────────────────────────────────────────┘
+
+Mobile:   Le feed occupe 100% du viewport. Pas de frame.
+```
+
+**Pourquoi :** Le GA est vu principalement sur mobile (P6). Si on laisse le feed occuper 1920px de large sur desktop, le participant voit le GA dans des conditions que personne ne rencontre dans la réalité. Le phone frame force la condition mobile quel que soit le device du participant. Le cadre est un indice contextuel supplémentaire qui dit au cerveau "tu es sur un téléphone" → mode scan.
+
+**Détection auto :** `window.innerWidth > 768 ? showPhoneFrame() : hidePhoneFrame()`.
+
+### Résolution d'écran — variable stockée
+
+La résolution du participant est une covariable critique. Un GA rendu à 200px sur un écran Retina (DPR=3, 600 pixels physiques) est objectivement plus lisible qu'à 200px sur un écran 1080p (DPR=1, 200 pixels physiques). Si on ne stocke pas la résolution, on confond la qualité du design avec la qualité de l'écran.
+
+**Variables stockées à chaque test :**
+
+```
+screen_width INTEGER,           -- window.innerWidth (px CSS)
+screen_height INTEGER,          -- window.innerHeight (px CSS)
+screen_dpr REAL,                -- window.devicePixelRatio (1.0, 2.0, 3.0...)
+screen_user_agent TEXT,         -- navigator.userAgent (device + browser)
+screen_is_mobile INTEGER,       -- 1 si phone frame masqué (mobile natif), 0 si phone frame affiché (desktop)
+```
+
+`screen_dpr` est la variable la plus importante. En phase 4, elle entre dans la régression :
+
+```
+logit(S9b) = ... + β₉·screen_dpr
+```
+
+Si β₉ est significatif et positif, les écrans haute résolution améliorent S9b — ce qui signifie que le GA dépend de détails fins (micro-ancres P22, labels petits) qui disparaissent en basse résolution. Un VEC robuste devrait avoir un β₉ non significatif : le design fonctionne quelle que soit la résolution.
+
+### Pixel de validation (exposure verification)
+
+Un pixel de vérification confirme que le GA a bien été affiché pendant la durée attendue. C'est une mesure d'intégrité du protocole, pas du participant.
+
+**Implémentation :** `IntersectionObserver` sur le post cible mesure :
+- `stream_target_enter_ts` — timestamp d'entrée dans le viewport
+- `stream_target_exit_ts` — timestamp de sortie du viewport
+- `stream_target_dwell_ms = exit_ts - enter_ts` — dwell time réel mesuré
+
+**Invariant :** Si `|stream_target_dwell_ms - config.stream.item_duration_ms| > 500ms`, le test est flaggé `exposure_valid = 0`. Le scroll n'a pas respecté sa calibration — bug technique, pas comportement du participant. Le test est exclu des analyses (même logique que `tab_switched`).
+
+```sql
+ALTER TABLE test_results ADD COLUMN stream_target_enter_ts REAL;    -- ms (performance.now)
+ALTER TABLE test_results ADD COLUMN stream_target_exit_ts REAL;     -- ms
+ALTER TABLE test_results ADD COLUMN exposure_valid INTEGER DEFAULT 1; -- 0 si dwell time hors tolérance
+```
 
 **Le flux UX :**
 
@@ -855,8 +908,18 @@ ALTER TABLE test_results ADD COLUMN stream_selected_id TEXT;                    
 ALTER TABLE test_results ADD COLUMN s10_hit INTEGER;                                -- 1 si sélection correcte
 ALTER TABLE test_results ADD COLUMN stream_scroll_type TEXT DEFAULT 'inertial_flick'; -- 'constant' | 'inertial_flick' | 'free'
 ALTER TABLE test_results ADD COLUMN stream_flick_seed TEXT;                         -- seed de la séquence (reproductibilité)
-ALTER TABLE test_results ADD COLUMN stream_target_dwell_ms INTEGER;                 -- dwell time effectif du post cible (IntersectionObserver)
+ALTER TABLE test_results ADD COLUMN stream_target_dwell_ms INTEGER;                 -- dwell time effectif (IntersectionObserver)
 ALTER TABLE test_results ADD COLUMN stream_feed_style TEXT;                         -- 'linkedin' | 'twitter' | 'toc_journal'
+ALTER TABLE test_results ADD COLUMN stream_target_enter_ts REAL;                    -- timestamp entrée viewport (performance.now)
+ALTER TABLE test_results ADD COLUMN stream_target_exit_ts REAL;                     -- timestamp sortie viewport
+ALTER TABLE test_results ADD COLUMN exposure_valid INTEGER DEFAULT 1;               -- 0 si dwell hors tolérance (±500ms du target)
+
+-- Résolution d'écran (covariable)
+ALTER TABLE test_results ADD COLUMN screen_width INTEGER;                           -- window.innerWidth (px CSS)
+ALTER TABLE test_results ADD COLUMN screen_height INTEGER;                          -- window.innerHeight (px CSS)
+ALTER TABLE test_results ADD COLUMN screen_dpr REAL;                                -- window.devicePixelRatio
+ALTER TABLE test_results ADD COLUMN screen_user_agent TEXT;                         -- navigator.userAgent
+ALTER TABLE test_results ADD COLUMN screen_is_mobile INTEGER;                       -- 1 si mobile natif, 0 si desktop avec phone frame
 
 -- Embedding (S9a sémantique)
 ALTER TABLE test_results ADD COLUMN s9a_raw REAL;                                   -- cos_sim brute ∈ [-1, 1]

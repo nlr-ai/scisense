@@ -274,6 +274,11 @@ def submit_test(
     target_filename: str = Form(""),
     q1_input_mode: str = Form("text"),
     q1_raw_transcript: str = Form(""),
+    screen_width: int = Form(0),
+    screen_height: int = Form(0),
+    device_pixel_ratio: float = Form(0.0),
+    user_agent: str = Form(""),
+    stream_target_dwell_ms: int = Form(0),
 ):
     participant = _get_participant(request)
     if not participant:
@@ -330,6 +335,11 @@ def submit_test(
         s10_hit=s10_hit,
         q1_input_mode=q1_input_mode,
         q1_raw_transcript=q1_raw_transcript or None,
+        screen_width=screen_width or None,
+        screen_height=screen_height or None,
+        device_pixel_ratio=device_pixel_ratio or None,
+        user_agent=user_agent or None,
+        stream_target_dwell_ms=stream_target_dwell_ms or None,
     )
     return RedirectResponse(url=f"/reveal/{test_id}", status_code=303)
 
