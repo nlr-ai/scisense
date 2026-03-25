@@ -6,7 +6,8 @@
       "author": "Dr. M. Reck et al.",
       "journal": "NEJM",
       "likes": 142,
-      "comments": 23
+      "comments": 23,
+      "pfp": "pfp_reck.jpg"
     },
     {
       "filename": "leurre_title_neuroscience.png",
@@ -14,7 +15,8 @@
       "author": "Dr. G. Buzsaki et al.",
       "journal": "Nature Neuroscience",
       "likes": 87,
-      "comments": 12
+      "comments": 12,
+      "pfp": "pfp_buzsaki.jpg"
     },
     {
       "filename": "leurre_title_epidemiology.png",
@@ -22,7 +24,8 @@
       "author": "GBD 2019 Collaborators",
       "journal": "The Lancet",
       "likes": 234,
-      "comments": 45
+      "comments": 45,
+      "pfp": "pfp_gbd.jpg"
     },
     {
       "filename": "leurre_title_cardiology.png",
@@ -30,7 +33,8 @@
       "author": "Dr. J. McMurray et al.",
       "journal": "NEJM",
       "likes": 198,
-      "comments": 31
+      "comments": 31,
+      "pfp": "pfp_mcmurray.jpg"
     },
     {
       "filename": "leurre_figure_scatter.png",
@@ -38,7 +42,8 @@
       "author": "Dr. A. Ribas et al.",
       "journal": "JCO",
       "likes": 56,
-      "comments": 8
+      "comments": 8,
+      "pfp": "pfp_ribas.jpg"
     },
     {
       "filename": "leurre_figure_line_pfs.png",
@@ -46,7 +51,8 @@
       "author": "Dr. J. Larkin et al.",
       "journal": "NEJM",
       "likes": 112,
-      "comments": 19
+      "comments": 19,
+      "pfp": "pfp_larkin.jpg"
     },
     {
       "filename": "leurre_figure_heatmap.png",
@@ -54,7 +60,8 @@
       "author": "Dr. W. Hugo et al.",
       "journal": "Cell",
       "likes": 73,
-      "comments": 11
+      "comments": 11,
+      "pfp": "pfp_hugo.jpg"
     },
     {
       "filename": "leurre_ga_bar_comparison.png",
@@ -62,7 +69,8 @@
       "author": "Dr. K. Reich et al.",
       "journal": "JAMA Dermatology",
       "likes": 91,
-      "comments": 14
+      "comments": 14,
+      "pfp": "pfp_reich.jpg"
     },
     {
       "filename": "leurre_ga_infographic_meta.png",
@@ -70,7 +78,8 @@
       "author": "Dr. F. Schuch et al.",
       "journal": "JAMA Psychiatry",
       "likes": 167,
-      "comments": 28
+      "comments": 28,
+      "pfp": "pfp_schuch.jpg"
     },
     {
       "filename": "leurre_ga_flowchart_prisma.png",
@@ -78,7 +87,8 @@
       "author": "Dr. C. Gerber et al.",
       "journal": "Pediatrics",
       "likes": 44,
-      "comments": 6
+      "comments": 6,
+      "pfp": "pfp_gerber.jpg"
     },
     {
       "filename": "leurre_personal_newjob.png",
@@ -86,7 +96,8 @@
       "author": "Dr. Elena Vasquez",
       "journal": "LinkedIn",
       "likes": 287,
-      "comments": 34
+      "comments": 34,
+      "pfp": "pfp_vasquez.jpg"
     },
     {
       "filename": "leurre_personal_conference.png",
@@ -94,7 +105,8 @@
       "author": "Prof. Marco Rinaldi",
       "journal": "LinkedIn",
       "likes": 156,
-      "comments": 22
+      "comments": 22,
+      "pfp": "pfp_rinaldi.jpg"
     },
     {
       "filename": "leurre_personal_milestone.png",
@@ -102,7 +114,8 @@
       "author": "Dr. Fatima Al-Sayed",
       "journal": "ResearchGate",
       "likes": 89,
-      "comments": 15
+      "comments": 15,
+      "pfp": "pfp_alsayed.jpg"
     },
     {
       "filename": "leurre_personal_opinion.png",
@@ -110,7 +123,8 @@
       "author": "Dr. James Whitfield",
       "journal": "X/Twitter",
       "likes": 234,
-      "comments": 41
+      "comments": 41,
+      "pfp": "pfp_whitfield.jpg"
     },
     {
       "filename": "leurre_job_postdoc.png",
@@ -118,7 +132,8 @@
       "author": "ETH Zurich",
       "journal": "LinkedIn",
       "likes": 67,
-      "comments": 12
+      "comments": 12,
+      "pfp": "pfp_eth.jpg"
     },
     {
       "filename": "leurre_job_medwriter.png",
@@ -126,7 +141,8 @@
       "author": "Sarah Mitchell",
       "journal": "LinkedIn",
       "likes": 43,
-      "comments": 8
+      "comments": 8,
+      "pfp": "pfp_recruiter.jpg"
     },
     {
       "filename": "leurre_news_who.png",
@@ -134,7 +150,8 @@
       "author": "WHO",
       "journal": "X/Twitter",
       "likes": 412,
-      "comments": 38
+      "comments": 38,
+      "pfp": "pfp_who.jpg"
     },
     {
       "filename": "leurre_news_funding.png",
@@ -142,7 +159,8 @@
       "author": "European Commission",
       "journal": "LinkedIn",
       "likes": 324,
-      "comments": 27
+      "comments": 27,
+      "pfp": "pfp_eu.jpg"
     },
     {
       "filename": "leurre_event_webinar.png",
@@ -150,7 +168,8 @@
       "author": "MedEd Global",
       "journal": "LinkedIn",
       "likes": 78,
-      "comments": 9
+      "comments": 9,
+      "pfp": "pfp_webinar.jpg"
     },
     {
       "filename": "leurre_event_congress.png",
@@ -158,7 +177,8 @@
       "author": "ESCMID",
       "journal": "LinkedIn",
       "likes": 198,
-      "comments": 14
+      "comments": 14,
+      "pfp": "pfp_eccmid.jpg"
     }
   ]
 }

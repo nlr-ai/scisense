@@ -155,6 +155,13 @@
         font-weight: 600;
         flex-shrink: 0;
     }
+    img.flux-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
     .flux-card-meta {
         min-width: 0;
     }
@@ -309,7 +316,11 @@
             <div class="flux-feed-item" data-index="{{ loop.index0 }}" data-filename="{{ item.filename }}">
                 <div class="flux-card">
                     <div class="flux-card-header">
+                        {% if item.pfp %}
+                        <img class="flux-avatar" src="/ga/leurres/{{ item.pfp }}" alt="">
+                        {% else %}
                         <div class="flux-avatar">{{ item.author[:1] if item.author else 'R' }}</div>
+                        {% endif %}
                         <div class="flux-card-meta">
                             <div class="flux-author">{{ item.author or 'Research Team' }}</div>
                             <div class="flux-journal">{{ item.journal or 'Journal' }} · {{ ['2h', '4h', '6h', '1d', '3d'] | random }}</div>
@@ -374,7 +385,7 @@
                     <p id="transcript-text" class="transcript-text"></p>
                     <textarea id="q1-input-voice" rows="3" placeholder="Transcript — corrigez si necessaire"></textarea>
                     <div class="voice-actions">
-                        <button class="btn btn-secondary" id="btn-re-record">Recommencer</button>
+                        <button class="btn btn-secondary" id="btn-re-record">Passer</button>
                         <button class="btn btn-primary" id="btn-q1">Valider</button>
                     </div>
                 </div>
@@ -577,15 +588,15 @@
             });
         }
 
-        // Inertial scroll physics — calibrated to actual item heights
+        // Inertial scroll physics — smoother deceleration for natural feel
         let velocity = 0;
-        const FRICTION = 0.96;   // Phenomenon: exponential decay models finger-lift inertia
-        const STOP_THRESHOLD = 8;
+        const FRICTION = 0.985;  // Gentler decel — longer glide, like real iOS momentum
+        const STOP_THRESHOLD = 12;
         let paused = false;
         let lastTime = performance.now();
 
         // Calibrate flick velocity per-item (items have variable heights)
-        // With friction F=0.96 at 60fps, V₀ to travel distance H: V₀ = H × (1-F) × 60 / F = H × 2.5
+        // With friction F=0.985 at 60fps, V₀ to travel distance H: V₀ = H × (1-F) × 60 / F ≈ H × 0.91
         const itemHeights = Array.from(feedItems).map(fi => fi.offsetHeight);
         const avgItemHeight = itemHeights.reduce((a, b) => a + b, 0) / itemHeights.length;
 
@@ -606,7 +617,7 @@
             // Use current item's height for velocity calibration
             const currentIdx = getCurrentItemIndex();
             const currentH = itemHeights[currentIdx] || avgItemHeight;
-            const flickBase = currentH * 2.5;
+            const flickBase = currentH * 0.91;
             velocity = flickBase * (0.8 + Math.random() * 0.4);
             paused = false;
         }
@@ -636,12 +647,10 @@
                 updateDots();
 
                 if (velocity < STOP_THRESHOLD) {
-                    // Decelerated to stop — pause calibrated to target dwell time
-                    // Flick travel takes ~0.7s, so pause = target_dwell - 0.7s ± variance
+                    // Pause between flicks — short, variable, like a real thumb
                     paused = true;
-                    const flickDurationMs = 700; // approximate deceleration time
-                    const targetPauseMs = Math.max(500, ITEM_DURATION_MS - flickDurationMs);
-                    const pauseMs = targetPauseMs * (0.7 + Math.random() * 0.6); // ±30% variance
+                    // 400-1200ms — quick glance pauses, not long stares
+                    const pauseMs = 400 + Math.random() * 800;
                     setTimeout(() => {
                         newFlick();
                         scrollAnimId = requestAnimationFrame(scrollStep);
@@ -739,15 +748,14 @@
 
             // Re-record button
             btnReRecord.addEventListener('click', () => {
-                rawTranscript = '';
-                transcriptText.textContent = '';
-                q1InputVoice.value = '';
-                responses.q1_first_keystroke_ms = 0;
-                responses.q1_last_keystroke_ms = 0;
-                voiceTranscript.classList.add('hidden');
-                recognition.start();
-                isRecording = true;
-                voiceStatus.classList.remove('hidden');
+                // "Passer" — skip Q1 with empty answer
+                if (isRecording) recognition.stop();
+                responses.q1_text = '';
+                responses.q1_time = Math.round(performance.now() - questionStart);
+                responses.q1_input_mode = 'voice';
+                responses.q1_raw_transcript = '';
+                showPanel('q2');
+                questionStart = performance.now();
             });
 
             // Track edits on transcript textarea
@@ -775,8 +783,8 @@
         }
     }
 
-    // ── Text mode: keystroke timing + Q1 handler ──
-    if (INPUT_MODE === 'text' || !window.SpeechRecognition && !window.webkitSpeechRecognition) {
+    // ── Text mode: keystroke timing + Q1 handler (only if NOT voice) ──
+    if (INPUT_MODE !== 'voice') {
         const q1Input = document.getElementById('q1-input');
         if (q1Input) {
             q1Input.addEventListener('keydown', () => {
