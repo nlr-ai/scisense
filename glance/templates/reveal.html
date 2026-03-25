@@ -23,23 +23,39 @@
             <p class="reveal-miss-why">Pourquoi, a votre avis ?</p>
             <div class="rejection-choices" id="rejection-choices">
                 <button class="btn btn-choice rejection-btn" data-reason="too_dense">
-                    Trop chargee — je ne sais pas ou regarder
+                    Trop chargee / illisible
+                </button>
+                <button class="btn btn-choice rejection-btn" data-reason="too_small">
+                    Trop petit (texte, titre, details)
                 </button>
                 <button class="btn btn-choice rejection-btn" data-reason="looks_amateur">
-                    Fait amateur / clip-art
+                    Fait amateur / clip-art / moche
                 </button>
                 <button class="btn btn-choice rejection-btn" data-reason="text_heavy">
-                    C'est du texte deguise en image
+                    Trop de texte, pas assez visuel
                 </button>
                 <button class="btn btn-choice rejection-btn" data-reason="boring">
                     Pas interessant / deja vu
                 </button>
+                <button class="btn btn-choice rejection-btn" data-reason="confusing">
+                    Confus — je ne comprends pas ce que ca montre
+                </button>
+                <button class="btn btn-choice rejection-btn" data-reason="no_context">
+                    Pas de contexte — je ne sais pas de quoi ca parle
+                </button>
                 <button class="btn btn-choice rejection-btn" data-reason="didnt_see">
                     Je ne l'ai tout simplement pas vue
+                </button>
+                <button class="btn btn-choice rejection-btn" data-reason="scrolled_too_fast">
+                    Le feed allait trop vite
                 </button>
                 <button class="btn btn-choice rejection-btn" data-reason="other">
                     Autre raison
                 </button>
+            </div>
+            <div class="rejection-other hidden" id="rejection-other-input">
+                <textarea id="rejection-other-text" rows="2" placeholder="Decrivez..."></textarea>
+                <button class="btn btn-primary rejection-btn-submit" id="rejection-other-submit">Envoyer</button>
             </div>
 
             <div class="rejection-thanks hidden" id="rejection-thanks">
@@ -171,18 +187,34 @@
         var thanksDiv = document.getElementById('rejection-thanks');
         var buttons = choicesDiv.querySelectorAll('.rejection-btn');
 
+        var otherDiv = document.getElementById('rejection-other-input');
+
         buttons.forEach(function(btn) {
             btn.addEventListener('click', function() {
                 var reason = btn.getAttribute('data-reason');
 
-                // POST rejection reason to server
-                fetch('/reject/' + testId + '?reason=' + encodeURIComponent(reason))
-                    .catch(function() { /* silent — data already in flight */ });
-
-                // Hide choices, show thanks
-                choicesDiv.classList.add('hidden');
-                thanksDiv.classList.remove('hidden');
+                if (reason === 'other') {
+                    // Show free-text input
+                    choicesDiv.classList.add('hidden');
+                    otherDiv.classList.remove('hidden');
+                } else {
+                    // POST rejection reason to server
+                    fetch('/reject/' + testId + '?reason=' + encodeURIComponent(reason))
+                        .catch(function() {});
+                    choicesDiv.classList.add('hidden');
+                    thanksDiv.classList.remove('hidden');
+                }
             });
+        });
+
+        // Free-text "Autre raison" submit
+        document.getElementById('rejection-other-submit').addEventListener('click', function() {
+            var text = document.getElementById('rejection-other-text').value;
+            var reason = 'other:' + text;
+            fetch('/reject/' + testId + '?reason=' + encodeURIComponent(reason))
+                .catch(function() {});
+            otherDiv.classList.add('hidden');
+            thanksDiv.classList.remove('hidden');
         });
     }
 
