@@ -209,6 +209,10 @@ def generate_report(analysis, output_path=None):
 if __name__ == "__main__":
     import sys
     path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(BASE, "data", "glance_ga_graph.yaml")
+    # Derive output path from input filename
+    input_name = os.path.splitext(os.path.basename(path))[0]
+    output_name = input_name.replace("_ga_graph", "") + "_analysis_report.md"
+    output_path = sys.argv[2] if len(sys.argv) > 2 else os.path.join(BASE, "exports", output_name)
     analysis = analyze_ga(path)
-    report = generate_report(analysis, os.path.join(BASE, "exports", "ga_analysis_report.md"))
+    report = generate_report(analysis, output_path)
     print(report)
