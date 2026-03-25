@@ -1,8 +1,19 @@
 # GLANCE Paper GA — L3 Information Graph
-# 19 vectors mapped to 12 nodes + links
-# Refined: 2026-03-25
+# 25 vectors mapped to 19 nodes + 38 links
+# V2 refined: 2026-03-25 — 6 new nodes, 6 new links, dimension refinements
 
 nodes:
+  - id: "space:ga:domain"
+    name: "Domaine GA"
+    node_type: space
+    synthesis: "Communication visuelle scientifique — le domaine surplombant. Contient zone problème et zone solution."
+    weight: 0.70
+    energy: 0.10
+    stability: 0.90
+    recency: 0.5
+    permanence: 1.0
+    ambivalence: 0.0
+
   - id: "space:ga:zone_left"
     name: "Zone Problème"
     node_type: space
@@ -35,6 +46,7 @@ nodes:
     energy: 0.10
     stability: 0.95
     recency: 0.3
+    ambivalence: 0.0
     content: "Ibrahim 2017: 7.7× impressions, 8.4× retweets. Oska 2020: 5×. Chapman 2019: +57%."
 
   - id: "thing:comprehension"
@@ -45,16 +57,30 @@ nodes:
     energy: 0.10
     stability: 0.90
     recency: 0.3
+    ambivalence: 0.0
+
+  - id: "thing:comprehension_gap_data"
+    name: "Bredbenner 2019 (N=538)"
+    node_type: thing
+    synthesis: "Donnée critique : les GAs arrivent 3ème sur 4 formats pour la compréhension. N=538. Le chiffre qui ancre le gap."
+    weight: 0.75
+    energy: 0.05
+    stability: 0.95
+    recency: 0.3
+    trust: 0.90
+    ambivalence: 0.0
+    content: "Bredbenner 2019: infographics ranked 3rd out of 4 formats for comprehension (N=538). Worse than plain text, tables, and only better than no visual aid."
 
   - id: "narrative:gap"
     name: "Le Gap"
     node_type: narrative
     synthesis: "Engagement ≠ Compréhension. La thèse centrale du paper. Polarity contradiction."
     weight: 0.95
-    energy: 0.20
+    energy: 0.10
     stability: 0.90
     recency: 0.5
     polarity: -1.0
+    ambivalence: 0.0
 
   - id: "narrative:spin"
     name: "Visual Spin"
@@ -66,7 +92,30 @@ nodes:
     recency: 0.7
     friction: 0.8
     aversion: 0.7
+    ambivalence: 0.0
     content: "Noeud flou — l'extrapolation de Vorland (spin textuel) vers le spin visuel perceptif n'est pas directe."
+
+  - id: "narrative:perceptual_science"
+    name: "Science Perceptive"
+    node_type: narrative
+    synthesis: "Cleveland & McGill (1984) + Stevens (1957) + MacEachren (2012). La fondation théorique : position > longueur > aire > couleur. Justifie GLANCE et explique pourquoi le spin fonctionne."
+    weight: 0.60
+    energy: 0.10
+    stability: 0.90
+    recency: 0.3
+    ambivalence: 0.0
+    content: "Cleveland & McGill 1984: hiérarchie des canaux visuels. Stevens 1957: power law β≈0.7 pour l'aire. MacEachren 2012: cartographic perception. Fondation solide — pas controversée."
+
+  - id: "narrative:protocol"
+    name: "Protocole GLANCE"
+    node_type: narrative
+    synthesis: "La méthodologie GLANCE elle-même : stream mode, inertial scroll, saillance S10. Le HOW distinct du SCORE. Noeud actif — protocole en construction."
+    weight: 0.80
+    energy: 0.60
+    stability: 0.60
+    recency: 1.0
+    ambivalence: 0.0
+    content: "Distinct de thing:glance (le score/benchmark). Ceci est le protocole de test : exposition 5s en scroll inertiel, mesure de saillance, questionnaire de compréhension."
 
   - id: "thing:glance"
     name: "GLANCE (≥80%)"
@@ -78,7 +127,19 @@ nodes:
     recency: 1.0
     hierarchy: 1.0
     trust: 0.80
+    ambivalence: 0.0
     content: "DANGER: weight max + stability min + energy max. Le ≥80% est un TARGET, pas un résultat. Instable tant que N=0."
+
+  - id: "thing:5_seconds"
+    name: "Contrainte 5 secondes"
+    node_type: thing
+    synthesis: "L'exposition de 5 secondes — paramètre de design critique. GLANCE est construit autour de cette contrainte. Temps réel de scroll passé sur un GA dans un feed."
+    weight: 0.65
+    energy: 0.15
+    stability: 0.85
+    recency: 0.8
+    ambivalence: 0.0
+    content: "5 seconds = realistic exposure time in social media scroll. Derived from feed behavior studies. The entire GLANCE protocol is built around this constraint."
 
   - id: "thing:grade"
     name: "GRADE (74%)"
@@ -89,6 +150,7 @@ nodes:
     stability: 0.95
     recency: 0.2
     hierarchy: 0.74
+    ambivalence: 0.0
 
   - id: "thing:vanity"
     name: "Vanity Metrics (~0%)"
@@ -100,6 +162,8 @@ nodes:
     recency: 0.2
     hierarchy: 0.05
     aversion: 0.9
+    permanence: 1.0
+    ambivalence: 0.0
 
   - id: "thing:ga_thumbnail"
     name: "GA Thumbnail"
@@ -109,7 +173,18 @@ nodes:
     energy: 0.80
     stability: 0.70
     recency: 0.9
+    ambivalence: 0.0
     content: "Non résolu — quel GA montrer ? Comment la loupe le déforme ?"
+
+  - id: "thing:open_source"
+    name: "Open Source (Apache 2.0)"
+    node_type: thing
+    synthesis: "GLANCE est open source sous Apache 2.0. Repo GitHub public. La revendication de reproductibilité — n'importe qui peut vérifier et réutiliser."
+    weight: 0.35
+    energy: 0.20
+    stability: 0.80
+    recency: 0.9
+    ambivalence: 0.0
 
   - id: "moment:akl_2007"
     name: "Akl 2007 (RCT)"
@@ -120,6 +195,7 @@ nodes:
     stability: 0.95
     recency: 0.1
     trust: 0.85
+    ambivalence: 0.0
 
   - id: "moment:6_rcts"
     name: "6 RCTs (corpus)"
@@ -130,6 +206,7 @@ nodes:
     stability: 0.95
     recency: 0.2
     trust: 0.90
+    ambivalence: 0.0
 
   - id: "actor:scisense"
     name: "SciSense"
@@ -140,6 +217,7 @@ nodes:
     stability: 0.85
     recency: 0.9
     affinity: 1.0
+    ambivalence: 0.0
 
 links:
   - id: "link:engagement_gap"
@@ -159,6 +237,14 @@ links:
     trust: 0.90
     synthesis: "L'absence de compréhension est le cœur du gap."
 
+  - id: "link:engagement_comprehension_disconnect"
+    node_a: "thing:engagement"
+    node_b: "thing:comprehension"
+    weight: 0.85
+    polarity: -1.0
+    valence: -0.9
+    synthesis: "Le lien de déconnexion direct : plus d'engagement ne produit pas plus de compréhension. Corrélation nulle ou négative."
+
   - id: "link:gap_to_glance"
     node_a: "narrative:gap"
     node_b: "thing:glance"
@@ -175,6 +261,13 @@ links:
     friction: 0.8
     aversion: 0.7
     synthesis: "Le spin visuel est le mécanisme qui crée le gap."
+
+  - id: "link:spin_to_thumbnail"
+    node_a: "narrative:spin"
+    node_b: "thing:ga_thumbnail"
+    weight: 0.70
+    friction: 0.8
+    synthesis: "Le spin déforme le thumbnail — la loupe visuelle qui compresse et exagère."
 
   - id: "link:glance_hierarchy"
     node_a: "thing:glance"
@@ -208,6 +301,13 @@ links:
     stability: 0.95
     synthesis: "Les 6 RCTs prouvent le ×7 engagement."
 
+  - id: "link:rcts_to_gap"
+    node_a: "moment:6_rcts"
+    node_b: "narrative:gap"
+    weight: 0.85
+    trust: 0.85
+    synthesis: "Le corpus de 6 RCTs soutient la thèse du gap — l'évidence empirique derrière la déconnexion."
+
   - id: "link:scisense_to_glance"
     node_a: "actor:scisense"
     node_b: "thing:glance"
@@ -216,6 +316,13 @@ links:
     trust: 0.7
     synthesis: "SciSense construit GLANCE. Signature discrète."
 
+  - id: "link:scisense_to_protocol"
+    node_a: "actor:scisense"
+    node_b: "narrative:protocol"
+    weight: 0.70
+    affinity: 0.9
+    synthesis: "SciSense a conçu le protocole GLANCE — stream mode, inertial scroll, S10 saillance."
+
   - id: "link:thumbnail_to_spin"
     node_a: "thing:ga_thumbnail"
     node_b: "narrative:spin"
@@ -223,7 +330,59 @@ links:
     friction: 0.6
     synthesis: "Le thumbnail est déformé par la loupe du spin."
 
-  # Containment links (space → contents)
+  - id: "link:5s_to_glance"
+    node_a: "thing:5_seconds"
+    node_b: "thing:glance"
+    weight: 0.80
+    affinity: 0.9
+    synthesis: "GLANCE est construit autour de la contrainte de 5 secondes — le paramètre qui définit le protocole."
+
+  - id: "link:perceptual_to_spin"
+    node_a: "narrative:perceptual_science"
+    node_b: "narrative:spin"
+    weight: 0.60
+    affinity: 0.7
+    synthesis: "La science perceptive explique POURQUOI le spin fonctionne — Stevens β≈0.7 compresse l'aire, Cleveland & McGill montrent la hiérarchie des canaux."
+
+  - id: "link:perceptual_to_glance"
+    node_a: "narrative:perceptual_science"
+    node_b: "thing:glance"
+    weight: 0.65
+    affinity: 0.8
+    synthesis: "La science perceptive justifie l'approche GLANCE — mesurer la perception, pas juste le contenu."
+
+  - id: "link:comprehension_gap_data_to_comprehension"
+    node_a: "thing:comprehension_gap_data"
+    node_b: "thing:comprehension"
+    weight: 0.75
+    trust: 0.90
+    synthesis: "Bredbenner 2019 (N=538) est la source du '3ème sur 4 formats' — la donnée qui ancre le noeud compréhension."
+
+  # Cross-zone fracture link
+  - id: "link:zone_left_to_zone_right"
+    node_a: "space:ga:zone_left"
+    node_b: "space:ga:zone_right"
+    weight: 0.90
+    polarity: -1.0
+    hierarchy: 0.0
+    synthesis: "La fracture entre problème et solution — deux zones au même niveau hiérarchique, polarité opposée. Le GA traverse cette fracture."
+
+  # Containment links (domain → zones)
+  - id: "link:domain_zone_left"
+    node_a: "space:ga:domain"
+    node_b: "space:ga:zone_left"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Le domaine contient la zone problème."
+
+  - id: "link:domain_zone_right"
+    node_a: "space:ga:domain"
+    node_b: "space:ga:zone_right"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Le domaine contient la zone solution."
+
+  # Containment links (zone_left → contents)
   - id: "link:zone_left_engagement"
     node_a: "space:ga:zone_left"
     node_b: "thing:engagement"
@@ -237,6 +396,13 @@ links:
     hierarchy: -1.0
     permanence: 1.0
     synthesis: "Zone gauche contient compréhension."
+
+  - id: "link:zone_left_comprehension_gap_data"
+    node_a: "space:ga:zone_left"
+    node_b: "thing:comprehension_gap_data"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone gauche contient la donnée Bredbenner."
 
   - id: "link:zone_left_gap"
     node_a: "space:ga:zone_left"
@@ -252,6 +418,13 @@ links:
     permanence: 1.0
     synthesis: "Zone gauche contient le spin."
 
+  - id: "link:zone_left_perceptual"
+    node_a: "space:ga:zone_left"
+    node_b: "narrative:perceptual_science"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone gauche contient la science perceptive — fondation théorique du problème."
+
   - id: "link:zone_left_thumbnail"
     node_a: "space:ga:zone_left"
     node_b: "thing:ga_thumbnail"
@@ -259,12 +432,34 @@ links:
     permanence: 1.0
     synthesis: "Zone gauche contient le thumbnail."
 
+  - id: "link:zone_left_vanity"
+    node_a: "space:ga:zone_left"
+    node_b: "thing:vanity"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone gauche contient vanity metrics — elles appartiennent à l'espace du problème."
+
+  # Containment links (zone_right → contents)
   - id: "link:zone_right_glance"
     node_a: "space:ga:zone_right"
     node_b: "thing:glance"
     hierarchy: -1.0
     permanence: 1.0
     synthesis: "Zone droite contient GLANCE."
+
+  - id: "link:zone_right_protocol"
+    node_a: "space:ga:zone_right"
+    node_b: "narrative:protocol"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone droite contient le protocole GLANCE."
+
+  - id: "link:zone_right_5s"
+    node_a: "space:ga:zone_right"
+    node_b: "thing:5_seconds"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone droite contient la contrainte 5 secondes."
 
   - id: "link:zone_right_grade"
     node_a: "space:ga:zone_right"
@@ -278,4 +473,33 @@ links:
     node_b: "thing:vanity"
     hierarchy: -1.0
     permanence: 1.0
-    synthesis: "Zone droite contient Vanity."
+    synthesis: "Zone droite contient Vanity dans la hiérarchie de mesure."
+
+  - id: "link:zone_right_open_source"
+    node_a: "space:ga:zone_right"
+    node_b: "thing:open_source"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone droite contient la revendication open source."
+
+  # Containment links (domain → evidence moments + actor — not zone-specific)
+  - id: "link:domain_akl"
+    node_a: "space:ga:domain"
+    node_b: "moment:akl_2007"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Le domaine contient l'étude Akl 2007."
+
+  - id: "link:domain_rcts"
+    node_a: "space:ga:domain"
+    node_b: "moment:6_rcts"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Le domaine contient le corpus de 6 RCTs."
+
+  - id: "link:domain_scisense"
+    node_a: "space:ga:domain"
+    node_b: "actor:scisense"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Le domaine contient SciSense."
