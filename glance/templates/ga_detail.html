@@ -1,0 +1,1153 @@
+{% extends "base.html" %}
+{% block title %}{{ image.title or image.filename }} -- GLANCE{% endblock %}
+
+{% block head %}
+<style>
+:root {
+    --gd-navy:#1a2332; --gd-teal:#0d9488; --gd-teal-light:rgba(13,148,136,0.12);
+    --gd-amber:#f59e0b; --gd-amber-light:rgba(245,158,11,0.12);
+    --gd-bg:#f8fafc; --gd-card:#ffffff; --gd-border:#e2e8f0;
+    --gd-text:#1a2332; --gd-text-dim:#64748b; --gd-text-muted:#94a3b8;
+    --gd-pass:#10b981; --gd-pass-bg:rgba(16,185,129,0.08);
+    --gd-fail:#ef4444; --gd-fail-bg:rgba(239,68,68,0.08);
+    --gd-shadow-sm:0 1px 3px rgba(26,35,50,0.06);
+    --gd-shadow-md:0 4px 12px rgba(26,35,50,0.08);
+    --gd-radius:12px; --gd-radius-sm:8px;
+    --gd-font-mono:'SF Mono','Cascadia Code','Fira Code','Consolas',monospace;
+    --gd-priority-critical:#dc2626; --gd-priority-high:#ea580c;
+    --gd-priority-medium:#d97706; --gd-priority-low:#0d9488;
+}
+.gd-page{max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;background:var(--gd-bg);min-height:100vh}
+.gd-hero{position:relative;margin:-2rem -1.5rem 2.5rem;padding:3rem 2rem 2.5rem;overflow:hidden;border-radius:0 0 24px 24px}
+.gd-hero-backdrop{position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(40px) brightness(0.4);transform:scale(1.2);z-index:0}
+.gd-hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(26,35,50,0.85) 0%,rgba(26,35,50,0.95) 100%);z-index:1}
+.gd-hero-content{position:relative;z-index:2;display:flex;flex-direction:column;gap:1.5rem;align-items:center;max-width:1100px;margin:0 auto}
+.gd-hero-image-wrap{width:100%;position:relative;overflow:visible;margin-bottom:1.5rem}
+.gd-hero-image{width:100%;max-width:900px;height:auto;border-radius:var(--gd-radius);box-shadow:0 8px 32px rgba(0,0,0,0.3);display:block;margin:0 auto}
+.gd-hero-info{flex:1;min-width:0}
+.gd-hero-title{font-size:1.75rem;font-weight:700;color:#fff;letter-spacing:-0.02em;margin-bottom:0.5rem;line-height:1.2}
+.gd-hero-meta{display:flex;gap:0.625rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.gd-hero-tag{font-size:0.75rem;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.08);padding:0.25rem 0.75rem;border-radius:100px;font-weight:500;letter-spacing:0.02em}
+.gd-gauge-wrap{display:flex;align-items:center;gap:2rem}
+.gd-gauge{flex-shrink:0}
+.gd-gauge-text{font-family:var(--gd-font-mono);font-weight:800;fill:#fff}
+.gd-gauge-label-text{font-size:0.8125rem;fill:rgba(255,255,255,0.5);font-weight:400}
+.gd-gauge-ring-bg{fill:none;stroke:rgba(255,255,255,0.1);stroke-width:8}
+.gd-gauge-ring-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1)}
+.gd-gauge-verdict{color:rgba(255,255,255,0.9);font-size:1rem;font-weight:500;line-height:1.4}
+.gd-gauge-sub{color:rgba(255,255,255,0.5);font-size:0.8125rem;margin-top:0.25rem}
+.gd-nav{display:flex;gap:0.5rem;align-items:center;margin-bottom:2rem;flex-wrap:wrap}
+.gd-nav a{color:var(--gd-text-muted);text-decoration:none;font-size:0.875rem;padding:0.375rem 0.75rem;border-radius:6px;transition:color 0.2s,background 0.2s}
+.gd-nav a:hover{color:var(--gd-teal);background:var(--gd-teal-light)}
+.gd-nav .sep{color:var(--gd-border);font-size:0.75rem}
+.gd-section{margin-bottom:2.5rem}
+.gd-section-title{font-size:1.125rem;font-weight:700;color:var(--gd-navy);margin-bottom:1rem;letter-spacing:-0.01em;display:flex;align-items:center;gap:0.5rem}
+.gd-section-title::before{content:'';display:inline-block;width:4px;height:1.125em;background:var(--gd-teal);border-radius:2px}
+.gd-radar-wrap{display:flex;gap:2rem;align-items:flex-start;flex-wrap:wrap}
+.gd-radar-svg-wrap{flex-shrink:0}
+.gd-radar-text{font-size:11px;fill:var(--gd-text-dim);font-weight:600;text-anchor:middle}
+.gd-radar-grid{fill:none;stroke:var(--gd-border);stroke-width:0.5}
+.gd-radar-axis{stroke:var(--gd-border);stroke-width:0.5}
+.gd-radar-shape{fill:rgba(13,148,136,0.15);stroke:var(--gd-teal);stroke-width:2}
+.gd-radar-dot{fill:var(--gd-teal)}
+.gd-scores-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem}
+.gd-score-card{background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1.25rem;box-shadow:var(--gd-shadow-sm);opacity:0;animation:gdCardIn 0.5s ease forwards}
+.gd-score-card:nth-child(1){animation-delay:0.1s}.gd-score-card:nth-child(2){animation-delay:0.15s}.gd-score-card:nth-child(3){animation-delay:0.2s}.gd-score-card:nth-child(4){animation-delay:0.25s}.gd-score-card:nth-child(5){animation-delay:0.3s}
+@keyframes gdCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.gd-score-name{font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gd-text-muted);font-weight:600;margin-bottom:0.5rem}
+.gd-score-value{font-family:var(--gd-font-mono);font-size:1.75rem;font-weight:800;color:var(--gd-navy);line-height:1;margin-bottom:0.625rem}
+.gd-score-bar-wrap{display:flex;align-items:center;gap:0.5rem}
+.gd-score-bar{flex:1;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden}
+.gd-score-bar-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(0.22,1,0.36,1)}
+.gd-bar-green{background:linear-gradient(90deg,#34d399,#10b981)}.gd-bar-yellow{background:linear-gradient(90deg,#fbbf24,#eab308)}.gd-bar-orange{background:linear-gradient(90deg,#fb923c,#f97316)}.gd-bar-red{background:linear-gradient(90deg,#f87171,#ef4444)}
+.gd-score-bench{font-size:0.6875rem;color:var(--gd-text-muted);font-family:var(--gd-font-mono);min-width:2.5em;text-align:right}
+.gd-recs{display:flex;flex-direction:column;gap:0.75rem}
+.gd-rec-card{background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1.25rem 1.25rem 1.25rem 1.5rem;box-shadow:var(--gd-shadow-sm);position:relative;opacity:0;animation:gdCardIn 0.5s ease forwards}
+.gd-rec-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:var(--gd-radius-sm) 0 0 var(--gd-radius-sm)}
+.gd-rec-critical::before{background:var(--gd-priority-critical)}.gd-rec-high::before{background:var(--gd-priority-high)}.gd-rec-medium::before{background:var(--gd-priority-medium)}.gd-rec-low::before{background:var(--gd-priority-low)}
+.gd-rec-header{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem}
+.gd-rec-badge{font-size:0.625rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:0.2rem 0.5rem;border-radius:4px;flex-shrink:0}
+.gd-badge-critical{background:rgba(220,38,38,0.1);color:var(--gd-priority-critical)}.gd-badge-high{background:rgba(234,88,12,0.1);color:var(--gd-priority-high)}.gd-badge-medium{background:rgba(217,119,6,0.1);color:var(--gd-priority-medium)}.gd-badge-low{background:rgba(13,148,136,0.1);color:var(--gd-priority-low)}
+.gd-rec-node{font-weight:700;font-size:0.9375rem;color:var(--gd-navy)}
+.gd-rec-issue{font-size:0.8125rem;color:var(--gd-text-dim);margin-bottom:0.375rem;line-height:1.5}
+.gd-rec-fix{font-size:0.8125rem;color:var(--gd-text);line-height:1.5}
+.gd-rec-impact{display:inline-block;font-size:0.75rem;font-weight:600;color:var(--gd-pass);background:var(--gd-pass-bg);padding:0.125rem 0.5rem;border-radius:100px;margin-top:0.5rem}
+.gd-strengths{display:flex;flex-wrap:wrap;gap:0.75rem}
+.gd-strength-chip{background:var(--gd-pass-bg);border:1px solid rgba(16,185,129,0.15);border-radius:100px;padding:0.375rem 1rem;font-size:0.8125rem;color:#047857;font-weight:500}
+.gd-warnings{display:flex;flex-direction:column;gap:0.5rem}
+.gd-warning-item{background:var(--gd-amber-light);border:1px solid rgba(245,158,11,0.15);border-radius:var(--gd-radius-sm);padding:1rem 1.25rem;font-size:0.8125rem;color:var(--gd-text);line-height:1.5}
+.gd-warning-title{font-weight:700;color:#92400e;margin-bottom:0.25rem}
+.gd-warning-fix{color:var(--gd-text-dim)}
+.gd-nodes-grid{display:flex;flex-wrap:wrap;gap:0.75rem;padding:0.5rem 0}
+.gd-node-bubble{position:relative;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:default;transition:transform 0.2s;box-shadow:var(--gd-shadow-sm)}
+.gd-node-bubble:hover{transform:scale(1.15);z-index:2}
+.gd-node-hit{background:var(--gd-pass);border:2px solid #059669}
+.gd-node-miss{background:var(--gd-fail);border:2px solid #dc2626}
+.gd-node-tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--gd-navy);color:#fff;padding:0.5rem 0.75rem;border-radius:6px;font-size:0.75rem;white-space:nowrap;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.2);pointer-events:none}
+.gd-node-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--gd-navy)}
+.gd-node-bubble:hover .gd-node-tooltip{display:block}
+.gd-node-legend{display:flex;gap:1.5rem;margin-top:1rem;font-size:0.75rem;color:var(--gd-text-dim)}
+.gd-node-legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:0.375rem;vertical-align:middle}
+.gd-pair-compare{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.gd-pair-card{background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1.25rem;box-shadow:var(--gd-shadow-sm);text-align:center}
+.gd-pair-label{font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gd-text-muted);font-weight:600;margin-bottom:0.5rem}
+.gd-pair-thumb{width:100%;max-width:200px;height:auto;border-radius:var(--gd-radius-sm);margin-bottom:0.75rem}
+.gd-pair-score{font-family:var(--gd-font-mono);font-size:1.5rem;font-weight:800;color:var(--gd-navy)}
+.gd-share-btn{display:inline-flex;align-items:center;gap:0.5rem;background:var(--gd-card);border:1px solid var(--gd-border);border-radius:100px;padding:0.5rem 1.25rem;font-size:0.8125rem;font-weight:500;color:var(--gd-text-dim);cursor:pointer;transition:all 0.2s;box-shadow:var(--gd-shadow-sm)}
+.gd-share-btn:hover{border-color:var(--gd-teal);color:var(--gd-teal);box-shadow:var(--gd-shadow-md)}
+.gd-toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--gd-navy);color:#fff;padding:0.75rem 1.5rem;border-radius:100px;font-size:0.875rem;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,0.25);z-index:1000;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none}
+.gd-toast.gd-toast-show{opacity:1;transform:translateX(-50%) translateY(0)}
+.gd-rank-badge{display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 1rem;border-radius:100px;font-size:0.8125rem;font-weight:600;margin-top:0.75rem;letter-spacing:0.01em}
+.gd-rank-gold{background:rgba(245,158,11,0.18);color:#fbbf24;border:1px solid rgba(245,158,11,0.25)}
+.gd-rank-teal{background:rgba(13,148,136,0.12);color:#5eead4;border:1px solid rgba(13,148,136,0.2)}
+.gd-dist-wrap{margin-top:0.625rem;position:relative}
+.gd-dist-label{font-size:0.625rem;color:var(--gd-text-muted);margin-top:0.25rem;text-align:center}
+.gd-empty{text-align:center;padding:3rem 2rem;background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius);box-shadow:var(--gd-shadow-sm)}
+.gd-empty-icon{width:64px;height:64px;margin:0 auto 1rem;display:block;opacity:0.3}
+.gd-empty p{color:var(--gd-text-dim);font-size:0.9375rem;margin:0}
+/* Executive Summary */
+.gd-exec-summary{background:var(--gd-card);border:1px solid var(--gd-border);border-left:4px solid var(--gd-teal);border-radius:var(--gd-radius-sm);padding:1.5rem 1.75rem;box-shadow:var(--gd-shadow-sm);margin-bottom:1.5rem;line-height:1.7}
+.gd-exec-summary-title{font-size:1rem;font-weight:700;color:var(--gd-navy);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem}
+.gd-exec-summary-text{font-size:0.9rem;color:var(--gd-text);line-height:1.7}
+/* Study Reference */
+.gd-source-card{background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1rem 1.25rem;box-shadow:var(--gd-shadow-sm);margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:0.75rem}
+.gd-source-icon{flex-shrink:0;font-size:1.25rem;line-height:1;margin-top:0.125rem;opacity:0.6}
+.gd-source-body{flex:1;min-width:0}
+.gd-source-label{font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gd-text-muted);font-weight:600;margin-bottom:0.25rem}
+.gd-source-ref{font-size:0.8125rem;color:var(--gd-text);line-height:1.5}
+.gd-source-ref a{color:var(--gd-teal);text-decoration:none;font-weight:500}
+.gd-source-ref a:hover{text-decoration:underline}
+/* GA Abstract */
+.gd-abstract{background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1.25rem 1.5rem;box-shadow:var(--gd-shadow-sm);margin-bottom:2rem}
+.gd-abstract-title{font-size:0.875rem;font-weight:700;color:var(--gd-navy);margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem}
+.gd-abstract-text{font-size:0.8125rem;color:var(--gd-text-dim);line-height:1.6}
+@media(max-width:768px){.gd-hero-content{flex-direction:column;text-align:center;gap:1.5rem}.gd-hero-image-wrap{width:200px;margin:0 auto}.gd-hero-meta{justify-content:center}.gd-gauge-wrap{flex-direction:column;align-items:center;gap:1rem}.gd-gauge-verdict{text-align:center}.gd-scores-row{grid-template-columns:1fr 1fr}.gd-radar-wrap{flex-direction:column;align-items:center}.gd-pair-compare{grid-template-columns:1fr}}
+@media(max-width:480px){.gd-page{padding:0 1rem 3rem}.gd-hero{margin:-2rem -1rem 2rem;padding:2rem 1rem}.gd-hero-title{font-size:1.375rem}.gd-scores-row{grid-template-columns:1fr}.gd-nodes-grid{justify-content:center}}
+/* Archetype badge */
+.gd-archetype-badge{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1.25rem;border-radius:var(--gd-radius-sm);margin-top:0.75rem;border:1px solid rgba(255,255,255,0.15)}
+.gd-archetype-icon{flex-shrink:0;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.gd-archetype-icon svg{width:40px;height:40px}
+.gd-archetype-body{flex:1;min-width:0}
+.gd-archetype-name{font-size:1rem;font-weight:700;color:#fff;line-height:1.2;margin-bottom:0.125rem}
+.gd-archetype-sig{font-size:0.6875rem;color:rgba(255,255,255,0.5);font-family:var(--gd-font-mono);letter-spacing:0.02em}
+.gd-archetype-predicted{font-size:0.5625rem;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);font-weight:600;margin-left:0.5rem}
+/* Archetype detail card (below hero) */
+.gd-archetype-detail{background:var(--gd-card);border-radius:var(--gd-radius-sm);padding:1.25rem 1.5rem;box-shadow:var(--gd-shadow-sm);margin-bottom:1.5rem;border-left:4px solid}
+.gd-archetype-detail-header{display:flex;align-items:center;gap:0.625rem;margin-bottom:0.5rem}
+.gd-archetype-detail-icon{flex-shrink:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.gd-archetype-detail-icon svg{width:32px;height:32px}
+.gd-archetype-detail-name{font-size:1rem;font-weight:700;color:var(--gd-navy)}
+.gd-archetype-detail-en{font-size:0.8125rem;color:var(--gd-text-muted);font-weight:400}
+.gd-archetype-detail-desc{font-size:0.875rem;color:var(--gd-text);line-height:1.6;margin-bottom:0.625rem}
+.gd-archetype-detail-rec{font-size:0.8125rem;color:var(--gd-text-dim);line-height:1.5;padding:0.75rem 1rem;background:var(--gd-bg);border-radius:6px}
+.gd-archetype-confidence{font-size:0.6875rem;color:var(--gd-text-muted);font-family:var(--gd-font-mono);margin-top:0.375rem}
+/* Email gate — locked state */
+.gd-gate-wrapper{position:relative}
+.gd-gate-blurred{filter:blur(8px);pointer-events:none;user-select:none;-webkit-user-select:none}
+.gd-gate-overlay{position:absolute;top:0;left:0;right:0;z-index:10;display:flex;justify-content:center;padding-top:2rem}
+.gd-gate-cards{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;max-width:720px;width:100%;align-items:start}
+.gd-gate-cards:has(> :only-child){grid-template-columns:1fr;max-width:440px}
+.gd-gate-card{background:#fff;border:1px solid var(--gd-border);border-radius:var(--gd-radius);padding:2rem 1.75rem;box-shadow:0 8px 28px rgba(26,35,50,0.1);text-align:center}
+.gd-gate-card h3{font-size:1.125rem;font-weight:700;color:var(--gd-navy);margin:0 0 0.375rem}
+.gd-gate-card p{font-size:0.875rem;color:var(--gd-text-dim);margin:0 0 1.25rem;line-height:1.5}
+.gd-gate-card-paid{border:2px solid var(--gd-teal);box-shadow:0 12px 40px rgba(13,148,136,0.18);position:relative}
+.gd-gate-card-paid::before{content:'';position:absolute;inset:-2px;border-radius:var(--gd-radius);background:linear-gradient(135deg,rgba(13,148,136,0.06),rgba(13,148,136,0.02));z-index:-1;pointer-events:none}
+.gd-gate-price{font-family:var(--gd-font-mono);font-size:2.25rem;font-weight:800;color:var(--gd-navy);line-height:1;margin-bottom:0.25rem}
+.gd-gate-price-sub{font-size:0.75rem;color:var(--gd-text-muted);margin-bottom:1rem}
+.gd-gate-features{list-style:none;padding:0;margin:0 0 1.25rem;text-align:left}
+.gd-gate-features li{display:flex;align-items:flex-start;gap:0.5rem;padding:0.25rem 0;font-size:0.8125rem;color:var(--gd-text);line-height:1.4}
+.gd-gate-features li .check{color:#22c55e;font-weight:700;flex-shrink:0}
+.gd-gate-form{display:flex;gap:0.5rem;margin-bottom:0.75rem}
+.gd-gate-input{flex:1;padding:0.75rem 1rem;border:1px solid var(--gd-border);border-radius:8px;font-size:0.9375rem;outline:none;transition:border-color 0.2s}
+.gd-gate-input:focus{border-color:var(--gd-teal);box-shadow:0 0 0 3px rgba(13,148,136,0.12)}
+.gd-gate-btn{padding:0.75rem 1.5rem;background:var(--gd-teal);color:#fff;border:none;border-radius:8px;font-size:0.9375rem;font-weight:600;cursor:pointer;transition:background 0.2s;white-space:nowrap;width:100%}
+.gd-gate-btn:hover{background:#0f766e}
+.gd-gate-btn-free{background:#64748b}
+.gd-gate-btn-free:hover{background:#475569}
+.gd-gate-fine{font-size:0.75rem;color:var(--gd-text-muted);margin:0}
+/* Upsell card */
+.gd-upsell-card{background:linear-gradient(135deg,#f0fdfa 0%,#fff 100%);border:1px solid rgba(13,148,136,0.2);border-radius:var(--gd-radius);padding:2rem 2rem 1.75rem;box-shadow:var(--gd-shadow-md);margin-top:2.5rem}
+.gd-upsell-card h3{font-size:1.125rem;font-weight:700;color:var(--gd-navy);margin:0 0 0.5rem}
+.gd-upsell-card>p{font-size:0.9rem;color:var(--gd-text-dim);margin:0 0 1rem;line-height:1.5}
+.gd-upsell-card ul{margin:0 0 1.25rem 1.25rem;padding:0;font-size:0.875rem;color:var(--gd-text);line-height:1.8}
+.gd-upsell-cta{display:inline-flex;align-items:center;gap:0.5rem;background:var(--gd-teal);color:#fff;text-decoration:none;padding:0.75rem 1.75rem;border-radius:100px;font-size:0.9375rem;font-weight:600;transition:background 0.2s;box-shadow:0 4px 12px rgba(13,148,136,0.25)}
+.gd-upsell-cta:hover{background:#0f766e}
+@media(max-width:640px){.gd-gate-cards{grid-template-columns:1fr}.gd-gate-card{padding:1.75rem 1.25rem}}
+@media(max-width:480px){.gd-gate-form{flex-direction:column}}
+@media print{body{background:#fff!important;color:#000!important}.gd-page{max-width:100%;padding:0}.gd-hero{margin:0 0 1.5rem;padding:1.5rem;border-radius:0;background:#f0f4f8!important}.gd-hero-backdrop,.gd-hero-overlay{display:none!important}.gd-hero-title,.gd-gauge-verdict,.gd-gauge-sub{color:#000!important}.gd-hero-tag{color:#333!important;background:#e2e8f0!important}.gd-share-btn,.gd-nav,.gd-toast{display:none!important}.gd-score-card,.gd-rec-card,.gd-pair-card,.gd-warning-item{break-inside:avoid;box-shadow:none;border:1px solid #ccc}.gd-gauge-text{fill:#000!important}.gd-gauge-label-text{fill:#666!important}.gd-gate-overlay,.gd-upsell-card{display:none!important}.gd-gate-blurred{filter:none!important;pointer-events:auto!important;user-select:auto!important}.gd-info-btn,.gd-info-tooltip{display:none!important}}
+/* ── Info button + tooltip system ────────────────────────────────── */
+.gd-info-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;border:1.5px solid #2A9D8F;background:transparent;color:#2A9D8F;font-size:12px;font-weight:700;font-style:italic;font-family:Georgia,'Times New Roman',serif;cursor:pointer;vertical-align:middle;margin-left:4px;padding:0;line-height:1;transition:background 0.2s,color 0.2s;flex-shrink:0;position:relative}
+.gd-info-btn:hover{background:rgba(42,157,143,0.1)}
+.gd-info-btn.gd-info-active{background:#2A9D8F;color:#fff}
+.gd-info-wrap{display:inline-flex;align-items:center;position:relative}
+.gd-info-tooltip{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);background:#1E293B;color:#fff;padding:0.75rem 1rem;border-radius:8px;font-size:0.8125rem;font-weight:400;font-style:normal;line-height:1.5;max-width:300px;min-width:200px;width:max-content;box-shadow:0 8px 24px rgba(0,0,0,0.25);z-index:100;pointer-events:auto;opacity:0;visibility:hidden;transition:opacity 0.2s,visibility 0.2s}
+.gd-info-tooltip.gd-info-visible{opacity:1;visibility:visible}
+.gd-info-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#1E293B}
+/* Hero context: white-on-dark variant */
+.gd-hero .gd-info-btn{border-color:rgba(255,255,255,0.5);color:rgba(255,255,255,0.7)}
+.gd-hero .gd-info-btn:hover{background:rgba(255,255,255,0.12)}
+.gd-hero .gd-info-btn.gd-info-active{background:rgba(255,255,255,0.85);color:#1E293B}
+/* Mobile: anchor tooltip to left edge if near screen edge */
+@media(max-width:640px){.gd-info-tooltip{left:0;transform:translateX(-10%);max-width:calc(100vw - 2rem)}.gd-info-tooltip::after{left:20px;transform:none}}
+/* ── Shareable GA Image Section ────────────────────────────────── */
+.gd-share-section{margin-bottom:2.5rem}
+.gd-share-image-wrap{position:relative;width:100%;cursor:zoom-in;border-radius:var(--gd-radius);overflow:hidden;box-shadow:0 4px 20px rgba(26,35,50,0.12);border:1px solid var(--gd-border);background:#000}
+.gd-share-image-wrap img{width:100%;height:auto;display:block;transition:transform 0.3s}
+.gd-share-image-wrap:hover img{transform:scale(1.01)}
+.gd-share-image-wrap .gd-zoom-hint{position:absolute;bottom:0.75rem;right:0.75rem;background:rgba(26,35,50,0.7);color:#fff;font-size:0.6875rem;padding:0.25rem 0.625rem;border-radius:100px;backdrop-filter:blur(8px);opacity:0;transition:opacity 0.3s;pointer-events:none}
+.gd-share-image-wrap:hover .gd-zoom-hint{opacity:1}
+.gd-share-actions{display:flex;align-items:center;gap:0.75rem;margin-top:1rem;flex-wrap:wrap}
+.gd-share-main-btn{display:inline-flex;align-items:center;gap:0.5rem;background:#2A9D8F;color:#fff;border:none;border-radius:100px;padding:0.625rem 1.5rem;font-size:0.9375rem;font-weight:600;cursor:pointer;transition:background 0.2s,box-shadow 0.2s;box-shadow:0 2px 8px rgba(42,157,143,0.3)}
+.gd-share-main-btn:hover{background:#238b7e;box-shadow:0 4px 16px rgba(42,157,143,0.4)}
+.gd-share-main-btn svg{flex-shrink:0}
+.gd-share-social{display:flex;gap:0.5rem;align-items:center;margin-left:auto}
+.gd-share-pill{display:inline-flex;align-items:center;gap:0.375rem;background:var(--gd-card);border:1px solid var(--gd-border);border-radius:100px;padding:0.375rem 0.875rem;font-size:0.8125rem;font-weight:500;color:var(--gd-text-dim);cursor:pointer;text-decoration:none;transition:all 0.2s;box-shadow:var(--gd-shadow-sm)}
+.gd-share-pill:hover{border-color:var(--gd-teal);color:var(--gd-teal);box-shadow:var(--gd-shadow-md)}
+.gd-share-pill svg{flex-shrink:0;width:14px;height:14px}
+/* Lightbox */
+.gd-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);align-items:center;justify-content:center;cursor:zoom-out;padding:2rem}
+.gd-lightbox.gd-lightbox-open{display:flex}
+.gd-lightbox img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.5)}
+.gd-lightbox-close{position:absolute;top:1.5rem;right:1.5rem;background:rgba(255,255,255,0.15);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.25rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
+.gd-lightbox-close:hover{background:rgba(255,255,255,0.3)}
+/* Mobile: sticky share bar */
+@media(max-width:768px){
+    .gd-share-actions{position:sticky;bottom:0;z-index:50;background:var(--gd-bg);padding:0.75rem 0;border-top:1px solid var(--gd-border);margin:0 -1rem;padding-left:1rem;padding-right:1rem;box-shadow:0 -4px 12px rgba(26,35,50,0.08)}
+    .gd-share-social{margin-left:0}
+    .gd-share-main-btn{flex:1}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gd-page">
+    <!-- Hero -->
+    <div class="gd-hero">
+        <div class="gd-hero-backdrop" style="background-image:url('/ga/{{ image.filename }}');"></div>
+        <div class="gd-hero-overlay"></div>
+        <div class="gd-hero-content">
+            <div class="gd-hero-image-wrap">
+                <img src="/ga/{{ image.filename }}" alt="{{ image.title or image.filename }}" class="gd-hero-image" loading="eager">
+            </div>
+            <div class="gd-hero-info">
+                <h1 class="gd-hero-title">{{ image.title or image.filename }}</h1>
+                <div class="gd-hero-meta">
+                    <span class="gd-hero-tag">{{ image.domain | upper }}</span>
+                    <span class="gd-hero-tag">{{ detail.n_tests }} test{{ 's' if detail.n_tests != 1 else '' }}</span>
+                    {% if image.is_control %}<span class="gd-hero-tag">Control</span>{% else %}<span class="gd-hero-tag">VEC</span>{% endif %}
+                    {% if sidecar.get('description') %}<span class="gd-hero-tag">{{ sidecar.description[:60] }}{% if sidecar.description|length > 60 %}...{% endif %}</span>{% endif %}
+                </div>
+                {% if domain_rank and domain_rank.rank > 0 %}
+                {% set top_pct = ((domain_rank.rank / domain_rank.total_in_domain) * 100) | round(0) | int %}
+                <div class="gd-rank-badge {{ 'gd-rank-gold' if domain_rank.rank <= 3 else 'gd-rank-teal' }}">
+                    {% if domain_rank.rank <= 3 %}&#x1F3C6;{% else %}&#x1F4CA;{% endif %}
+                    #{{ domain_rank.rank }} sur {{ domain_rank.total_in_domain }} en {{ domain_rank.domain_label }}
+                    {% if domain_rank.total_in_domain > 1 %} &mdash; Meilleur que {{ domain_rank.percentile | int }}% des GAs{% endif %}
+                </div>
+                {% endif %}
+                {% if detail.n_tests > 0 %}
+                {% set pct = (detail.avg_glance * 100) | round(0) | int %}
+                {% set circ = 251.2 %}
+                {% set offset = circ - (circ * pct / 100) %}
+                {% if pct >= 90 %}{% set gauge_color = "#10b981" %}{% set verdict = "Limpide — compris instantanément" %}
+                {% elif pct >= 80 %}{% set gauge_color = "#10b981" %}{% set verdict = "Fluide — se lit sans effort" %}
+                {% elif pct >= 70 %}{% set gauge_color = "#84cc16" %}{% set verdict = "Accessible — le message passe" %}
+                {% elif pct >= 60 %}{% set gauge_color = "#eab308" %}{% set verdict = "Brumeux — on devine mais c'est flou" %}
+                {% elif pct >= 40 %}{% set gauge_color = "#f59e0b" %}{% set verdict = "Opaque — effort cognitif important" %}
+                {% else %}{% set gauge_color = "#ef4444" %}{% set verdict = "Illisible — le design ne communique pas" %}{% endif %}
+                <div class="gd-gauge-wrap">
+                    <svg class="gd-gauge" width="130" height="130" viewBox="0 0 130 130">
+                        <circle class="gd-gauge-ring-bg" cx="65" cy="65" r="52"/>
+                        <circle class="gd-gauge-ring-fill" cx="65" cy="65" r="52" stroke="{{ gauge_color }}" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ circ }}" data-target-offset="{{ offset }}" transform="rotate(-90 65 65)"/>
+                        <text x="65" y="60" class="gd-gauge-text" text-anchor="middle" font-size="32">{{ pct }}</text>
+                        <text x="65" y="80" class="gd-gauge-label-text" text-anchor="middle">GLANCE</text>
+                    </svg>
+                    <div>
+                        <div class="gd-gauge-verdict">{{ verdict }} <span class="gd-info-wrap"><button class="gd-info-btn" data-info="glance-score" aria-label="Info GLANCE Score">i</button><span class="gd-info-tooltip" id="info-glance-score">Le score GLANCE mesure le pourcentage d'information correctement perçue en 5 secondes de lecture. 80%+ = excellent.</span></span></div>
+                        <div class="gd-gauge-sub">Seuil de passage : {{ (glance_threshold * 100) | round(0) | int }}%</div>
+                    </div>
+                    {% if archetype %}
+                    <div class="gd-archetype-badge" style="background:{{ archetype.archetype_info.color_bg }};border-color:{{ archetype.archetype_info.color }}40;">
+                        <span class="gd-archetype-icon">{% if archetype.archetype in archetype_svgs %}{{ archetype_svgs[archetype.archetype] | safe }}{% else %}{{ archetype.archetype_info.emoji }}{% endif %}</span>
+                        <div class="gd-archetype-body">
+                            <div class="gd-archetype-name">{{ archetype.archetype_info.name_fr }}{% if archetype.source == 'predicted' %}<span class="gd-archetype-predicted">prediction</span>{% endif %} <span class="gd-info-wrap"><button class="gd-info-btn" data-info="archetype" aria-label="Info Archetype" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-archetype">L'archetype GLANCE est un diagnostic visuel base sur le profil de scores. 7 types : Cristallin (parfait) a Fantome (invisible).</span></span></div>
+                            <div class="gd-archetype-sig">{{ archetype.archetype_info.signature }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="gd-gauge-verdict" style="margin-top:1rem;">En attente de donnees</div>
+                <div class="gd-gauge-sub">Aucun test soumis pour cette GA</div>
+                {% if archetype %}
+                <div class="gd-archetype-badge" style="background:{{ archetype.archetype_info.color_bg }};border-color:{{ archetype.archetype_info.color }}40;margin-top:1rem;">
+                    <span class="gd-archetype-icon">{% if archetype.archetype in archetype_svgs %}{{ archetype_svgs[archetype.archetype] | safe }}{% else %}{{ archetype.archetype_info.emoji }}{% endif %}</span>
+                    <div class="gd-archetype-body">
+                        <div class="gd-archetype-name">{{ archetype.archetype_info.name_fr }}<span class="gd-archetype-predicted">prediction</span></div>
+                        <div class="gd-archetype-sig">{{ archetype.archetype_info.signature }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav -->
+    <div class="gd-nav">
+        <a href="/">Accueil</a><span class="sep">&#8250;</span>
+        <a href="/leaderboard">Leaderboard</a><span class="sep">&#8250;</span>
+        <a href="/leaderboard/{{ image.domain }}">{{ image.domain | upper }}</a><span class="sep">&#8250;</span>
+        <span style="color:var(--gd-teal);font-weight:600;padding:0.375rem 0.75rem;font-size:0.875rem;">{{ (image.title or image.filename)[:40] }}</span>
+        <button class="gd-share-btn" onclick="shareGA()" style="margin-left:auto;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Partager
+        </button>
+    </div>
+
+    <!-- Shareable GA Image + Share Buttons -->
+    <div class="gd-share-section">
+        <div class="gd-share-image-wrap" onclick="openLightbox()">
+            <img src="/og/ga/{{ ga_id }}.png"
+                 alt="{{ image.title or image.filename }} — Score GLANCE"
+                 loading="eager"
+                 onerror="this.src='/ga/{{ image.filename }}';">
+            <span class="gd-zoom-hint">Cliquer pour agrandir</span>
+        </div>
+        <div class="gd-share-actions">
+            <button class="gd-share-main-btn" onclick="shareGANative()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                Partager
+            </button>
+            <div class="gd-share-social">
+                <a class="gd-share-pill" href="https://www.linkedin.com/sharing/share-offsite/?url=https://glance.scisense.fr/ga-detail/{{ share_slug }}" target="_blank" rel="noopener" title="Partager sur LinkedIn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    LinkedIn
+                </a>
+                <a class="gd-share-pill" href="https://twitter.com/intent/tweet?url=https://glance.scisense.fr/ga-detail/{{ share_slug }}&text={{ og_title | urlencode }}" target="_blank" rel="noopener" title="Partager sur X">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    X
+                </a>
+                <button class="gd-share-pill" onclick="copyShareLink()" title="Copier le lien">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                    Copier
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox overlay -->
+    <div class="gd-lightbox" id="gdLightbox" onclick="closeLightbox(event)">
+        <button class="gd-lightbox-close" aria-label="Fermer">&times;</button>
+        <img src="/og/ga/{{ ga_id }}.png"
+             alt="{{ image.title or image.filename }}"
+             onerror="this.src='/ga/{{ image.filename }}';">
+    </div>
+
+    <!-- Archetype Detail -->
+    {% if archetype %}
+    <div class="gd-archetype-detail" style="border-left-color:{{ archetype.archetype_info.color }};">
+        <div class="gd-archetype-detail-header">
+            <span class="gd-archetype-detail-icon">{% if archetype.archetype in archetype_svgs %}{{ archetype_svgs[archetype.archetype] | safe }}{% else %}{{ archetype.archetype_info.emoji }}{% endif %}</span>
+            <span class="gd-archetype-detail-name">{{ archetype.archetype_info.name_fr }} <span class="gd-info-wrap"><button class="gd-info-btn" data-info="archetype-detail" aria-label="Info Archetype" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-archetype-detail">L'archetype GLANCE est un diagnostic visuel base sur le profil de scores. 7 types : Cristallin (parfait) a Fantome (invisible).</span></span></span>
+            <span class="gd-archetype-detail-en">({{ archetype.archetype_info.name_en }})</span>
+        </div>
+        <div class="gd-archetype-detail-desc">{{ archetype.archetype_info.description_fr }}</div>
+        <div class="gd-archetype-detail-rec">{{ archetype.archetype_info.recommendation_fr }}</div>
+        <div class="gd-archetype-confidence">
+            {% if archetype.source == 'predicted' %}Archetype predit (vision IA){% else %}Archetype mesure{% endif %}
+            &mdash; confiance : {{ (archetype.confidence * 100) | round(0) | int }}%
+            {% if archetype.method == 'distance' %} (distance){% endif %}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">
+            <span class="gd-info-wrap"><span style="font-size:0.75rem;color:var(--gd-text-muted);font-weight:600;">Drift</span> <button class="gd-info-btn" data-info="drift" aria-label="Info Drift" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-drift">Distorsion involontaire due a l'encodage visuel. Ex: les camemberts compressent les differences (Stevens beta=0.85).</span></span>
+            <span class="gd-info-wrap"><span style="font-size:0.75rem;color:var(--gd-text-muted);font-weight:600;">Warp</span> <button class="gd-info-btn" data-info="warp" aria-label="Info Warp" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-warp">Distribution inegale du poids visuel. Un element domine et ecrase les autres. sigma/mu du coverage > 1.0 = warp.</span></span>
+            <span class="gd-info-wrap"><span style="font-size:0.75rem;color:var(--gd-text-muted);font-weight:600;">Spin</span> <button class="gd-info-btn" data-info="spin" aria-label="Info Spin" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-spin">Embellissement visuel intentionnel ou non. Le graphique 'dit' quelque chose de different de ce que les donnees montrent.</span></span>
+            <span class="gd-info-wrap"><span style="font-size:0.75rem;color:var(--gd-text-muted);font-weight:600;">Mots</span> <button class="gd-info-btn" data-info="wordcount" aria-label="Info Word count" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-wordcount">Budget recommande : &le;30 mots. Chaque mot active le Systeme 2 (lecture consciente) et augmente le temps de decodage.</span></span>
+            <span class="gd-info-wrap"><span style="font-size:0.75rem;color:var(--gd-text-muted);font-weight:600;">Canaux</span> <button class="gd-info-btn" data-info="channels" aria-label="Info Visual channels" style="width:16px;height:16px;font-size:10px;">i</button><span class="gd-info-tooltip" id="info-channels">Canaux perceptifs utilises : position, longueur, couleur, taille, forme, etc. Cleveland &amp; McGill (1984) : la position est le canal le plus precis.</span></span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Executive Summary -->
+    {% if executive_summary %}
+    <div class="gd-exec-summary">
+        <div class="gd-exec-summary-title">Synthese</div>
+        <div class="gd-exec-summary-text">{{ executive_summary }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Source / Study Reference -->
+    {% if study_ref and study_ref.text %}
+    <div class="gd-source-card">
+        <div class="gd-source-icon">&#x1F4C4;</div>
+        <div class="gd-source-body">
+            <div class="gd-source-label">Source</div>
+            <div class="gd-source-ref">
+                {% if study_ref.url %}
+                    <a href="{{ study_ref.url }}" target="_blank" rel="noopener">{{ study_ref.text }}</a>
+                {% else %}
+                    {{ study_ref.text }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- GA Abstract -->
+    {% if ga_abstract %}
+    <div class="gd-abstract">
+        <div class="gd-abstract-title">Contenu du GA</div>
+        <div class="gd-abstract-text">{{ ga_abstract }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Email gate wrapper for user_upload GAs -->
+    {% if is_locked %}
+    <div class="gd-gate-wrapper">
+        <div class="gd-gate-overlay" id="gdGateOverlay">
+            <div class="gd-gate-cards">
+                <!-- Option A: Free (email lead capture) -->
+                <div class="gd-gate-card">
+                    <h3>Analyse gratuite</h3>
+                    <p>Recevez votre analyse par email</p>
+                    <form class="gd-gate-form" id="gdGateForm" action="/analyze/unlock/{{ image.id }}" method="post" style="flex-direction:column;">
+                        <input type="email" name="email" class="gd-gate-input" placeholder="votre@email.com" required autocomplete="email" autofocus>
+                        <button type="submit" class="gd-gate-btn gd-gate-btn-free">Debloquer gratuitement</button>
+                    </form>
+                    <p class="gd-gate-fine">Pas de spam. Uniquement pour vous envoyer votre rapport.</p>
+                </div>
+                <!-- Option B: Paid (Stripe Checkout) -->
+                {% if stripe_enabled %}
+                <div class="gd-gate-card gd-gate-card-paid">
+                    <div class="gd-gate-price">29 &euro;</div>
+                    <div class="gd-gate-price-sub">paiement unique</div>
+                    <h3>Analyse Instantanee + PDF</h3>
+                    <ul class="gd-gate-features">
+                        <li><span class="check">&#10003;</span> Archetype, score, radar perceptuel</li>
+                        <li><span class="check">&#10003;</span> Recommandations prioritaires</li>
+                        <li><span class="check">&#10003;</span> Rapport PDF exportable</li>
+                        <li><span class="check">&#10003;</span> Acces permanent a votre analyse</li>
+                    </ul>
+                    <form action="/checkout/analyse_instantanee/{{ image.id }}" method="post">
+                        <button type="submit" class="gd-gate-btn">Debloquer avec rapport &mdash; 29 &euro;</button>
+                    </form>
+                    <p class="gd-gate-fine" style="margin-top:0.625rem;">Paiement securise par Stripe</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="gd-gate-blurred">
+    {% endif %}
+
+    {% if detail.n_tests > 0 %}
+    <!-- Profil perceptuel — Report Card -->
+    <div class="gd-section">
+        <h2 class="gd-section-title">Profil perceptuel</h2>
+        <div class="gd-radar-wrap">
+            <div class="gd-radar-svg-wrap" id="radarWrap"></div>
+        </div>
+        <div class="gd-profile-card" style="margin-top:1.5rem;background:var(--gd-card);border:1px solid var(--gd-border);border-radius:var(--gd-radius);box-shadow:var(--gd-shadow-sm);overflow:hidden;">
+            {% set report_metrics = [
+                {"label": "Memorabilite", "hint": "Ce que les gens retiennent", "value": detail.avg_s9a,
+                 "good": 60, "mid": 30,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": "s9a"},
+                {"label": "Clarte du message", "hint": "Le message principal passe-t-il ?", "value": detail.avg_s9b,
+                 "good": 80, "mid": 25,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": "s9b"},
+                {"label": "Impact decisionnel", "hint": "Ca change les comportements ?", "value": detail.avg_s9c,
+                 "good": 40, "mid": 20,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": "s9c"},
+                {"label": "Accroche visuelle", "hint": "Ca attire l'oeil ?", "value": detail.avg_glance,
+                 "good": 70, "mid": 40,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": "glance"},
+                {"label": "Fluidite de lecture", "hint": "Compris vite ET bien ?", "value": detail.fluency_normalized,
+                 "good": 70, "mid": 40,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": ""},
+                {"label": "Profondeur d'analyse", "hint": "Ce qui reste apres lecture attentive", "value": detail.avg_s2_coverage,
+                 "good": 60, "mid": 30,
+                 "verdict_good": "Excellent", "verdict_mid": "A ameliorer", "verdict_bad": "Problematique",
+                 "dist_key": ""},
+            ] %}
+            {% for m in report_metrics %}
+            {% set mpct = (m.value * 100) | round(0) | int %}
+            {% if mpct >= m.good %}
+                {% set bar_color = "#10b981" %}
+                {% set verdict = m.verdict_good %}
+                {% set pill_bg = "rgba(16,185,129,0.1)" %}
+                {% set pill_color = "#047857" %}
+            {% elif mpct >= m.mid %}
+                {% set bar_color = "#eab308" %}
+                {% set verdict = m.verdict_mid %}
+                {% set pill_bg = "rgba(234,179,8,0.1)" %}
+                {% set pill_color = "#92400e" %}
+            {% else %}
+                {% set bar_color = "#ef4444" %}
+                {% set verdict = m.verdict_bad %}
+                {% set pill_bg = "rgba(239,68,68,0.1)" %}
+                {% set pill_color = "#dc2626" %}
+            {% endif %}
+            <div class="gd-profile-row" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid var(--gd-border);opacity:0;animation:gdCardIn 0.5s ease forwards;animation-delay:{{ loop.index * 0.08 }}s;">
+                <div style="flex:0 0 180px;">
+                    <div style="font-weight:700;font-size:0.875rem;color:var(--gd-navy);line-height:1.3;">{{ m.label }}</div>
+                    <div style="font-size:0.6875rem;color:var(--gd-text-muted);line-height:1.3;">{{ m.hint }}</div>
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:0.75rem;">
+                    <div style="flex:1;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                        <div class="gd-score-bar-fill" data-width="{{ mpct }}%" style="width:0%;height:100%;border-radius:4px;background:{{ bar_color }};transition:width 0.8s cubic-bezier(0.22,1,0.36,1);"></div>
+                    </div>
+                    <span style="font-family:var(--gd-font-mono);font-size:0.8125rem;font-weight:700;color:var(--gd-navy);min-width:3em;text-align:right;">{{ mpct }}%</span>
+                </div>
+                <div style="flex:0 0 auto;">
+                    <span style="display:inline-block;font-size:0.6875rem;font-weight:600;padding:0.25rem 0.625rem;border-radius:100px;background:{{ pill_bg }};color:{{ pill_color }};white-space:nowrap;">{{ verdict }}</span>
+                </div>
+            </div>
+            {% endfor %}
+
+            {# Distortion metrics (inverted scale: lower = better) #}
+            {% if perceptual_drift is not none or perceptual_warp is not none or perceptual_spin is not none %}
+            <div style="padding:0.625rem 1.25rem 0.375rem;border-top:2px solid var(--gd-border);background:var(--gd-bg);">
+                <div style="font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gd-text-muted);font-weight:600;">Fidelite des donnees</div>
+            </div>
+            {% set distortion_metrics = [] %}
+            {% if perceptual_drift is not none %}
+                {% set _ = distortion_metrics.append({"label": "Distorsion d'encodage", "hint": "Les donnees sont-elles fidelement representees ?", "value": perceptual_drift}) %}
+            {% endif %}
+            {% if perceptual_warp is not none %}
+                {% set _ = distortion_metrics.append({"label": "Equilibre visuel", "hint": "Le poids visuel est-il bien reparti ?", "value": perceptual_warp}) %}
+            {% endif %}
+            {% if perceptual_spin is not none %}
+                {% set _ = distortion_metrics.append({"label": "Embellissement", "hint": "Le graphique embellit-il les resultats ?", "value": (1.0 if perceptual_spin else 0.0)}) %}
+            {% endif %}
+            {% for m in distortion_metrics %}
+            {% set mpct_raw = (m.value * 100) | round(0) | int %}
+            {% if mpct_raw > 100 %}{% set mpct = 100 %}{% else %}{% set mpct = mpct_raw %}{% endif %}
+            {# Inverted scale: lower is better #}
+            {% if m.value < 0.3 %}
+                {% set bar_color = "#10b981" %}
+                {% set verdict = "Fidele" %}
+                {% set pill_bg = "rgba(16,185,129,0.1)" %}
+                {% set pill_color = "#047857" %}
+            {% elif m.value <= 0.6 %}
+                {% set bar_color = "#eab308" %}
+                {% set verdict = "A surveiller" %}
+                {% set pill_bg = "rgba(234,179,8,0.1)" %}
+                {% set pill_color = "#92400e" %}
+            {% else %}
+                {% set bar_color = "#ef4444" %}
+                {% set verdict = "Distorsion detectee" %}
+                {% set pill_bg = "rgba(239,68,68,0.1)" %}
+                {% set pill_color = "#dc2626" %}
+            {% endif %}
+            <div class="gd-profile-row" style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:var(--gd-bg);{% if not loop.last %}border-bottom:1px solid var(--gd-border);{% endif %}opacity:0;animation:gdCardIn 0.5s ease forwards;animation-delay:{{ (loop.index + 6) * 0.08 }}s;">
+                <div style="flex:0 0 180px;">
+                    <div style="font-weight:700;font-size:0.875rem;color:var(--gd-navy);line-height:1.3;">{{ m.label }}</div>
+                    <div style="font-size:0.6875rem;color:var(--gd-text-muted);line-height:1.3;">{{ m.hint }}</div>
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:0.75rem;">
+                    <div style="flex:1;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                        <div class="gd-score-bar-fill" data-width="{{ mpct }}%" style="width:0%;height:100%;border-radius:4px;background:{{ bar_color }};transition:width 0.8s cubic-bezier(0.22,1,0.36,1);"></div>
+                    </div>
+                    <span style="font-family:var(--gd-font-mono);font-size:0.8125rem;font-weight:700;color:var(--gd-navy);min-width:3em;text-align:right;">{{ mpct }}%</span>
+                </div>
+                <div style="flex:0 0 auto;">
+                    <span style="display:inline-block;font-size:0.6875rem;font-weight:600;padding:0.25rem 0.625rem;border-radius:100px;background:{{ pill_bg }};color:{{ pill_color }};white-space:nowrap;">{{ verdict }}</span>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Node Coverage -->
+    {% if detail.s2_node_means %}
+    <div class="gd-section">
+        <h2 class="gd-section-title">Couverture nodale (System 2) <span class="gd-info-wrap"><button class="gd-info-btn" data-info="s2-nodes" aria-label="Info System 2" style="width:18px;height:18px;font-size:11px;">i</button><span class="gd-info-tooltip" id="info-s2-nodes">Quand on laisse le lecteur examiner l'image sans limite de temps, quels concepts sont correctement restitues ? Chaque bulle = un concept cle. Vert = compris, rouge = manque.</span></span></h2>
+        <div class="gd-nodes-grid">
+            {% for node_id, score in detail.s2_node_means.items() %}
+            {% set is_hit = score >= 0.4 %}
+            {% set label = s2_node_labels.get(node_id, node_id) %}
+            {% if node_id.startswith("L1") %}{% set sz = 52 %}{% elif node_id.startswith("L2") %}{% set sz = 42 %}{% else %}{% set sz = 34 %}{% endif %}
+            <div class="gd-node-bubble {{ 'gd-node-hit' if is_hit else 'gd-node-miss' }}" style="width:{{ sz }}px;height:{{ sz }}px;">
+                <div class="gd-node-tooltip">{{ label[:50] }}{% if label|length > 50 %}...{% endif %}<br>Score: {{ (score * 100) | round(0) }}%</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="gd-node-legend">
+            <span><span class="gd-node-legend-dot" style="background:var(--gd-pass);"></span>Recu (&gt;40%)</span>
+            <span><span class="gd-node-legend-dot" style="background:var(--gd-fail);"></span>Manque (&lt;40%)</span>
+            <span style="color:var(--gd-text-muted);">Taille = niveau hierarchique</span>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Recommendations -->
+    {% if recommendations %}
+    <div class="gd-section">
+        <h2 class="gd-section-title">Recommandations</h2>
+        {% if recommendations.recommendations %}
+        <div class="gd-recs">
+            {% for rec in recommendations.recommendations %}
+            {% set p = rec.priority | lower %}
+            <div class="gd-rec-card gd-rec-{{ p }}" style="animation-delay:{{ loop.index * 0.08 }}s;">
+                <div class="gd-rec-header">
+                    <span class="gd-rec-badge gd-badge-{{ p }}">{{ rec.priority }}</span>
+                    <span class="gd-rec-node">{{ rec.node }}</span>
+                </div>
+                <div class="gd-rec-issue">{{ rec.issue }}</div>
+                <div class="gd-rec-fix">{{ rec.fix }}</div>
+                {% if rec.impact %}<div class="gd-rec-impact">{{ rec.impact }}</div>{% endif %}
+                {% if rec.plain_text %}
+                <div class="gd-rec-plain" style="margin-top:0.625rem;padding-top:0.625rem;border-top:1px solid var(--gd-border);font-size:0.875rem;color:var(--gd-text-dim);line-height:1.5;">
+                    &#x1F4A1; {{ rec.plain_text }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if recommendations.strengths %}
+        <h3 style="font-size:0.9375rem;font-weight:600;color:var(--gd-navy);margin:1.5rem 0 0.75rem;">Points forts</h3>
+        <div class="gd-strengths">
+            {% for s in recommendations.strengths %}<span class="gd-strength-chip" title="{{ s.reason }}">{{ s.node }}</span>{% endfor %}
+        </div>
+        {% endif %}
+        {% if recommendations.accessibility_warnings %}
+        <h3 style="font-size:0.9375rem;font-weight:600;color:var(--gd-navy);margin:1.5rem 0 0.75rem;">Accessibilite</h3>
+        <div class="gd-warnings">
+            {% for w in recommendations.accessibility_warnings %}
+            <div class="gd-warning-item">
+                <div class="gd-warning-title">{{ w.test }}</div>
+                <div class="gd-warning-fix">{{ w.fix }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- A/B Pair -->
+    {% if pair_image and pair_stats %}
+    <div class="gd-section">
+        <h2 class="gd-section-title">Comparaison A/B</h2>
+        <div class="gd-pair-compare">
+            <div class="gd-pair-card">
+                <div class="gd-pair-label">{{ 'Control' if image.is_control else 'VEC' }} (cette GA)</div>
+                <img src="/ga/{{ image.filename }}" alt="{{ image.title }}" class="gd-pair-thumb" loading="lazy">
+                {% if detail.n_tests > 0 %}<div class="gd-pair-score">{{ (detail.avg_glance * 100) | round(0) | int }}%</div><div style="font-size:0.75rem;color:var(--gd-text-dim);">{{ detail.n_tests }} tests</div>
+                {% else %}<div class="gd-pair-score" style="color:var(--gd-text-muted);">--</div>{% endif %}
+            </div>
+            <div class="gd-pair-card">
+                <div class="gd-pair-label">{{ 'VEC' if image.is_control else 'Control' }} (paire)</div>
+                <img src="/ga/{{ pair_image.filename }}" alt="{{ pair_image.title }}" class="gd-pair-thumb" loading="lazy">
+                {% if pair_stats.n_tests > 0 %}<div class="gd-pair-score">{{ (pair_stats.avg_glance * 100) | round(0) | int }}%</div><div style="font-size:0.75rem;color:var(--gd-text-dim);">{{ pair_stats.n_tests }} tests</div>
+                {% else %}<div class="gd-pair-score" style="color:var(--gd-text-muted);">--</div>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Speed-Accuracy -->
+    {% if detail.n_tests > 0 %}
+    <div class="gd-section">
+        <h2 class="gd-section-title">Distribution Vitesse-Precision <span class="gd-info-wrap"><button class="gd-info-btn" data-info="speed-acc" aria-label="Info Speed-Accuracy" style="width:18px;height:18px;font-size:11px;">i</button><span class="gd-info-tooltip" id="info-speed-acc">Croise la vitesse de reponse et la justesse. L'ideal : beaucoup de 'Rapide + Correct' (comprehension fluide). 'Lent + Faux' = le design bloque totalement.</span></span></h2>
+        <div class="gd-scores-row" style="grid-template-columns:repeat(4,1fr);">
+            {% set sa = detail.speed_dist %}
+            {% set total = sa.fast_right + sa.slow_right + sa.fast_wrong + sa.slow_wrong %}
+            {% set pairs = [
+                {"name": "Rapide + Correct", "val": sa.fast_right, "color": "#10b981"},
+                {"name": "Lent + Correct", "val": sa.slow_right, "color": "#eab308"},
+                {"name": "Rapide + Faux", "val": sa.fast_wrong, "color": "#f97316"},
+                {"name": "Lent + Faux", "val": sa.slow_wrong, "color": "#ef4444"}
+            ] %}
+            {% for p in pairs %}
+            <div class="gd-score-card" style="text-align:center;animation-delay:{{ 0.35 + loop.index * 0.05 }}s;">
+                <div class="gd-score-name">{{ p.name }}</div>
+                <div class="gd-score-value" style="color:{{ p.color }};">{{ p.val }}</div>
+                <div style="font-size:0.6875rem;color:var(--gd-text-muted);">{% if total > 0 %}{{ ((p.val / total) * 100) | round(0) | int }}%{% else %}0%{% endif %}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Empty state -->
+    {% if detail.n_tests == 0 %}
+    <div class="gd-empty">
+        <svg class="gd-empty-icon" viewBox="0 0 24 24" fill="none" stroke="var(--gd-text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <p>En attente de données</p>
+        <p style="font-size:0.8125rem;margin-top:0.5rem;">Les scores apparaîtront après le premier test.</p>
+    </div>
+    {% endif %}
+
+    {% if is_locked %}
+        </div><!-- /.gd-gate-blurred -->
+    </div><!-- /.gd-gate-wrapper -->
+    {% endif %}
+
+    <!-- Upsell card (user_upload GAs only, always visible) -->
+    {% if is_user_upload %}
+    <div class="gd-upsell-card">
+        <h3>Allez plus loin avec l'Audit Complet</h3>
+        <p>L'analyse IA est instantanee. L'Audit Complet confronte votre GA a 10 lecteurs reels — des donnees publiables pour votre paper.</p>
+        <ul>
+            <li>Test avec N=10 lecteurs de profils varies</li>
+            <li>Analyse System 2 (couverture nodale)</li>
+            <li>Taxonomie Spin/Drift/Warp</li>
+            <li>Rapport PDF detaille</li>
+        </ul>
+        <a href="mailto:aurore.inchauspe@scisense.fr?subject=Audit%20Complet%20GLANCE%20%E2%80%94%20GA%20%23{{ image.id }}" class="gd-upsell-cta">Demander un Audit Complet — 99 &#8364;</a>
+    </div>
+    {% endif %}
+</div>
+<div class="gd-toast" id="gdToast">Lien copié !</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+    var DIMS=[
+        {label:'Memo.',value:{{ detail.avg_s9a or 0 }}},
+        {label:'Clarte',value:{{ detail.avg_s9b or 0 }}},
+        {label:'Impact',value:{{ detail.avg_s9c or 0 }}},
+        {label:'Fluidite',value:{{ detail.fluency_normalized or 0 }}},
+        {label:'Profondeur',value:{{ detail.avg_s2_coverage or 0 }}}
+    ];
+    var cx=160,cy=140,R=110,n=5;
+    var START=-Math.PI/2,STEP=2*Math.PI/n;
+    function pt(i,r){var a=START+i*STEP;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+    function poly(pts){return pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ');}
+    var wrap=document.getElementById('radarWrap');
+    if(wrap && {{ detail.n_tests }}){
+        var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+        svg.setAttribute('width','320');svg.setAttribute('height','300');svg.setAttribute('viewBox','0 0 320 300');
+        [0.25,0.5,0.75,1.0].forEach(function(lv){
+            var pts=[];for(var i=0;i<n;i++)pts.push(pt(i,R*lv));
+            var pg=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+            pg.setAttribute('points',poly(pts));pg.setAttribute('class','gd-radar-grid');svg.appendChild(pg);
+        });
+        for(var i=0;i<n;i++){
+            var p2=pt(i,R);
+            var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+            ln.setAttribute('x1',cx);ln.setAttribute('y1',cy);
+            ln.setAttribute('x2',p2[0].toFixed(1));ln.setAttribute('y2',p2[1].toFixed(1));
+            ln.setAttribute('class','gd-radar-axis');svg.appendChild(ln);
+        }
+        var dpts=[];for(var i=0;i<n;i++){var v=Math.max(0,Math.min(1,DIMS[i].value));dpts.push(pt(i,R*v));}
+        var shape=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+        shape.setAttribute('points',poly(dpts));shape.setAttribute('class','gd-radar-shape');svg.appendChild(shape);
+        for(var i=0;i<n;i++){
+            var v=Math.max(0,Math.min(1,DIMS[i].value));var dp=pt(i,R*v);
+            var c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+            c.setAttribute('cx',dp[0].toFixed(1));c.setAttribute('cy',dp[1].toFixed(1));
+            c.setAttribute('r','4');c.setAttribute('class','gd-radar-dot');svg.appendChild(c);
+            var lp=pt(i,R+22);
+            var t=document.createElementNS('http://www.w3.org/2000/svg','text');
+            t.setAttribute('x',lp[0].toFixed(1));t.setAttribute('y',(lp[1]+4).toFixed(1));
+            t.setAttribute('class','gd-radar-text');t.textContent=DIMS[i].label;svg.appendChild(t);
+        }
+        wrap.appendChild(svg);
+    }
+    document.addEventListener('DOMContentLoaded',function(){
+        var ring=document.querySelector('.gd-gauge-ring-fill');
+        if(ring){var target=ring.getAttribute('data-target-offset');requestAnimationFrame(function(){requestAnimationFrame(function(){ring.style.strokeDashoffset=target;});});}
+        var bars=document.querySelectorAll('.gd-score-bar-fill[data-width]');
+        bars.forEach(function(bar,i){setTimeout(function(){bar.style.width=bar.getAttribute('data-width');},200+i*80);});
+    });
+    var SHARE_URL='https://glance.scisense.fr/ga-detail/{{ share_slug }}';
+    var SHARE_TITLE={{ og_title | tojson }};
+    var SHARE_TEXT={{ og_description | tojson }};
+
+    function showToast(msg){var t=document.getElementById('gdToast');if(msg)t.textContent=msg;t.classList.add('gd-toast-show');setTimeout(function(){t.classList.remove('gd-toast-show');},2000);}
+
+    function copyToClipboard(text,successMsg){
+        if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){showToast(successMsg||'Lien copie !');});}
+        else{var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');showToast(successMsg||'Lien copie !');}catch(e){}document.body.removeChild(ta);}
+    }
+
+    window.shareGA=function(){copyToClipboard(SHARE_URL);};
+
+    window.shareGANative=function(){
+        if(navigator.share){
+            try{navigator.share({title:SHARE_TITLE,text:SHARE_TEXT,url:SHARE_URL});}catch(e){copyToClipboard(SHARE_URL);}
+        }else{copyToClipboard(SHARE_URL);}
+    };
+
+    window.copyShareLink=function(){copyToClipboard(SHARE_URL,'Lien copie !');};
+
+    window.openLightbox=function(){document.getElementById('gdLightbox').classList.add('gd-lightbox-open');document.body.style.overflow='hidden';};
+    window.closeLightbox=function(e){if(e.target===document.getElementById('gdLightbox')||e.target.closest('.gd-lightbox-close')){document.getElementById('gdLightbox').classList.remove('gd-lightbox-open');document.body.style.overflow='';}};
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'){document.getElementById('gdLightbox').classList.remove('gd-lightbox-open');document.body.style.overflow='';}});
+
+    // ── Info button tooltip system ──────────────────────────────────
+    (function(){
+        function closeAllTooltips(){
+            document.querySelectorAll('.gd-info-tooltip.gd-info-visible').forEach(function(el){el.classList.remove('gd-info-visible');});
+            document.querySelectorAll('.gd-info-btn.gd-info-active').forEach(function(el){el.classList.remove('gd-info-active');});
+        }
+        document.addEventListener('click',function(e){
+            var btn=e.target.closest('.gd-info-btn');
+            if(btn){
+                e.preventDefault();e.stopPropagation();
+                var tip=btn.nextElementSibling;
+                if(!tip||!tip.classList.contains('gd-info-tooltip'))return;
+                var wasOpen=tip.classList.contains('gd-info-visible');
+                closeAllTooltips();
+                if(!wasOpen){tip.classList.add('gd-info-visible');btn.classList.add('gd-info-active');}
+            } else {
+                closeAllTooltips();
+            }
+        });
+    })();
+
+    // ── Distribution mini-charts ────────────────────────────────────
+    var DISTRIBUTIONS = {{ distributions | tojson }};
+
+    function renderDistChart(wrap, distKey, thisScore) {
+        var scores = DISTRIBUTIONS[distKey];
+        if (!scores || scores.length < 5) return;
+
+        var W = 130, H = 40, BINS = 10, PAD = 2;
+        var barW = (W - PAD * 2) / BINS;
+
+        // Bin the scores (0..1 range)
+        var counts = new Array(BINS).fill(0);
+        var maxVal = 1.0;
+        for (var i = 0; i < scores.length; i++) {
+            var bin = Math.min(BINS - 1, Math.floor(scores[i] / maxVal * BINS));
+            counts[bin]++;
+        }
+        var maxCount = Math.max.apply(null, counts);
+        if (maxCount === 0) return;
+
+        // Which bin does this GA fall in?
+        var thisBin = Math.min(BINS - 1, Math.floor(thisScore / maxVal * BINS));
+
+        // Compute percentile: how many GAs have a lower score
+        var below = 0;
+        for (var i = 0; i < scores.length; i++) {
+            if (scores[i] < thisScore) below++;
+        }
+        var topPct = Math.round(100 - (below / scores.length * 100));
+
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('width', W);
+        svg.setAttribute('height', H + 14);
+        svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (H + 14));
+        svg.style.display = 'block';
+        svg.style.margin = '0 auto';
+
+        // Draw bars
+        for (var i = 0; i < BINS; i++) {
+            var barH = (counts[i] / maxCount) * (H - 4);
+            var rect = document.createElementNS(ns, 'rect');
+            rect.setAttribute('x', PAD + i * barW + 0.5);
+            rect.setAttribute('y', H - barH);
+            rect.setAttribute('width', Math.max(barW - 1, 1));
+            rect.setAttribute('height', barH);
+            rect.setAttribute('rx', 1);
+            if (i === thisBin) {
+                rect.setAttribute('fill', '#0d9488');
+                rect.setAttribute('opacity', '0.9');
+            } else {
+                rect.setAttribute('fill', '#cbd5e1');
+                rect.setAttribute('opacity', '0.5');
+            }
+            svg.appendChild(rect);
+        }
+
+        // Vertical marker line at this GA's score position
+        var markerX = PAD + (thisScore / maxVal) * (W - PAD * 2);
+        markerX = Math.max(PAD, Math.min(W - PAD, markerX));
+        var line = document.createElementNS(ns, 'line');
+        line.setAttribute('x1', markerX);
+        line.setAttribute('y1', 0);
+        line.setAttribute('x2', markerX);
+        line.setAttribute('y2', H);
+        line.setAttribute('stroke', '#0d9488');
+        line.setAttribute('stroke-width', '1.5');
+        line.setAttribute('stroke-dasharray', '2,2');
+        svg.appendChild(line);
+
+        // Top X% label
+        var label = document.createElementNS(ns, 'text');
+        label.setAttribute('x', W / 2);
+        label.setAttribute('y', H + 11);
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('font-size', '9');
+        label.setAttribute('fill', '#64748b');
+        label.setAttribute('font-weight', '600');
+        label.textContent = 'Top ' + topPct + '%';
+        svg.appendChild(label);
+
+        wrap.appendChild(svg);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var wraps = document.querySelectorAll('.gd-dist-wrap[data-dist-key]');
+        wraps.forEach(function(wrap) {
+            var key = wrap.getAttribute('data-dist-key');
+            var score = parseFloat(wrap.getAttribute('data-this-score')) || 0;
+            renderDistChart(wrap, key, score);
+        });
+    });
+})();
+</script>
+
+<!-- Tool panel (admin only) -->
+{% if is_admin %}
+<div style="margin-top:2rem;padding:1.5rem;border:1px solid var(--gd-border);border-radius:var(--gd-radius);background:var(--gd-card);box-shadow:var(--gd-shadow-sm);">
+    <h3 style="margin:0 0 1rem;font-size:1rem;font-weight:700;color:var(--gd-navy);">Outils d'analyse</h3>
+
+    <!-- Tool buttons -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
+        <button class="tool-btn" onclick="runTool('vision')" data-tool="vision"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
+            Vision (re-analyser)
+        </button>
+        <button class="tool-btn" onclick="runTool('channels')" data-tool="channels"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
+            Channels (70 canaux)
+        </button>
+        <button class="tool-btn" onclick="showTextTool('advise')" data-tool="advise"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-teal);background:var(--gd-teal-light);color:var(--gd-teal);cursor:pointer;font-size:0.8rem;font-weight:600;">
+            Adviser (intent)
+        </button>
+        <button class="tool-btn" onclick="showTextTool('rubber_duck')" data-tool="rubber_duck"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-amber);background:var(--gd-amber-light);color:var(--gd-amber);cursor:pointer;font-size:0.8rem;font-weight:600;">
+            Rubber Duck (explorer)
+        </button>
+        <button class="tool-btn" onclick="runTool('health')" data-tool="health"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
+            Health (routes)
+        </button>
+        <button class="tool-btn" onclick="runTool('reader_sim')" data-tool="reader_sim"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
+            Lecture simulée
+        </button>
+        <button class="tool-btn" onclick="runImprove()" data-tool="improve"
+                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-pass);background:var(--gd-pass-bg);color:var(--gd-pass);cursor:pointer;font-size:0.8rem;font-weight:600;">
+            Auto-améliorer
+        </button>
+    </div>
+
+    <!-- Text input (shows for advise + rubber_duck) -->
+    <div id="toolTextInput" style="display:none;margin-bottom:1rem;">
+        <textarea id="toolText" rows="3" placeholder="Votre question ou intention..."
+                  style="width:100%;padding:0.75rem;border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);
+                         background:var(--gd-bg);color:var(--gd-text);font-size:0.85rem;font-family:inherit;resize:vertical;"></textarea>
+        <button id="toolTextSubmit" onclick="runTextTool()"
+                style="margin-top:0.5rem;padding:0.5rem 1.25rem;background:var(--gd-teal);color:white;border:none;
+                       border-radius:var(--gd-radius-sm);cursor:pointer;font-size:0.85rem;font-weight:500;">
+            Envoyer
+        </button>
+    </div>
+
+    <!-- Status -->
+    <div id="toolSpinner" style="display:none;padding:0.75rem;color:var(--gd-text-dim);font-size:0.85rem;">
+        Analyse en cours...
+    </div>
+
+    <!-- Results stack -->
+    <div id="toolResults"></div>
+</div>
+
+<script>
+const SLUG = '{{ image.slug or image.id }}';
+const PWD = new URLSearchParams(window.location.search).get('pwd') || '';
+let pendingTextTool = null;
+
+function showTextTool(toolName) {
+    pendingTextTool = toolName;
+    const input = document.getElementById('toolTextInput');
+    const textarea = document.getElementById('toolText');
+    input.style.display = 'block';
+    textarea.focus();
+    textarea.placeholder = toolName === 'advise'
+        ? "Intent : que voulez-vous améliorer ? (ex: renforcer la hiérarchie, réduire les mots...)"
+        : "Question : explorez le GA librement (ex: qu'est-ce qui capte l'attention en premier ?)";
+}
+
+function runTextTool() {
+    const text = document.getElementById('toolText').value.trim();
+    if (!text) return;
+    document.getElementById('toolTextInput').style.display = 'none';
+    runTool(pendingTextTool, text);
+}
+
+async function runTool(toolName, textInput) {
+    const spinner = document.getElementById('toolSpinner');
+    const resultsDiv = document.getElementById('toolResults');
+
+    // Disable all buttons
+    document.querySelectorAll('.tool-btn').forEach(b => b.disabled = true);
+    spinner.style.display = 'block';
+    spinner.textContent = `${toolName} en cours...`;
+
+    try {
+        const fetchOpts = { method: 'POST', headers: {'Content-Type': 'application/json'} };
+        if (textInput) {
+            fetchOpts.body = JSON.stringify({ text: textInput });
+        }
+
+        const resp = await fetch(`/analyze/tool/${toolName}/${SLUG}?pwd=${PWD}`, fetchOpts);
+        if (!resp.ok) {
+            const err = await resp.json();
+            throw new Error(err.detail || 'Erreur');
+        }
+        const data = await resp.json();
+
+        const html = renderToolResult(toolName, data);
+        resultsDiv.innerHTML = html + resultsDiv.innerHTML;
+
+    } catch (err) {
+        const errHtml = `<div style="border:1px solid var(--gd-fail);border-radius:var(--gd-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--gd-fail-bg);color:var(--gd-fail);font-size:0.8rem;">${toolName}: ${err.message}</div>`;
+        resultsDiv.innerHTML = errHtml + resultsDiv.innerHTML;
+    } finally {
+        document.querySelectorAll('.tool-btn').forEach(b => b.disabled = false);
+        spinner.style.display = 'none';
+    }
+}
+
+async function runImprove() {
+    const spinner = document.getElementById('toolSpinner');
+    const resultsDiv = document.getElementById('toolResults');
+    document.querySelectorAll('.tool-btn').forEach(b => b.disabled = true);
+    spinner.style.display = 'block';
+    spinner.textContent = 'Auto-amélioration en cours...';
+
+    try {
+        const resp = await fetch(`/analyze/improve/${SLUG}?pwd=${PWD}`, { method: 'POST' });
+        if (!resp.ok) { const err = await resp.json(); throw new Error(err.detail || 'Erreur'); }
+        const data = await resp.json();
+        const html = renderToolResult('improve', data);
+        resultsDiv.innerHTML = html + resultsDiv.innerHTML;
+    } catch (err) {
+        resultsDiv.innerHTML = `<div style="border:1px solid var(--gd-fail);border-radius:var(--gd-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--gd-fail-bg);color:var(--gd-fail);font-size:0.8rem;">improve: ${err.message}</div>` + resultsDiv.innerHTML;
+    } finally {
+        document.querySelectorAll('.tool-btn').forEach(b => b.disabled = false);
+        spinner.style.display = 'none';
+    }
+}
+
+function renderToolResult(tool, data) {
+    const ts = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const toolColors = {
+        vision: 'var(--gd-navy)', channels: '#6366f1', advise: 'var(--gd-teal)',
+        rubber_duck: 'var(--gd-amber)', health: '#06b6d4', reader_sim: '#a855f7',
+        improve: 'var(--gd-pass)',
+    };
+    const color = toolColors[tool] || 'var(--gd-text)';
+
+    let inner = '';
+
+    if (tool === 'vision') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            Graph #${data.graph_id} — ${data.node_count} nodes, ${data.link_count} links<br>
+            Mots: ${data.word_count} | Hiérarchie: ${data.hierarchy_clear ? 'oui' : 'non'}<br>
+            ${data.summary ? '<em>' + data.summary + '</em>' : ''}
+        </div>`;
+    } else if (tool === 'channels') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            ${data.channels_used}/${data.channels_total} canaux utilisés — avg eff ${(data.avg_effectiveness * 100).toFixed(0)}%<br>
+            ${data.anti_pattern_count} anti-patterns`;
+        if (data.anti_patterns && data.anti_patterns.length > 0) {
+            inner += '<ul style="margin:0.5rem 0;padding-left:1.25rem;">';
+            for (const ap of data.anti_patterns.slice(0, 5)) {
+                inner += `<li><strong>${ap.type}</strong>: ${ap.node} — ${ap.issue}</li>`;
+            }
+            inner += '</ul>';
+        }
+        inner += '</div>';
+    } else if (tool === 'advise') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            Intent: <em>${data.intent || ''}</em><br>
+            ${data.n_changes || 0} changements`;
+        if (data.changes && data.changes.length > 0) {
+            inner += '<ul style="margin:0.5rem 0;padding-left:1.25rem;">';
+            for (const c of data.changes.slice(0, 8)) {
+                inner += `<li><strong>${c.node}</strong>: ${c.change}</li>`;
+            }
+            inner += '</ul>';
+        }
+        inner += '</div>';
+    } else if (tool === 'rubber_duck') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            <strong>Q:</strong> ${data.question}<br>
+            <div style="margin-top:0.5rem;white-space:pre-wrap;line-height:1.5;background:var(--gd-bg);padding:0.75rem;border-radius:var(--gd-radius-sm);">${data.response}</div>
+        </div>`;
+    } else if (tool === 'health') {
+        const scoreColor = data.overall_score >= 0.7 ? 'var(--gd-pass)' : data.overall_score >= 0.4 ? 'var(--gd-amber)' : 'var(--gd-fail)';
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            Score: <span style="color:${scoreColor};font-weight:700;">${(data.overall_score * 100).toFixed(0)}%</span> —
+            ${data.n_spaces} spaces, ${data.n_things} things, ${data.n_narratives} narratives`;
+        if (data.orphan_things && data.orphan_things.length > 0) {
+            inner += `<br>Orphan things: ${data.orphan_things.map(o => o.name).join(', ')}`;
+        }
+        if (data.orphan_spaces && data.orphan_spaces.length > 0) {
+            inner += `<br>Orphan spaces: ${data.orphan_spaces.map(o => o.name).join(', ')}`;
+        }
+        if (data.prompts && data.prompts.length > 0) {
+            inner += '<ul style="margin:0.5rem 0;padding-left:1.25rem;">';
+            for (const p of data.prompts.slice(0, 3)) { inner += `<li>${p}</li>`; }
+            inner += '</ul>';
+        }
+        inner += '</div>';
+    } else if (tool === 'reader_sim') {
+        const vc = data.verdict === 'OK' ? 'var(--gd-pass)' : data.verdict === 'DENSE' ? 'var(--gd-amber)' : 'var(--gd-fail)';
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">
+            <span style="color:${vc};font-weight:600;">${data.verdict}</span> —
+            pression ${(data.pressure || 0).toFixed(2)}x —
+            ${data.visited}/${data.total} visités —
+            couverture narrative ${Math.round((data.narrative_coverage || 0) * 100)}% —
+            ${data.dead_spaces || 0} zones mortes — ${data.orphan_narratives || 0} messages orphelins
+        </div>`;
+        if (data.narrative_text) {
+            inner += `<details style="margin-top:0.5rem;">
+                <summary style="cursor:pointer;font-size:0.75rem;color:var(--gd-text-dim);">Lecture simulée</summary>
+                <p style="margin:0.5rem 0 0;font-size:0.75rem;color:var(--gd-text-muted);line-height:1.5;white-space:pre-wrap;">${data.narrative_text}</p>
+            </details>`;
+        }
+        if (data.recommendations && data.recommendations.length > 0) {
+            inner += `<details style="margin-top:0.5rem;">
+                <summary style="cursor:pointer;font-size:0.75rem;color:var(--gd-text-dim);">Recommandations (${data.recommendations.length})</summary>
+                <ul style="margin:0.5rem 0;padding-left:1.25rem;font-size:0.75rem;">`;
+            for (const r of data.recommendations) {
+                inner += `<li><strong>[${r.source}]</strong> ${r.finding} ${r.question}</li>`;
+            }
+            inner += '</ul></details>';
+        }
+    } else if (tool === 'improve') {
+        inner = `<div style="font-size:0.8rem;color:var(--gd-text-muted);">${data.n_changes || 0} changements`;
+        if (data.changes && data.changes.length > 0) {
+            inner += '<ul style="margin:0.5rem 0;padding-left:1.25rem;">';
+            for (const c of data.changes.slice(0, 5)) { inner += `<li><strong>${c.node}</strong>: ${c.change}</li>`; }
+            inner += '</ul>';
+        }
+        if (data.sim_s1) {
+            const s = data.sim_s1;
+            const vc2 = s.verdict === 'OK' ? 'var(--gd-pass)' : s.verdict === 'DENSE' ? 'var(--gd-amber)' : 'var(--gd-fail)';
+            inner += `<span style="color:${vc2};font-weight:600;">${s.verdict}</span> — couverture ${Math.round((s.narrative_coverage||0)*100)}%`;
+        }
+        if (data.message) inner += `<br>${data.message}`;
+        inner += '</div>';
+    }
+
+    return `<div style="border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);padding:1rem;margin-bottom:0.75rem;background:var(--gd-bg);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+            <span style="font-size:0.75rem;font-weight:600;color:${color};text-transform:uppercase;letter-spacing:0.05em;">${tool}</span>
+            <span style="font-size:0.65rem;color:var(--gd-text-dim);">${ts}</span>
+        </div>
+        ${inner}
+    </div>`;
+}
+</script>
+{% endif %}
+{% endblock %}

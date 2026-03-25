@@ -1,19 +1,28 @@
 """GLANCE Premier Regard — FastAPI server."""
 
+GLANCE_VERSION = "0.9.1"
+
 import os
 import json
+import re
 import uuid
 import random
+import time
+import logging
 
 import yaml
-from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import FastAPI, Request, Form, HTTPException, UploadFile, File
+from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from db import get_db, init_db, create_participant, get_participant_by_token
 from db import get_next_image, save_test, get_test, get_stats
 from db import get_all_tests, get_image_count, get_all_images, add_ga_image
+from db import get_image_by_id, get_image_by_slug, get_tests_for_image, get_tests_for_participant, get_landing_stats, get_example_ga
+from db import get_referral_count, get_top_referrers, save_analysis_lead
+from db import get_latest_graph, get_reading_sims, save_graph
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
     compute_aggregate_stats,
@@ -24,8 +33,22 @@ from analytics import (
     compute_ab_fluency_delta,
     compute_s10_rate,
     compute_fluency_score,
+    get_leaderboard_data,
+    get_domain_leaderboard,
+    get_ga_detail_stats,
+    get_score_distributions,
+    get_domain_rank,
+    get_admin_analytics,
+    compute_kpi_evolution,
+    get_participant_percentile,
+    get_participant_ranking_comprehension,
+    get_participant_ranking_contribution,
 )
 from config_loader import get_constant
+from cards import generate_test_card, generate_dashboard_card, generate_default_card, generate_ga_og_card
+from i18n import t as _t, get_lang
+from archetype import classify_ga, classify_from_vision_metadata, ARCHETYPES
+from archetype_icons import ARCHETYPE_SVGS
 
 BASE = os.path.dirname(__file__)
 
@@ -34,8 +57,34 @@ templates = Jinja2Templates(directory=os.path.join(BASE, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE, "static")), name="static")
 app.mount("/ga", StaticFiles(directory=os.path.join(BASE, "ga_library")), name="ga")
 
+# Make t() available in all Jinja2 templates as a global function
+templates.env.globals["t"] = _t
+templates.env.globals["archetype_svgs"] = ARCHETYPE_SVGS
+templates.env.globals["GLANCE_VERSION"] = GLANCE_VERSION
+
 with open(os.path.join(BASE, "config.yaml"), encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
+
+
+# ── i18n middleware: detect language, set cookie when ?lang= is used ──
+
+class I18nMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        lang = get_lang(request)
+        request.state.lang = lang
+        response = await call_next(request)
+        # Persist language choice via cookie when explicitly set via URL param
+        if request.query_params.get("lang") in ("fr", "en"):
+            response.set_cookie("glance_lang", request.query_params["lang"],
+                                max_age=86400 * 365, httponly=True)
+        # Persist referral code via cookie so it survives through onboard flow
+        ref_param = request.query_params.get("ref", "")
+        if ref_param and len(ref_param) <= 8:
+            response.set_cookie("glance_ref", ref_param,
+                                max_age=86400 * 30, httponly=True)
+        return response
+
+app.add_middleware(I18nMiddleware)
 
 
 @app.on_event("startup")
@@ -81,17 +130,199 @@ def _get_participant(request: Request):
     return get_participant_by_token(token)
 
 
+def _lang(request: Request) -> str:
+    """Get language for this request (set by I18nMiddleware)."""
+    return getattr(request.state, "lang", "fr")
+
+
+def _resolve_ga(ga_id_or_slug: str):
+    """Resolve a GA identifier — try slug first, then numeric ID fallback.
+
+    Returns (image_dict, numeric_id) or (None, None).
+    """
+    # Try slug lookup first
+    image = get_image_by_slug(ga_id_or_slug)
+    if image:
+        return image, image["id"]
+    # Fallback: try parsing as numeric ID
+    try:
+        numeric_id = int(ga_id_or_slug)
+        image = get_image_by_id(numeric_id)
+        if image:
+            return image, numeric_id
+    except (ValueError, TypeError):
+        pass
+    return None, None
+
+
 # ── Routes ────────────────────────────────────────────────────────────
 
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    lang = _lang(request)
+    landing = get_landing_stats()
+
+    # Build domain list with labels from config
+    domain_list = []
+    for domain_key, n_gas in landing["domain_counts"].items():
+        label = CONFIG["domains"].get(domain_key, {}).get("label", domain_key)
+        domain_list.append({"key": domain_key, "label": label, "n_gas": n_gas})
+
+    # Enrich top_gas with archetype info for score badges on cards
+    for ga in landing.get("top_gas", []):
+        if ga.get("avg_glance") is not None:
+            sidecar_ga = _load_sidecar(ga.get("filename", ""))
+            ga_scores = {
+                "s10": 0.0, "s9b": 0.0, "s2_coverage": 0.0,
+                "drift": 0.0, "warp": 0.0,
+                "word_count": sidecar_ga.get("word_count", 0),
+                "spin_detected": False,
+            }
+            # Try to get real test stats for richer classification
+            try:
+                ga_detail = get_ga_detail_stats(ga["id"])
+                ga_scores["s10"] = ga_detail.get("avg_s9a", 0.0)
+                ga_scores["s9b"] = ga_detail.get("avg_s9b", 0.0)
+                ga_scores["s2_coverage"] = ga_detail.get("avg_s2_coverage", 0.0)
+            except Exception:
+                pass
+            arch_result = classify_ga(ga_scores)
+            ga["archetype"] = arch_result["archetype"]
+            ga["archetype_info"] = arch_result["archetype_info"]
+            ga["archetype_source"] = "measured"
+        else:
+            ga["archetype"] = None
+            ga["archetype_info"] = None
+            ga["archetype_source"] = None
+
+    # Example GA analysis for the demo section
+    example = _build_example_data()
+
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "lang": lang,
+        "landing": landing,
+        "domain_list": domain_list,
+        "example": example,
+        "og_title": "GLANCE — Testez votre oeil scientifique en 2 minutes",
+        "og_description": "47 GAs, 15 domaines. Le premier benchmark de compréhension des Graphical Abstracts. Gratuit.",
+    })
+
+
+def _build_example_data() -> dict:
+    """Build example GA analysis data for the landing page demo section.
+
+    Tries to load real data from the GA with the most tests.
+    Falls back to hardcoded example values if no test data exists.
+    """
+    from scoring import score_glance_composite
+
+    fallback = {
+        "has_real_data": False,
+        "ga_filename": "immunomod_v10_wireframe.png",
+        "ga_title": "Immunomodulateurs RTIs",
+        "ga_id": None,
+        "ga_domain": "med",
+        "n_tests": 12,
+        "s9a": 0.67,
+        "s9b": 0.17,
+        "s9c": 0.0,
+        "fluency": 0.22,
+        "s2_coverage": 0.58,
+        "glance": 0.0,
+        "recommendation": "Remplacez les surfaces par des barres — vos lecteurs comprendront ~20% mieux.",
+    }
+    fallback["glance"] = round(score_glance_composite(
+        fallback["s9a"], fallback["s9b"], fallback["s9c"]
+    ), 4)
+
+    try:
+        example_ga = get_example_ga()
+    except Exception:
+        return fallback
+
+    if not example_ga or example_ga.get("n_tests", 0) == 0:
+        return fallback
+
+    ga_id = example_ga["id"]
+    detail = get_ga_detail_stats(ga_id)
+    if detail.get("n_tests", 0) == 0:
+        return fallback
+
+    s9b_val = detail.get("avg_s9b", 0)
+    s9c_val = detail.get("avg_s9c", 0)
+    glance_val = detail.get("avg_glance", 0)
+
+    if s9b_val < 0.5:
+        reco = "Le produit principal n'est pas identifie — simplifiez la hierarchie visuelle."
+    elif s9c_val < 0.3:
+        reco = "L'insight cle se perd — ajoutez un element de preuve visuel."
+    elif glance_val < 0.7:
+        reco = "Le message passe partiellement — reduisez la charge cognitive du design."
+    else:
+        reco = "Ce GA communique efficacement — bon equilibre entre clarte et densite."
+
+    return {
+        "has_real_data": True,
+        "ga_filename": example_ga.get("filename", ""),
+        "ga_title": example_ga.get("title", ""),
+        "ga_id": ga_id,
+        "ga_domain": example_ga.get("domain", "med"),
+        "n_tests": detail.get("n_tests", 0),
+        "s9a": round(detail.get("avg_s9a", 0), 2),
+        "s9b": round(detail.get("avg_s9b", 0), 2),
+        "s9c": round(detail.get("avg_s9c", 0), 2),
+        "fluency": round(detail.get("fluency_normalized", detail.get("avg_fluency", 0)), 2),
+        "s2_coverage": round(detail.get("avg_s2_coverage", 0), 2),
+        "glance": round(glance_val, 4),
+        "recommendation": reco,
+    }
+
+
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("privacy.html", {
+        "request": request,
+        "lang": lang,
+        "og_title": "Politique de confidentialité — GLANCE",
+        "og_description": "Comment GLANCE protège vos données. Aucun nom, email ou IP collecté.",
+    })
+
+
+@app.get("/terms", response_class=HTMLResponse)
+def terms(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("terms.html", {
+        "request": request,
+        "lang": lang,
+        "og_title": "Conditions d'utilisation — GLANCE",
+        "og_description": "Conditions d'utilisation de la plateforme GLANCE par SciSense.",
+    })
+
+
+@app.get("/pricing", response_class=HTMLResponse)
+def pricing(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("pricing.html", {
+        "request": request,
+        "lang": lang,
+        "og_title": "Offres GLANCE — SciSense",
+        "og_description": "Du test gratuit à l'audit complet — choisissez votre niveau d'analyse GLANCE.",
+    })
 
 
 @app.get("/onboard", response_class=HTMLResponse)
 def onboard(request: Request):
-    return templates.TemplateResponse("onboard.html", {"request": request, "config": CONFIG})
+    lang = _lang(request)
+    return templates.TemplateResponse("onboard.html", {
+        "request": request,
+        "lang": lang,
+        "config": CONFIG,
+        "og_title": "GLANCE — Inscription rapide",
+        "og_description": "Rejoignez GLANCE : le benchmark de compréhension des Graphical Abstracts scientifiques. 2 minutes, gratuit.",
+    })
 
 
 @app.post("/onboard")
@@ -105,10 +336,14 @@ def onboard_submit(
     input_mode: str = Form("text"),
 ):
     token = str(uuid.uuid4())
+    # Capture referral code from query param or cookie
+    ref = request.query_params.get("ref", "") or request.cookies.get("glance_ref", "")
+    ref = ref.strip()[:8] if ref else None
     create_participant(token, clinical_domain, experience_years,
                        data_literacy, grade_familiar, colorblind_status,
-                       input_mode=input_mode)
-    response = RedirectResponse(url="/test", status_code=303)
+                       input_mode=input_mode, referred_by=ref)
+    lang = _lang(request)
+    response = RedirectResponse(url=f"/test?lang={lang}", status_code=303)
     response.set_cookie("glance_token", token, httponly=True,
                         max_age=get_constant("cookie_max_age_seconds", 2592000))
     return response
@@ -225,12 +460,25 @@ def test_page(request: Request):
     if not participant:
         return RedirectResponse(url="/onboard")
 
+    lang = _lang(request)
+
     image = get_next_image(participant["id"])
     if not image:
-        return templates.TemplateResponse("complete.html", {"request": request})
+        return templates.TemplateResponse("complete.html", {"request": request, "lang": lang})
 
     domain = image["domain"]
-    questions = CONFIG["domains"].get(domain, CONFIG["domains"]["generic"])
+    domain_cfg = CONFIG["domains"].get(domain, CONFIG["domains"]["generic"])
+    # Select language-appropriate questions: use q1_en/q2_en/q3_en if EN, else default
+    if lang == "en" and "q1_en" in domain_cfg:
+        questions = {
+            "q1": domain_cfg["q1_en"],
+            "q2": domain_cfg["q2_en"],
+            "q3": domain_cfg["q3_en"],
+            "q3_choices": domain_cfg.get("q3_choices_en", domain_cfg["q3_choices"]),
+            "label": domain_cfg.get("label_en", domain_cfg["label"]),
+        }
+    else:
+        questions = domain_cfg
     products = json.loads(image["products"]) if image["products"] else []
 
     # Check if this is the participant's first test (for briefing skip)
@@ -242,6 +490,15 @@ def test_page(request: Request):
     ).fetchone()["c"]
     _db.close()
     first_test = test_count == 0
+
+    # Load OCR words from sidecar JSON for STT keyword hints
+    ocr_words = []
+    meta_path = os.path.join(BASE, "ga_library",
+                             image["filename"].rsplit(".", 1)[0] + ".json")
+    if os.path.exists(meta_path):
+        with open(meta_path, encoding="utf-8") as mf:
+            sidecar_meta = json.load(mf)
+            ocr_words = sidecar_meta.get("ocr_words", [])
 
     # Check if flux mode is enabled
     flux_config = CONFIG.get("flux", {})
@@ -267,6 +524,7 @@ def test_page(request: Request):
 
         return templates.TemplateResponse("test_flux.html", {
             "request": request,
+            "lang": lang,
             "image": image,
             "questions": questions,
             "products": products,
@@ -279,17 +537,20 @@ def test_page(request: Request):
             "input_mode": participant.get("input_mode", "text"),
             "first_test": first_test,
             "show_title": flux_config.get("show_title", True),
+            "ocr_words": ocr_words,
         })
 
     # Focused mode (original)
     return templates.TemplateResponse("test.html", {
         "request": request,
+        "lang": lang,
         "image": image,
         "questions": questions,
         "products": products,
         "timer_ms": CONFIG["timer"]["exposure_ms"],
         "countdown_s": CONFIG["timer"]["countdown_seconds"],
         "input_mode": participant.get("input_mode", "text"),
+        "ocr_words": ocr_words,
     })
 
 
@@ -388,6 +649,7 @@ def submit_test(
         q1_filtered_text=scores.get("q1_filtered_text"),
         q1_filter_ratio=scores.get("q1_filter_ratio"),
         stream_show_title=stream_show_title,
+        code_version=GLANCE_VERSION,
     )
     return RedirectResponse(url=f"/reveal/{test_id}", status_code=303)
 
@@ -397,6 +659,7 @@ def reveal(request: Request, test_id: int):
     participant = _get_participant(request)
     if not participant:
         return RedirectResponse(url="/onboard")
+    lang = _lang(request)
 
     test = get_test(test_id)
     if not test:
@@ -434,8 +697,19 @@ def reveal(request: Request, test_id: int):
     # Compute fluency score for display
     fluency = compute_fluency_score(bool(test.get("s9b_pass")), test.get("q2_time_ms", 0))
 
+    # Compute participant percentile among all testers
+    participant_percentile = get_participant_percentile(participant["id"])
+
+    # OG meta for sharing (includes percentile rank)
+    score_pct = round(glance_score * 100)
+    og_title = f"Mon score GLANCE : {score_pct}% — meilleur que {participant_percentile}% des testeurs"
+    og_desc = (f"Mon score GLANCE : {score_pct}% — meilleur que {participant_percentile}% "
+               f"des testeurs ! Teste ton oeil sur glance.scisense.fr")
+    og_image = f"https://glance.scisense.fr/card/{test_id}.png"
+
     return templates.TemplateResponse("reveal.html", {
         "request": request,
+        "lang": lang,
         "test": test,
         "stats": stats,
         "has_more": has_more,
@@ -445,6 +719,10 @@ def reveal(request: Request, test_id: int):
         "s9a_score": round(float(s9a_score), 3),
         "s10_hit": s10_hit,
         "fluency_score": round(fluency, 4),
+        "participant_percentile": participant_percentile,
+        "og_title": og_title,
+        "og_description": og_desc,
+        "og_image": og_image,
     })
 
 
@@ -495,20 +773,32 @@ def spin_page(request: Request):
     domain = control["domain"]
     questions = CONFIG["domains"].get(domain, CONFIG["domains"]["generic"])
 
+    lang = _lang(request)
+    q2_key = "q2_en" if lang == "en" and "q2_en" in questions else "q2"
     return templates.TemplateResponse("spin.html", {
         "request": request,
+        "lang": lang,
         "control": control,
         "vec": vec,
         "products": products,
-        "q2_text": questions["q2"],
+        "q2_text": questions[q2_key],
     })
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
+    lang = _lang(request)
     stats = get_stats()
     tests = get_all_tests()
     images = get_all_images()
+
+    # Enrich tests with pseudonymous handles
+    from handles import get_handle_map
+    test_pids = list({t["participant_id"] for t in tests if t.get("participant_id")})
+    if test_pids:
+        hmap = get_handle_map(test_pids)
+        for t in tests:
+            t["handle"] = hmap.get(t.get("participant_id"), "Anonymous")
 
     # Rich analytics from S2b_Mathematics.md
     agg = compute_aggregate_stats(tests)
@@ -535,8 +825,24 @@ def dashboard(request: Request):
     # S10 saillance rate (stream mode only) per S2b_Mathematics.md section 8
     s10_stats = compute_s10_rate(tests)
 
+    # Week-over-week KPI evolution indicators
+    kpi_evo = compute_kpi_evolution(tests)
+
+    # Current participant's test history (if logged in via cookie)
+    participant = _get_participant(request)
+    my_tests = []
+    if participant:
+        my_tests = get_tests_for_participant(participant["id"])
+
+    # OG meta for sharing
+    n_tests = len(tests)
+    glance_avg = round(agg.get("mean_glance", 0) * 100) if agg.get("mean_glance") else 0
+    og_title = f"Dashboard GLANCE — {glance_avg}% score moyen"
+    og_desc = f"{n_tests} GAs testés. Score moyen {glance_avg}%."
+
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
+        "lang": lang,
         "stats": stats,
         "tests": tests,
         "images": images,
@@ -549,4 +855,1356 @@ def dashboard(request: Request):
         "spotlight_stats": spotlight_stats,
         "s10_stats": s10_stats,
         "ab_fluency": ab_fluency,
+        "kpi_evo": kpi_evo,
+        "participant": participant,
+        "my_tests": my_tests,
+        "og_title": og_title,
+        "og_description": og_desc,
     })
+
+
+# ── Invite route ────────────────────────────────────────────────────────
+
+
+@app.get("/invite", response_class=HTMLResponse)
+def invite_page(request: Request):
+    """Invite colleagues page — viral growth through email, LinkedIn, WhatsApp."""
+    participant = _get_participant(request)
+    lang = _lang(request)
+
+    # Build participant stats for personalized messages
+    referral_code = ""
+    score_pct = 0
+    n_tests = 0
+    n_referrals = 0
+
+    if participant:
+        referral_code = participant["token"][:8]
+        n_referrals = get_referral_count(referral_code)
+
+        # Get participant's average score
+        db = get_db()
+        row = db.execute(
+            """SELECT AVG(glance_score) as avg_score, COUNT(*) as n
+               FROM tests WHERE participant_id = ?""",
+            (participant["id"],),
+        ).fetchone()
+        db.close()
+        if row and row["avg_score"] is not None:
+            score_pct = round(row["avg_score"] * 100)
+            n_tests = row["n"]
+
+    # Ambassador badge threshold
+    is_ambassador = n_referrals >= 5
+
+    return templates.TemplateResponse("invite.html", {
+        "request": request,
+        "lang": lang,
+        "referral_code": referral_code,
+        "score_pct": score_pct,
+        "n_tests": n_tests,
+        "n_referrals": n_referrals,
+        "is_ambassador": is_ambassador,
+        "has_participant": participant is not None,
+        "og_title": "Invitez vos collegues sur GLANCE",
+        "og_description": "GLANCE a besoin de testeurs de tous profils. Le premier benchmark des Graphical Abstracts scientifiques.",
+    })
+
+
+# ── Leaderboard routes ────────────────────────────────────────────────
+
+
+@app.get("/leaderboard", response_class=HTMLResponse)
+def leaderboard(request: Request):
+    lang = _lang(request)
+    domain_config = CONFIG.get("domains", {})
+    data = get_leaderboard_data(domain_config)
+    domains = sorted(
+        data.items(),
+        key=lambda kv: (kv[1]["avg_score"] is not None, kv[1]["avg_score"] or 0),
+        reverse=True,
+    )
+    # Build domain pills for inter-domain navigation
+    all_domains = [
+        {"key": k, "label": v["label"], "n_gas": v["n_gas"]}
+        for k, v in domains
+    ]
+    return templates.TemplateResponse("leaderboard.html", {
+        "request": request,
+        "lang": lang,
+        "domains": domains,
+        "all_domains": all_domains,
+        "og_title": "GLANCE Leaderboard — Classement des Graphical Abstracts",
+        "og_description": "Découvrez quels GAs scientifiques communiquent le mieux, classés par domaine.",
+    })
+
+
+@app.get("/leaderboard/{domain}", response_class=HTMLResponse)
+def leaderboard_domain(request: Request, domain: str):
+    lang = _lang(request)
+    domain_config = CONFIG.get("domains", {})
+    data = get_domain_leaderboard(domain, domain_config)
+    if not data:
+        raise HTTPException(status_code=404, detail=f"Domain '{domain}' not found")
+
+    # Enrich each GA with archetype data for leaderboard display
+    for ga in data.get("gas", []):
+        if ga.get("avg_glance") is not None:
+            lb_scores = {
+                "s10": ga.get("avg_s9a", 0.0) or 0.0,
+                "s9b": ga.get("avg_s9b", 0.0) or 0.0,
+                "s2_coverage": ga.get("avg_s2_coverage", 0.0) or 0.0,
+                "drift": 0.0,
+                "warp": 0.0,
+                "word_count": 0,
+                "spin_detected": False,
+            }
+            # Try loading sidecar for word_count
+            sidecar_lb = _load_sidecar(ga.get("filename", ""))
+            lb_scores["word_count"] = sidecar_lb.get("word_count", 0)
+            lb_result = classify_ga(lb_scores)
+            ga["archetype_emoji"] = lb_result["archetype_info"]["emoji"]
+            ga["archetype_name"] = lb_result["archetype_info"]["name_fr"]
+            ga["archetype_key"] = lb_result["archetype"]
+            ga["archetype_info"] = lb_result["archetype_info"]
+            ga["archetype_source"] = "measured"
+        else:
+            # Try vision-based approximation
+            sidecar_lb = _load_sidecar(ga.get("filename", ""))
+            vision_meta = {}
+            if sidecar_lb.get("word_count") is not None or sidecar_lb.get("chart_type"):
+                vision_meta = {
+                    "word_count": sidecar_lb.get("word_count", 0),
+                    "hierarchy_clear": sidecar_lb.get("hierarchy_clear", False),
+                    "chart_type": sidecar_lb.get("chart_type", "other"),
+                }
+            if vision_meta:
+                lb_result = classify_from_vision_metadata(vision_meta)
+                ga["archetype_emoji"] = lb_result["archetype_info"]["emoji"]
+                ga["archetype_name"] = lb_result["archetype_info"]["name_fr"]
+                ga["archetype_key"] = lb_result["archetype"]
+                ga["archetype_info"] = lb_result["archetype_info"]
+                ga["archetype_source"] = "predicted"
+            else:
+                ga["archetype_emoji"] = ""
+                ga["archetype_name"] = ""
+                ga["archetype_key"] = None
+                ga["archetype_info"] = None
+                ga["archetype_source"] = None
+
+    # OG meta for sharing
+    domain_label = data.get("label", domain)
+    n_gas = data.get("n_gas", 0)
+    avg_score = data.get("avg_score")
+    avg_pct = round(avg_score * 100) if avg_score is not None else 0
+    og_title = f"GLANCE — Classement {domain_label}"
+    og_desc = f"{n_gas} Graphical Abstracts classés en {domain_label}. Score moyen : {avg_pct}%."
+
+    # Build domain pills for inter-domain navigation
+    all_lb_data = get_leaderboard_data(domain_config)
+    all_domains_sorted = sorted(
+        all_lb_data.items(),
+        key=lambda kv: (kv[1]["avg_score"] is not None, kv[1]["avg_score"] or 0),
+        reverse=True,
+    )
+    all_domains = [
+        {"key": k, "label": v["label"], "n_gas": v["n_gas"]}
+        for k, v in all_domains_sorted
+    ]
+
+    return templates.TemplateResponse("leaderboard_domain.html", {
+        "request": request,
+        "lang": lang,
+        "domain": domain,
+        "data": data,
+        "all_domains": all_domains,
+        "og_title": og_title,
+        "og_description": og_desc,
+    })
+
+
+# ── Participant ranking routes ──────────────────────────────────────
+
+
+@app.get("/participants", response_class=HTMLResponse)
+def participants(request: Request):
+    lang = _lang(request)
+    comprehension = get_participant_ranking_comprehension(min_tests=3)
+    contribution = get_participant_ranking_contribution()
+    top_referrers = get_top_referrers(limit=20)
+
+    n_participants = len(contribution)
+    n_qualified = len(comprehension)
+
+    return templates.TemplateResponse("participants.html", {
+        "request": request,
+        "lang": lang,
+        "comprehension": comprehension,
+        "contribution": contribution,
+        "top_referrers": top_referrers,
+        "n_participants": n_participants,
+        "n_qualified": n_qualified,
+        "og_title": "GLANCE — Classement des participants",
+        # TODO: unhide when N >= 10 — hidden because ~2 participants looks bad
+        "og_description": "Classement par comprehension et contribution.",
+    })
+
+
+@app.get("/players", response_class=HTMLResponse)
+def players_redirect(request: Request):
+    """Legacy redirect: /players -> /participants."""
+    return RedirectResponse(url="/participants", status_code=301)
+
+
+# ── GA Detail helpers ─────────────────────────────────────────────────
+
+
+def _load_sidecar(filename: str) -> dict:
+    """Load the JSON sidecar for a GA image (if it exists)."""
+    stem = filename.rsplit(".", 1)[0]
+    meta_path = os.path.join(BASE, "ga_library", stem + ".json")
+    if os.path.exists(meta_path):
+        with open(meta_path, encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def _extract_study_reference(sidecar: dict, image: dict) -> dict:
+    """Extract study reference info from sidecar data.
+
+    Returns dict with keys: text, url (or None), title_short.
+    """
+    ref = {"text": "", "url": None, "title_short": ""}
+
+    # Try to extract reference from OCR text (usually the last line)
+    ocr_text = sidecar.get("ocr_text", "")
+    if ocr_text:
+        lines = [l.strip() for l in ocr_text.strip().split("\n") if l.strip()]
+        for line in reversed(lines):
+            if re.search(
+                r'(?:et\s+al|Source|doi|DOI|NEJM|Nature|Lancet|JAMA|Science|BMJ'
+                r'|NeurIPS|AJPH|Cochrane|PLoS|PNAS|Cell)',
+                line, re.IGNORECASE,
+            ):
+                ref["text"] = re.sub(r'^Source\s*:\s*', '', line).strip()
+                break
+
+    # Extract author+year from title patterns like "(Cuijpers et al., 2020)"
+    title = sidecar.get("title", "") or image.get("title", "")
+    if title:
+        m = re.search(r'\(([^)]*(?:et\s+al\.?)?[^)]*\d{4}[^)]*)\)', title)
+        if m:
+            ref["title_short"] = m.group(1)
+
+    # Fallback: use the title if no reference found from OCR
+    if not ref["text"] and title:
+        ref["text"] = title
+
+    # Check for DOI or URL in sidecar
+    for key in ("doi", "url", "paper_url", "link"):
+        val = sidecar.get(key, "")
+        if val:
+            if val.startswith("10.") and not val.startswith("http"):
+                ref["url"] = f"https://doi.org/{val}"
+            elif val.startswith("http"):
+                ref["url"] = val
+            break
+
+    return ref
+
+
+def _detect_chart_type(sidecar: dict) -> str:
+    """Detect the visual encoding type from OCR/sidecar data."""
+    ocr = (sidecar.get("ocr_text", "") + " " + sidecar.get("raw_ocr_text", "")).lower()
+    desc = (sidecar.get("description", "") or "").lower()
+    combined = ocr + " " + desc
+
+    if any(w in combined for w in ["pie", "camembert", "secteur"]):
+        return "diagramme circulaire (camembert)"
+    if any(w in combined for w in ["scatter", "nuage", "dispersion"]):
+        return "nuage de points"
+    if any(w in combined for w in ["line chart", "courbe", "trend", "tendance"]):
+        return "graphique en courbe"
+    if any(w in combined for w in ["heatmap", "carte de chaleur"]):
+        return "carte de chaleur"
+    if any(w in combined for w in ["wireframe", "infographic", "infographie", "schema"]):
+        return "infographie"
+    if any(w in combined for w in ["bar", "barre", "longueur", "length"]):
+        return "diagramme en barres"
+    return "diagramme en barres"
+
+
+def _generate_ga_abstract(sidecar: dict, image: dict) -> str:
+    """Generate a brief abstract of the GA's information content.
+
+    Not the paper abstract — describes what data the GA presents,
+    what comparison it shows, and what visual encoding it uses.
+    """
+    parts = []
+
+    title = sidecar.get("title", "") or image.get("title", "")
+    description = sidecar.get("description", "") or image.get("description", "")
+    products = sidecar.get("products", [])
+    domain = sidecar.get("domain", "") or image.get("domain", "")
+    chart_type = _detect_chart_type(sidecar)
+
+    domain_labels = {
+        "med": "medical", "epidemiology": "epidemiologique",
+        "tech": "technologique", "neuroscience": "neurosciences",
+        "psychology": "psychologie", "nutrition": "nutrition",
+        "policy": "politiques publiques", "economics": "economique",
+        "education": "education", "ecology": "ecologie",
+        "climate": "climat", "energy": "energie",
+        "transport": "transport", "agriculture": "agriculture",
+        "materials": "materiaux",
+    }
+
+    if description:
+        parts.append(description)
+    elif title:
+        parts.append(f"Ce graphique presente les donnees de : {title}.")
+
+    if products and len(products) > 1:
+        prod_list = ", ".join(products[:-1]) + " et " + products[-1]
+        parts.append(f"Il compare {len(products)} elements : {prod_list}.")
+
+    parts.append(f"Encodage visuel : {chart_type}.")
+
+    if domain:
+        label = domain_labels.get(domain, domain)
+        parts.append(f"Domaine : {label}.")
+
+    return " ".join(parts)
+
+
+def _generate_executive_summary(sidecar: dict, image: dict, detail: dict,
+                                recommendations: dict | None) -> str:
+    """Generate a 3-4 sentence executive summary in French.
+
+    Combines: what the GA shows, key GLANCE finding, top recommendation, verdict.
+    """
+    sentences = []
+
+    description = sidecar.get("description", "") or image.get("description", "")
+    title = sidecar.get("title", "") or image.get("title", "")
+    gemini_summary = sidecar.get("executive_summary_fr", "")
+
+    # 1. What the GA shows (prefer Gemini summary for AI-analyzed uploads)
+    if gemini_summary:
+        sentences.append(gemini_summary)
+    elif description:
+        sentences.append(description)
+    elif title:
+        sentences.append(f"Ce GA presente : {title}.")
+
+    # 2. Key GLANCE finding
+    n_tests = detail.get("n_tests", 0)
+    if n_tests > 0:
+        pct = round(detail.get("avg_glance", 0) * 100)
+        s9a_pct = round(detail.get("avg_s9a", 0) * 100)
+        s9b_pct = round(detail.get("avg_s9b", 0) * 100)
+        s9c_pct = round(detail.get("avg_s9c", 0) * 100)
+        s2_pct = round(detail.get("avg_s2_coverage", 0) * 100)
+
+        dims = {
+            "recall (S9a)": s9a_pct,
+            "hierarchie (S9b)": s9b_pct,
+            "actionabilite (S9c)": s9c_pct,
+            "couverture nodale (S2)": s2_pct,
+        }
+        weakest_name, weakest_val = min(dims.items(), key=lambda x: x[1])
+        strongest_name, strongest_val = max(dims.items(), key=lambda x: x[1])
+
+        sentences.append(
+            f"Sur {n_tests} test{'s' if n_tests > 1 else ''}, ce GA obtient "
+            f"{pct}% en score GLANCE composite, avec {strongest_val}% en "
+            f"{strongest_name} mais seulement {weakest_val}% en {weakest_name}."
+        )
+    else:
+        sentences.append("Aucun test n'a encore ete soumis pour ce GA.")
+
+    # 3. Top recommendation
+    if recommendations and recommendations.get("recommendations"):
+        top_rec = recommendations["recommendations"][0]
+        fix_text = top_rec.get("fix", "")
+        impact = top_rec.get("impact", "")
+        rec_sentence = f"Recommandation principale : {fix_text}"
+        if impact:
+            rec_sentence += f" ({impact})"
+        rec_sentence += "."
+        sentences.append(rec_sentence)
+
+    # 4. Overall verdict
+    if n_tests > 0:
+        pct = round(detail.get("avg_glance", 0) * 100)
+        threshold = get_constant("glance_pass_threshold", 0.70)
+        threshold_pct = round(threshold * 100)
+        if pct >= threshold_pct:
+            sentences.append(
+                f"Verdict : decodage reussi — le design franchit le seuil de {threshold_pct}%."
+            )
+        elif pct >= 50:
+            sentences.append(
+                f"Verdict : partiellement decode — le design est en dessous du seuil "
+                f"de {threshold_pct}%, des ameliorations ciblees sont necessaires."
+            )
+        else:
+            sentences.append(
+                f"Verdict : le design n'a pas survecu au transfert — score bien en dessous "
+                f"du seuil de {threshold_pct}%."
+            )
+
+    return " ".join(sentences)
+
+
+# ── GA Detail route ───────────────────────────────────────────────────
+
+
+@app.get("/ga-detail/{ga_id}", response_class=HTMLResponse)
+def ga_detail(request: Request, ga_id: str):
+    """GA detail page with executive summary, study reference, and analysis."""
+    lang = _lang(request)
+    image, numeric_id = _resolve_ga(ga_id)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    # Redirect numeric IDs to canonical slug URL (301 for SEO)
+    if image.get("slug") and ga_id != image["slug"]:
+        return RedirectResponse(url=f"/ga-detail/{image['slug']}", status_code=301)
+
+    ga_id = numeric_id  # use numeric ID for all downstream lookups
+
+    # Compute detailed stats for this GA
+    detail = get_ga_detail_stats(ga_id)
+
+    # Domain rank and percentile
+    domain = image["domain"]
+    domain_rank = get_domain_rank(ga_id, domain)
+    domain_label = CONFIG["domains"].get(domain, {}).get("label", domain)
+    domain_rank["domain_label"] = domain_label
+
+    # Score distributions across ALL GAs (global position)
+    distributions = get_score_distributions()
+
+    # Load sidecar metadata
+    sidecar = _load_sidecar(image["filename"])
+
+    # GLANCE pass threshold
+    glance_threshold = get_constant("glance_pass_threshold", 0.70)
+
+    # Recommendations (from recommender if GA graph exists)
+    recommendations = None
+    stem = image["filename"].rsplit(".", 1)[0]
+    graph_candidates = [
+        os.path.join(BASE, "ga_library", stem + ".yaml"),
+        os.path.join(BASE, "data", stem + "_ga_graph.yaml"),
+        os.path.join(BASE, "data", stem.replace("_control", "") + "_ga_graph.yaml"),
+    ]
+    for ga_graph_path in graph_candidates:
+        if os.path.exists(ga_graph_path):
+            try:
+                from recommender import analyze_ga
+                recommendations = analyze_ga(ga_graph_path)
+            except Exception:
+                pass
+            break
+
+    # Archetype classification
+    archetype_result = None
+    if detail.get("n_tests", 0) > 0:
+        # Measured archetype from real test data
+        # Compute drift and warp from S2 node coverage
+        s2_node_means = detail.get("s2_node_means", {})
+        if s2_node_means:
+            node_scores = list(s2_node_means.values())
+            mean_cov = sum(node_scores) / len(node_scores) if node_scores else 0.0
+            # drift = average distance from system-wide mean
+            drift_val = (sum(abs(s - mean_cov) for s in node_scores) / len(node_scores)
+                         if node_scores else 0.0)
+            # warp = coefficient of variation (sigma / mu)
+            if mean_cov > 0 and len(node_scores) > 1:
+                variance = sum((s - mean_cov) ** 2 for s in node_scores) / len(node_scores)
+                warp_val = (variance ** 0.5) / mean_cov
+            else:
+                warp_val = 0.0
+        else:
+            drift_val = 0.0
+            warp_val = 0.0
+
+        archetype_scores = {
+            "s10": detail.get("avg_s9a", 0.0),
+            "s9b": detail.get("avg_s9b", 0.0),
+            "s2_coverage": detail.get("avg_s2_coverage", 0.0),
+            "drift": drift_val,
+            "warp": warp_val,
+            "word_count": sidecar.get("word_count", 0),
+            "spin_detected": False,
+        }
+        archetype_result = classify_ga(archetype_scores)
+        archetype_result["source"] = "measured"
+    else:
+        # Predicted archetype from vision metadata (if sidecar has it)
+        vision_meta = {}
+        if sidecar.get("word_count") is not None or sidecar.get("chart_type"):
+            vision_meta = {
+                "word_count": sidecar.get("word_count", 0),
+                "hierarchy_clear": sidecar.get("hierarchy_clear", False),
+                "chart_type": sidecar.get("chart_type", "other"),
+            }
+        # Also check batch_vision_results for this GA
+        if not vision_meta:
+            try:
+                vision_path = os.path.join(BASE, "exports", "batch_vision_results.json")
+                if os.path.exists(vision_path):
+                    with open(vision_path, encoding="utf-8") as vf:
+                        vision_data = json.load(vf)
+                    for vr in vision_data.get("results", []):
+                        if vr.get("filename") == image["filename"]:
+                            vision_meta = {
+                                "word_count": vr.get("word_count", 0),
+                                "hierarchy_clear": vr.get("hierarchy_clear", False),
+                                "chart_type": vr.get("chart_type", "other"),
+                            }
+                            break
+            except Exception:
+                pass
+        if vision_meta:
+            archetype_result = classify_from_vision_metadata(vision_meta)
+            archetype_result["source"] = "predicted"
+
+    # A/B pair lookup (same correct_product + domain, opposite is_control)
+    pair_image = None
+    pair_stats = None
+    db = get_db()
+    pair_row = db.execute(
+        """SELECT * FROM ga_images
+           WHERE correct_product = ? AND domain = ? AND is_control != ? AND id != ?
+           LIMIT 1""",
+        (image.get("correct_product"), domain, image.get("is_control", 0), ga_id),
+    ).fetchone()
+    db.close()
+    if pair_row:
+        pair_image = dict(pair_row)
+        pair_stats = get_ga_detail_stats(pair_image["id"])
+
+    # S2 node labels from sidecar semantic_references (dict of level -> list)
+    s2_node_labels = {}
+    sem_refs = sidecar.get("semantic_references", {})
+    if isinstance(sem_refs, dict):
+        for level_key, refs in sem_refs.items():
+            if isinstance(refs, list):
+                for i, ref_text in enumerate(refs):
+                    node_id = f"{level_key}_{i}"
+                    s2_node_labels[node_id] = ref_text
+    elif isinstance(sem_refs, list):
+        for ref in sem_refs:
+            nid = ref.get("id", "")
+            s2_node_labels[nid] = ref.get("label", ref.get("text", nid))
+
+    # Generate new sections
+    study_ref = _extract_study_reference(sidecar, image)
+    ga_abstract = _generate_ga_abstract(sidecar, image)
+    executive_summary = _generate_executive_summary(sidecar, image, detail, recommendations)
+
+    # Email gate: lock user_upload GAs unless unlock cookie or admin pwd
+    is_user_upload = (image.get("domain") == "user_upload")
+    is_locked = False
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    is_admin = (request.query_params.get("pwd", "") == admin_pwd)
+    if is_user_upload and not is_admin:
+        unlock_cookie = request.cookies.get(f"glance_unlock_{ga_id}")
+        is_locked = not bool(unlock_cookie)
+
+    # Stripe availability (graceful degradation: hide payment option if not configured)
+    from payments import is_stripe_configured
+    stripe_enabled = is_stripe_configured()
+
+    # OG meta for sharing
+    ga_title = image.get("title", image.get("filename", "GA"))
+    n_tests = detail.get("n_tests", 0)
+    avg_glance = detail.get("avg_glance", 0)
+    avg_s9b = detail.get("avg_s9b", 0)
+    score_pct = round(avg_glance * 100) if avg_glance else 0
+    s9b_pct = round(avg_s9b * 100) if avg_s9b else 0
+    verdict = "Décodage réussi" if avg_glance and avg_glance >= glance_threshold else "Design à améliorer"
+    og_title = f"{ga_title} — Score GLANCE {score_pct}%"
+    og_desc = f"Analyse détaillée : S9b {s9b_pct}%, {n_tests} tests. {verdict}."
+    og_image = f"https://glance.scisense.fr/og/ga/{ga_id}.png"
+
+    # Canonical share slug (prefer slug, fallback to numeric id)
+    share_slug = image.get("slug") or str(ga_id)
+
+    # Expose drift / warp / spin for the perceptual profile report card
+    if detail.get("n_tests", 0) > 0:
+        perceptual_drift = drift_val
+        perceptual_warp = warp_val
+        perceptual_spin = archetype_scores.get("spin_detected", False)
+    else:
+        perceptual_drift = None
+        perceptual_warp = None
+        perceptual_spin = None
+
+    return templates.TemplateResponse("ga_detail.html", {
+        "request": request,
+        "lang": lang,
+        "image": image,
+        "detail": detail,
+        "domain_rank": domain_rank,
+        "distributions": distributions,
+        "sidecar": sidecar,
+        "glance_threshold": glance_threshold,
+        "recommendations": recommendations,
+        "pair_image": pair_image,
+        "pair_stats": pair_stats,
+        "s2_node_labels": s2_node_labels,
+        "executive_summary": executive_summary,
+        "study_ref": study_ref,
+        "ga_abstract": ga_abstract,
+        "archetype": archetype_result,
+        "is_locked": is_locked,
+        "is_user_upload": is_user_upload,
+        "stripe_enabled": stripe_enabled,
+        "og_title": og_title,
+        "og_description": og_desc,
+        "og_image": og_image,
+        "perceptual_drift": perceptual_drift,
+        "perceptual_warp": perceptual_warp,
+        "perceptual_spin": perceptual_spin,
+        "share_slug": share_slug,
+        "ga_id": ga_id,
+        "is_admin": is_admin,
+    })
+
+
+# ── Note mon GA (Analyze) routes ──────────────────────────────────────
+
+logger = logging.getLogger(__name__)
+
+
+@app.get("/analyze", response_class=HTMLResponse)
+def analyze_page(request: Request):
+    """Show the GA upload/analysis page."""
+    lang = _lang(request)
+    return templates.TemplateResponse("analyze.html", {
+        "request": request,
+        "lang": lang,
+        "og_title": "Analyse ton Graphical Abstract — GLANCE",
+        "og_description": "Depose ton Graphical Abstract et recois une analyse IA en 30 secondes : score, archetype, forces, faiblesses, recommandations.",
+    })
+
+
+@app.post("/analyze/submit")
+async def analyze_submit(request: Request, file: UploadFile = File(...)):
+    """Process uploaded GA image through the vision pipeline.
+
+    1. Save uploaded image to ga_library/user_uploads/
+    2. Send to Gemini Vision -> get L3 graph
+    3. Save graph YAML
+    4. Run recommender on the graph
+    5. Create a ga_images entry in DB
+    6. Redirect to /ga-detail/{new_id}
+    """
+    # Validate file type
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file uploaded")
+
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    allowed_exts = {"png", "jpg", "jpeg", "webp", "pdf"}
+    if ext not in allowed_exts:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Format non supporte : .{ext}. Utilisez PNG, JPG, WebP, ou PDF.",
+        )
+
+    # Read file bytes
+    image_bytes = await file.read()
+    if len(image_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 10 Mo)")
+
+    # Handle PDF: extract largest image
+    if ext == "pdf":
+        from analyze import extract_ga_from_pdf
+        extracted = extract_ga_from_pdf(image_bytes)
+        if not extracted:
+            raise HTTPException(
+                status_code=400,
+                detail="Impossible d'extraire une image du PDF. Uploadez directement le GA en PNG/JPG.",
+            )
+        image_bytes = extracted
+        ext = "png"  # extracted image is raw, treat as PNG
+
+    # Save uploaded image to ga_library/user_uploads/
+    timestamp = int(time.time())
+    safe_name = re.sub(r'[^\w\-.]', '_', file.filename)
+    upload_filename = f"user_uploads/{timestamp}_{safe_name}"
+    upload_dir = os.path.join(BASE, "ga_library", "user_uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    upload_path = os.path.join(BASE, "ga_library", upload_filename)
+    with open(upload_path, "wb") as f:
+        f.write(image_bytes)
+
+    # Send to Gemini Vision
+    try:
+        from vision_scorer import analyze_ga_image
+        result = analyze_ga_image(image_bytes, filename=file.filename)
+    except Exception as e:
+        logger.error(f"Vision analysis failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur d'analyse IA : {str(e)}. Reessayez ou contactez le support.",
+        )
+
+    graph = result["graph"]
+    metadata = result.get("metadata", {})
+    graph_path = result["saved_path"]
+
+    # Run recommender on the saved graph
+    recommendations = None
+    try:
+        from recommender import analyze_ga
+        recommendations = analyze_ga(graph_path)
+    except Exception as e:
+        logger.warning(f"Recommender failed: {e}")
+
+    # Derive title from analysis metadata
+    main_finding = metadata.get("main_finding", "")
+    executive_summary = metadata.get("executive_summary_fr", "")
+    title = main_finding[:80] if main_finding else file.filename
+
+    # Create ga_images entry in DB
+    description = executive_summary or main_finding or ""
+    ga_id = None
+    ga_slug = None
+    try:
+        from db import _generate_unique_slug, slugify
+        db = get_db()
+        slug = _generate_unique_slug(db, upload_filename)
+        db.execute(
+            """INSERT INTO ga_images
+               (filename, domain, version, is_control, correct_product, products, title, description, slug)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                upload_filename,
+                "user_upload",
+                f"user_{timestamp}",
+                0,
+                None,
+                None,
+                title,
+                description,
+                slug,
+            ),
+        )
+        db.commit()
+        ga_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+        ga_slug = slug
+        db.close()
+    except Exception as e:
+        logger.error(f"DB insert failed: {e}")
+        raise HTTPException(status_code=500, detail="Erreur base de donnees")
+
+    # Save sidecar JSON with analysis metadata (for ga_detail page)
+    sidecar_path = os.path.join(
+        BASE, "ga_library",
+        upload_filename.rsplit(".", 1)[0] + ".json" if "." in upload_filename else upload_filename + ".json",
+    )
+    sidecar_data = {
+        "domain": "user_upload",
+        "title": title,
+        "description": description,
+        "executive_summary_fr": executive_summary,
+        "main_finding": main_finding,
+        "chart_type": metadata.get("chart_type", "mixed"),
+        "word_count": metadata.get("word_count", 0),
+        "visual_channels_used": metadata.get("visual_channels_used", []),
+        "dominant_encoding": metadata.get("dominant_encoding", ""),
+        "hierarchy_clear": metadata.get("hierarchy_clear", False),
+        "accessibility_issues": metadata.get("accessibility_issues", []),
+        "color_count": metadata.get("color_count", 0),
+        "has_legend": metadata.get("has_legend", False),
+        "figure_text_ratio": metadata.get("figure_text_ratio", 0.5),
+        "source": "gemini_vision",
+        "analyzed_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    try:
+        os.makedirs(os.path.dirname(sidecar_path), exist_ok=True)
+        with open(sidecar_path, "w", encoding="utf-8") as f:
+            json.dump(sidecar_data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning(f"Sidecar save failed: {e}")
+
+    # Also copy the graph YAML to ga_library/ so ga_detail can find it
+    ga_yaml_dest = os.path.join(
+        BASE, "ga_library",
+        upload_filename.rsplit(".", 1)[0] + ".yaml" if "." in upload_filename else upload_filename + ".yaml",
+    )
+    try:
+        import shutil
+        shutil.copy2(graph_path, ga_yaml_dest)
+    except Exception as e:
+        logger.warning(f"Graph YAML copy failed: {e}")
+
+    # Redirect to the ga-detail page (prefer slug)
+    redirect_key = ga_slug or ga_id
+    return RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
+
+
+@app.post("/analyze/improve/{ga_slug}")
+async def analyze_improve(ga_slug: str, pwd: str = ""):
+    """Run one improvement turn on a GA. Returns JSON with turn results."""
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    # 1. Look up GA
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    ga_id = image["id"]
+    filename = image["filename"]
+    image_path = os.path.join(BASE, "ga_library", filename)
+
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="GA image file not found")
+
+    # 2. Get latest graph
+    latest = get_latest_graph(ga_id)
+
+    if not latest:
+        # No graph yet — run initial analysis
+        try:
+            from vision_scorer import analyze_ga_image
+            with open(image_path, "rb") as f:
+                image_bytes = f.read()
+            result = analyze_ga_image(image_bytes, filename=filename)
+            graph = result["graph"]
+            graph_id = save_graph(graph, ga_image_id=ga_id, graph_type="vision", source="improve_initial")
+            # Wait for async sim
+            time.sleep(3)
+            return JSONResponse({
+                "turn": 0,
+                "action": "initial_analysis",
+                "graph_id": graph_id,
+                "node_count": len(graph.get("nodes", [])),
+                "link_count": len(graph.get("links", [])),
+                "message": "Analyse initiale completee. Cliquez a nouveau pour ameliorer.",
+            })
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Initial analysis failed: {str(e)}")
+
+    # 3. Build intent from latest sim + graph data
+    graph = latest["graph"]
+    graph_id = latest["id"]
+    graph_path_tmp = os.path.join(BASE, "data", f"improve_{ga_slug}_{int(time.time())}.yaml")
+
+    # Save graph to temp file for advisor
+    with open(graph_path_tmp, "w", encoding="utf-8") as f:
+        yaml.dump(graph, f, default_flow_style=False, allow_unicode=True)
+
+    # Get sim results
+    sims = get_reading_sims(graph_id=graph_id)
+    sim_s1 = next((s for s in sims if s["mode"] == "system1"), None)
+    sim_s2 = next((s for s in sims if s["mode"] == "system2"), None)
+
+    intent_parts = []
+
+    if sim_s1 and sim_s1.get("narrative_text"):
+        intent_parts.append("## Lecture simulee (System 1 — 5s)\n" + sim_s1["narrative_text"])
+
+        s1_cov = sim_s1.get("narrative_coverage", 0) or 0
+        s2_cov = (sim_s2.get("narrative_coverage", 0) or 0) if sim_s2 else 0
+        if s2_cov > s1_cov + 0.2:
+            intent_parts.append(
+                f"En 90 secondes (System 2), la couverture narrative monte a {s2_cov:.0%} "
+                f"(vs {s1_cov:.0%} en 5s).")
+
+        sim_prompts = json.loads(sim_s1.get("prompts_json", "[]"))
+        if sim_prompts:
+            intent_parts.append("## Axes d'amelioration\n" + "\n".join(f"- {p}" for p in sim_prompts[:3]))
+
+    # Anti-pattern diagnosis
+    anti_patterns = graph.get("metadata", {}).get("channel_analysis", {}).get("anti_patterns", [])
+    if anti_patterns:
+        ap_text = "\n".join(f"- {ap.get('type')}: {ap.get('node_id', '')} — {ap.get('issue', '')}"
+                           for ap in anti_patterns[:5])
+        intent_parts.append("## Anti-patterns detectes\n" + ap_text)
+
+    if not intent_parts:
+        intent_parts.append("Analyser le graph actuel et proposer des ameliorations de clarte visuelle.")
+
+    intent = "\n\n".join(intent_parts)
+
+    # 4. Call advisor
+    try:
+        from ga_advisor import advise
+        advised = advise(image_path, graph_path_tmp, intent, prior_graph=True)
+    except Exception as e:
+        # Clean up temp file
+        try:
+            os.remove(graph_path_tmp)
+        except OSError:
+            pass
+        raise HTTPException(status_code=500, detail=f"Advisor failed: {str(e)}")
+
+    # Clean up temp file
+    try:
+        os.remove(graph_path_tmp)
+    except OSError:
+        pass
+
+    if not advised:
+        return JSONResponse({
+            "turn": "N/A",
+            "action": "no_changes",
+            "message": "L'advisor n'a propose aucun changement.",
+        })
+
+    # 5. Count changes
+    changes = [n for n in advised.get("nodes", []) if n.get("_change")]
+
+    # 6. Save improved graph (triggers async sim + health)
+    new_graph_id = save_graph(advised, ga_image_id=ga_id, graph_type="advised", source="improve_manual")
+
+    # 7. Wait briefly for async sim
+    time.sleep(3)
+
+    # 8. Get new sim results
+    new_sims = get_reading_sims(graph_id=new_graph_id)
+    new_s1 = next((s for s in new_sims if s["mode"] == "system1"), None)
+
+    # Build response
+    response_data = {
+        "action": "improved",
+        "graph_id": new_graph_id,
+        "prev_graph_id": graph_id,
+        "changes": [{"node": c.get("name", ""), "change": c.get("_change", "")} for c in changes],
+        "n_changes": len(changes),
+        "node_count": len(advised.get("nodes", [])),
+        "link_count": len(advised.get("links", [])),
+    }
+
+    if new_s1:
+        response_data["sim_s1"] = {
+            "verdict": new_s1.get("complexity_verdict"),
+            "pressure": new_s1.get("budget_pressure"),
+            "visited": new_s1.get("nodes_visited"),
+            "total": new_s1.get("nodes_total"),
+            "skipped": new_s1.get("nodes_skipped"),
+            "narrative_coverage": new_s1.get("narrative_coverage"),
+            "narrative_text": new_s1.get("narrative_text", ""),
+        }
+
+    # Compare with previous
+    if sim_s1:
+        response_data["prev_sim_s1"] = {
+            "verdict": sim_s1.get("complexity_verdict"),
+            "pressure": sim_s1.get("budget_pressure"),
+            "narrative_coverage": sim_s1.get("narrative_coverage"),
+        }
+
+    return JSONResponse(response_data)
+
+
+@app.post("/analyze/tool/{tool_name}/{ga_slug}")
+async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str = ""):
+    """Run a specific analysis tool on a GA. Returns JSON."""
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    ga_id = image["id"]
+    filename = image["filename"]
+    image_path = os.path.join(BASE, "ga_library", filename)
+
+    # Get optional text input from request body
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+    text_input = body.get("text", "")
+
+    # Get latest graph
+    latest = get_latest_graph(ga_id)
+    graph = latest["graph"] if latest else None
+    graph_id = latest["id"] if latest else None
+
+    # Save graph to temp file if needed
+    graph_path_tmp = None
+    if graph:
+        graph_path_tmp = os.path.join(BASE, "data", f"tool_{ga_slug}_{int(time.time())}.yaml")
+        with open(graph_path_tmp, "w", encoding="utf-8") as f:
+            yaml.dump(graph, f, default_flow_style=False, allow_unicode=True)
+
+    try:
+        if tool_name == "vision":
+            from vision_scorer import analyze_ga_image
+            with open(image_path, "rb") as f:
+                image_bytes = f.read()
+            result = analyze_ga_image(image_bytes, filename=filename,
+                                      prior_graph=graph if graph else True)
+            new_graph = result["graph"]
+            new_graph_id = save_graph(new_graph, ga_image_id=ga_id,
+                                     graph_type="vision", source="tool_vision")
+            meta = result.get("metadata", {})
+            return JSONResponse({
+                "tool": "vision",
+                "graph_id": new_graph_id,
+                "node_count": len(new_graph.get("nodes", [])),
+                "link_count": len(new_graph.get("links", [])),
+                "summary": meta.get("executive_summary_fr", ""),
+                "word_count": meta.get("word_count", 0),
+                "hierarchy_clear": meta.get("hierarchy_clear", False),
+            })
+
+        elif tool_name == "channels":
+            if not graph_path_tmp:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            from channel_analyzer import analyze_ga_channels
+            enriched = analyze_ga_channels(image_path, graph_path_tmp, prior_graph=True)
+            ca = enriched.get("metadata", {}).get("channel_analysis", {})
+            aps = enriched.get("metadata", {}).get("anti_patterns", [])
+            # Save enriched graph
+            new_graph_id = save_graph(enriched, ga_image_id=ga_id,
+                                     graph_type="enriched", source="tool_channels")
+            return JSONResponse({
+                "tool": "channels",
+                "graph_id": new_graph_id,
+                "channels_used": ca.get("channels_used", 0),
+                "channels_total": ca.get("total_channels_analyzed", 0),
+                "avg_effectiveness": round(ca.get("avg_effectiveness", 0), 3),
+                "anti_patterns": [{"type": a.get("type"), "node": a.get("node_id", ""),
+                                   "issue": a.get("issue", "")} for a in aps[:10]],
+                "anti_pattern_count": len(aps),
+            })
+
+        elif tool_name == "advise":
+            if not graph_path_tmp:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            if not text_input:
+                text_input = "Proposer des améliorations de clarté visuelle."
+            from ga_advisor import advise
+            advised = advise(image_path, graph_path_tmp, text_input, prior_graph=True)
+            if not advised:
+                return JSONResponse({"tool": "advise", "action": "no_changes",
+                                     "message": "Aucun changement proposé."})
+            changes = [n for n in advised.get("nodes", []) if n.get("_change")]
+            new_graph_id = save_graph(advised, ga_image_id=ga_id,
+                                     graph_type="advised", source="tool_advise")
+            return JSONResponse({
+                "tool": "advise",
+                "graph_id": new_graph_id,
+                "intent": text_input,
+                "changes": [{"node": c.get("name", ""), "change": c.get("_change", "")}
+                           for c in changes],
+                "n_changes": len(changes),
+            })
+
+        elif tool_name == "rubber_duck":
+            if not graph_path_tmp:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            if not text_input:
+                text_input = "Qu'est-ce qui capte l'attention en premier dans ce GA ?"
+            from ga_rubber_duck import rubber_duck
+            duck_result = rubber_duck(image_path, graph_path_tmp, text_input, prior_graph=True)
+            return JSONResponse({
+                "tool": "rubber_duck",
+                "question": text_input,
+                "response": duck_result if isinstance(duck_result, str) else yaml.dump(duck_result, allow_unicode=True),
+            })
+
+        elif tool_name == "health":
+            if not graph:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            from graph_health import check_transmission_health
+            health = check_transmission_health(graph)
+            return JSONResponse({
+                "tool": "health",
+                "overall_score": health.get("overall_score", 0),
+                "n_spaces": health.get("n_spaces", 0),
+                "n_things": health.get("n_things", 0),
+                "n_narratives": health.get("n_narratives", 0),
+                "orphan_things": health.get("orphan_things", []),
+                "orphan_spaces": health.get("orphan_spaces", []),
+                "narratives": health.get("narratives", []),
+                "prompts": health.get("prompts", []),
+            })
+
+        elif tool_name == "reader_sim":
+            if not graph:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            from reader_sim import simulate_reading, generate_reading_narrative
+            sim = simulate_reading(graph, total_ticks=50, mode="system1")
+            narrative = generate_reading_narrative(sim, graph)
+            return JSONResponse({
+                "tool": "reader_sim",
+                "verdict": sim["stats"]["complexity_verdict"],
+                "pressure": sim["stats"]["budget_pressure"],
+                "visited": sim["stats"]["unique_nodes_visited"],
+                "total": sim["stats"]["total_things"],
+                "skipped": sim["stats"]["nodes_skipped"],
+                "narrative_coverage": sim["stats"]["narrative_coverage"],
+                "dead_spaces": sim["stats"]["dead_space_count"],
+                "orphan_narratives": sim["stats"]["orphan_narrative_count"],
+                "narrative_text": narrative,
+                "recommendations": sim.get("recommendations", []),
+            })
+
+        else:
+            raise HTTPException(status_code=400, detail=f"Unknown tool: {tool_name}")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{tool_name} failed: {str(e)}")
+    finally:
+        # Clean up temp file
+        if graph_path_tmp:
+            try:
+                os.remove(graph_path_tmp)
+            except OSError:
+                pass
+
+
+@app.post("/analyze/unlock/{ga_id}")
+async def unlock_analysis(ga_id: int, email: str = Form(...)):
+    """Capture email lead and unlock the full analysis for this GA."""
+    # Validate email minimally
+    email = email.strip()
+    if not email or "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(status_code=400, detail="Email invalide")
+
+    # Save email lead
+    save_analysis_lead(email=email, ga_image_id=ga_id, source="analyze")
+
+    # Resolve slug for redirect
+    image = get_image_by_id(ga_id)
+    redirect_key = image["slug"] if image and image.get("slug") else str(ga_id)
+
+    # Set unlock cookie (30 days) and redirect back
+    response = RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
+    response.set_cookie(
+        f"glance_unlock_{ga_id}",
+        "1",
+        max_age=86400 * 30,
+        httponly=True,
+    )
+    return response
+
+
+# ── Stripe Checkout routes ────────────────────────────────────────────
+
+
+@app.post("/checkout/{product}/{ga_id}")
+async def create_checkout(request: Request, product: str, ga_id: int):
+    """Create Stripe Checkout and redirect to payment page."""
+    from payments import create_checkout_session, PRODUCTS, is_stripe_configured
+
+    if not is_stripe_configured():
+        raise HTTPException(status_code=503, detail="Paiement indisponible")
+
+    if product not in PRODUCTS:
+        raise HTTPException(status_code=400, detail="Produit inconnu")
+
+    # Resolve slug for cancel URL
+    image = get_image_by_id(ga_id)
+    redirect_key = image["slug"] if image and image.get("slug") else str(ga_id)
+
+    base_url = str(request.base_url).rstrip("/")
+    success_url = f"{base_url}/checkout/success?session_id={{CHECKOUT_SESSION_ID}}&ga_id={ga_id}"
+    cancel_url = f"{base_url}/ga-detail/{redirect_key}"
+
+    checkout_url = create_checkout_session(product, ga_id, success_url, cancel_url)
+    return RedirectResponse(url=checkout_url, status_code=303)
+
+
+@app.get("/checkout/success")
+async def checkout_success(request: Request, session_id: str, ga_id: int):
+    """Handle successful payment — unlock the analysis."""
+    from payments import verify_session
+
+    result = verify_session(session_id)
+
+    # Resolve slug for redirect
+    image = get_image_by_id(ga_id)
+    redirect_key = image["slug"] if image and image.get("slug") else str(ga_id)
+
+    if result["paid"]:
+        # Save to DB as paid lead
+        save_analysis_lead(
+            email=result["email"] or "",
+            ga_image_id=ga_id,
+            source="stripe",
+            paid=1,
+        )
+
+        # Set unlock cookie (1 year)
+        response = RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
+        response.set_cookie(
+            f"glance_unlock_{ga_id}",
+            "paid",
+            httponly=True,
+            max_age=86400 * 365,
+        )
+        return response
+
+    # Payment not completed — redirect back without unlocking
+    return RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
+
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_dashboard(request: Request, pwd: str = ""):
+    """Admin analytics dashboard — password-protected."""
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    if pwd != admin_pwd:
+        return HTMLResponse(
+            content='<html><body style="background:#0f172a;color:#fff;display:flex;align-items:center;'
+            'justify-content:center;height:100vh;font-family:system-ui;">'
+            '<form><input name="pwd" type="password" placeholder="Mot de passe admin" '
+            'style="padding:12px 20px;border-radius:8px;border:1px solid #334155;background:#1e293b;'
+            'color:#fff;font-size:1rem;"><button type="submit" style="padding:12px 20px;'
+            'border-radius:8px;border:none;background:#0d9488;color:#fff;margin-left:8px;'
+            'cursor:pointer;font-size:1rem;">Entrer</button></form></body></html>',
+            status_code=200,
+        )
+    analytics = get_admin_analytics()
+    return templates.TemplateResponse("admin.html", {
+        "request": request,
+        "analytics": analytics,
+        "analytics_json": json.dumps(analytics, ensure_ascii=False),
+        "hide_lang_switcher": True,
+    })
+
+
+# ── OG Image Card routes ────────────────────────────────────────────
+
+# Simple in-memory cache: test_id -> (png_bytes, glance_score)
+_card_cache: dict[int, tuple[bytes, float]] = {}
+_dashboard_card_cache: dict[str, bytes] = {}
+
+
+@app.get("/card/default.png")
+def card_default():
+    """Return the default GLANCE branding card."""
+    png_bytes = generate_default_card()
+    return Response(content=png_bytes, media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.get("/card/{test_id}.png")
+def card_test(test_id: int):
+    """Generate a 1200x630 OG image card for a single test result.
+
+    Includes the participant's percentile rank. Short cache TTL
+    because percentile shifts as more participants join.
+    """
+    test = get_test(test_id)
+    if not test:
+        png_bytes = generate_default_card()
+        return Response(content=png_bytes, media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=3600"})
+
+    percentile = get_participant_percentile(test["participant_id"])
+    png_bytes = generate_test_card(test, participant_percentile=percentile)
+    return Response(content=png_bytes, media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=600"})
+
+
+@app.get("/card/dashboard/{participant_token}.png")
+def card_dashboard(participant_token: str):
+    """Generate a 1200x630 OG image card for a participant's dashboard.
+
+    Includes percentile rank. No in-memory cache — percentile is dynamic.
+    """
+    participant = get_participant_by_token(participant_token)
+    if not participant:
+        png_bytes = generate_default_card()
+        return Response(content=png_bytes, media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=3600"})
+
+    # Get all tests for this participant
+    db = get_db()
+    rows = db.execute(
+        """SELECT t.*, g.filename, g.domain, g.title
+           FROM tests t JOIN ga_images g ON t.ga_image_id = g.id
+           WHERE t.participant_id = ?
+           ORDER BY t.created_at DESC""",
+        (participant["id"],),
+    ).fetchall()
+    db.close()
+    tests = [dict(r) for r in rows]
+
+    percentile = get_participant_percentile(participant["id"])
+    png_bytes = generate_dashboard_card(participant, tests,
+                                         participant_percentile=percentile)
+    return Response(content=png_bytes, media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=600"})
+
+
+# ── GA OG Image route ────────────────────────────────────────────────
+
+# In-memory cache: ga_id -> (png_bytes, n_tests)
+# Invalidated when n_tests changes (new test submitted)
+_ga_og_cache: dict[int, tuple[bytes, int]] = {}
+
+
+# ── Blog: GA evolution timeline ──
+
+BLOG_VERSIONS = [
+    {"v": 1, "title": "Bare bones", "desc": "Title + 3 bars only. No visual context.", "reco": "No visual hierarchy \u2014 bars alone don\u2019t communicate the problem", "score": None},
+    {"v": 2, "title": "Add scissors graph", "desc": "Engagement vs Comprehension diverging lines show the gap.", "reco": "No methodological context \u2014 reader doesn\u2019t know what this measures", "score": None},
+    {"v": 3, "title": "Visual Spin lens + chronometer", "desc": "Magnifying lens shows data distortion. 5.0s chrono adds the time constraint.", "reco": "Labels overflow \u2014 text competes with visual elements", "score": "~30%"},
+    {"v": 4, "title": "Fix layout", "desc": "Labels below bars, axis scale, checkmark, angular accents.", "reco": "Low contrast on pink background \u2014 Comprehension label barely visible", "score": "~50%"},
+    {"v": 5, "title": "Boost contrast", "desc": "Stronger red tint, annotations, 6 RCTs \u00b7 538 participants.", "reco": "S9b=0.70 (target \u22650.80), 6/11 nodes high energy", "score": "~60%"},
+    {"v": 6, "title": "Gradient shine + multiplier", "desc": "\u00d77.7 multiplier, grid lines, GLANCE bar gradient glow, bigger chrono.", "reco": "Word count 31, engagement energy still 0.9", "score": "70%"},
+]
+
+
+@app.get("/blog", response_class=HTMLResponse)
+def blog(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("blog.html", {
+        "request": request,
+        "lang": lang,
+        "versions": BLOG_VERSIONS,
+    })
+
+
+@app.get("/og/ga/{ga_id}.png")
+def og_ga_image(ga_id: int):
+    """Generate a 1200x630 OG card for a GA detail page.
+
+    Shows the GA image itself with a GLANCE score badge overlay.
+    Cached in memory; invalidated when test count changes.
+    """
+    image = get_image_by_id(ga_id)
+    if not image:
+        png_bytes = generate_default_card()
+        return Response(content=png_bytes, media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=3600"})
+
+    # Compute current stats
+    detail = get_ga_detail_stats(ga_id)
+    n_tests = detail.get("n_tests", 0)
+    avg_glance = detail.get("avg_glance", 0.0) if n_tests > 0 else None
+
+    # Check cache (invalidate if test count changed)
+    if ga_id in _ga_og_cache:
+        cached_bytes, cached_n = _ga_og_cache[ga_id]
+        if cached_n == n_tests:
+            return Response(content=cached_bytes, media_type="image/png",
+                            headers={"Cache-Control": "public, max-age=3600"})
+
+    # Resolve domain label
+    domain = image.get("domain", "")
+    domain_label = CONFIG["domains"].get(domain, {}).get("label", domain)
+
+    png_bytes = generate_ga_og_card(image, avg_glance, n_tests, domain_label)
+    _ga_og_cache[ga_id] = (png_bytes, n_tests)
+    return Response(content=png_bytes, media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=3600"})
