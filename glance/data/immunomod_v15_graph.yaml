@@ -1,0 +1,342 @@
+links:
+- link_type: link
+  source: narrative:protection
+  target: space:main_diagram
+  weight: 1.0
+- link_type: link
+  source: narrative:mechanisms
+  target: space:mechanism_chart
+  weight: 1.0
+- link_type: link
+  source: narrative:evidence
+  target: space:main_diagram
+  weight: 1.0
+- link_type: link
+  source: thing:pathological_child
+  target: space:main_diagram
+  weight: 1.0
+- link_type: link
+  source: thing:protected_child
+  target: space:main_diagram
+  weight: 1.0
+- link_type: link
+  source: thing:epithelium_timeline
+  target: space:main_diagram
+  weight: 1.0
+- link_type: link
+  source: thing:immune_response_shift
+  target: space:main_diagram
+  weight: 1.0
+- link_type: link
+  source: thing:evidence_box
+  target: space:main_diagram
+  weight: 1.0
+- link_type: link
+  source: thing:viruses
+  target: space:main_diagram
+  weight: 1.0
+- link_type: link
+  source: thing:treatment_labels_bottom
+  target: space:mechanism_chart
+  weight: 1.0
+- link_type: link
+  source: thing:mechanism_list
+  target: space:mechanism_chart
+  weight: 1.0
+- link_type: link
+  source: thing:outcome_labels
+  target: space:mechanism_chart
+  weight: 1.0
+- link_type: link
+  source: thing:connecting_lines
+  target: space:mechanism_chart
+  weight: 1.0
+- link_type: link
+  source: thing:pathological_child
+  target: narrative:protection
+  weight: 0.8
+- link_type: link
+  source: thing:protected_child
+  target: narrative:protection
+  weight: 0.8
+- link_type: link
+  source: thing:epithelium_timeline
+  target: narrative:protection
+  weight: 0.9
+- link_type: link
+  source: thing:immune_response_shift
+  target: narrative:protection
+  weight: 0.7
+- link_type: link
+  source: thing:immune_response_shift
+  target: narrative:mechanisms
+  weight: 0.6
+- link_type: link
+  source: thing:evidence_box
+  target: narrative:evidence
+  weight: 1.0
+- link_type: link
+  source: thing:treatment_labels_bottom
+  target: narrative:mechanisms
+  weight: 0.8
+- link_type: link
+  source: thing:mechanism_list
+  target: narrative:mechanisms
+  weight: 1.0
+- link_type: link
+  source: thing:outcome_labels
+  target: narrative:mechanisms
+  weight: 0.9
+- link_type: link
+  source: thing:pathological_child
+  target: thing:epithelium_timeline
+  weight: 0.8
+- link_type: link
+  source: thing:epithelium_timeline
+  target: thing:protected_child
+  weight: 0.9
+- link_type: link
+  source: thing:treatment_labels_bottom
+  target: thing:mechanism_list
+  weight: 0.9
+- link_type: link
+  source: thing:mechanism_list
+  target: thing:outcome_labels
+  weight: 0.9
+- link_type: link
+  source: thing:connecting_lines
+  target: thing:treatment_labels_bottom
+  weight: 1.0
+- link_type: link
+  source: thing:connecting_lines
+  target: thing:mechanism_list
+  weight: 1.0
+- link_type: link
+  source: thing:connecting_lines
+  target: thing:outcome_labels
+  weight: 1.0
+metadata:
+  accessibility_issues:
+  - Heavy reliance on color-coding (red for pathological, green for protected; specific
+    colors for treatments) which may not be accessible to colorblind users.
+  - Some text labels are very small and may be difficult to read.
+  chart_type: infographic
+  color_count: 8
+  dominant_encoding: A process diagram showing a transition from a pathological to
+    a protected state.
+  executive_summary_fr: Cette infographie illustre comment certains immunomodulateurs,
+    comme les lysats bactériens, protègent les enfants contre les infections respiratoires
+    virales et l'asthme. Ils agissent en rééquilibrant la réponse immunitaire et en
+    renforçant la barrière épithéliale, passant d'un état pathologique à un état protégé,
+    avec des preuves cliniques solides soutenant leur efficacité.
+  figure_text_ratio: 0.85
+  has_legend: true
+  hierarchy_clear: true
+  main_finding: Immunomodulators protect children from viral respiratory infections
+    and asthma by shifting the immune response from a pathological Th2 bias to a protective
+    Th1/Treg-mediated state, a mechanism supported by significant clinical evidence.
+  visual_channels_used:
+  - position
+  - color_hue
+  - shape
+  - text_label
+  - grouping
+  - alignment
+  - icon
+  - length
+  - connecting_line
+  word_count: 45
+nodes:
+- bbox:
+  - 0.0
+  - 0.0
+  - 1.0
+  - 0.62
+  energy: 0.0
+  id: space:main_diagram
+  name: 'Top Diagram: Pathological to Protected State'
+  node_type: space
+  stability: 1.0
+  synthesis: The upper two-thirds of the GA, illustrating a biological timeline from
+    a pathological state (left, red) caused by viral infection to a protected state
+    (right, green) following immunomodulator treatment. It contains cellular-level
+    diagrams and human silhouettes.
+  weight: 0.7
+- bbox:
+  - 0.0
+  - 0.62
+  - 1.0
+  - 0.38
+  energy: 0.0
+  id: space:mechanism_chart
+  name: 'Bottom Chart: Mechanism of Action'
+  node_type: space
+  stability: 1.0
+  synthesis: The lower third of the GA, titled 'MECHANISM OF ACTION'. It is a flow
+    chart that links specific treatments to their biological mechanisms and resulting
+    clinical outcomes.
+  weight: 0.3
+- energy: 0.0
+  id: narrative:protection
+  name: Certain immunomodulators protect children from pathological respiratory conditions
+    by shifting their immune response.
+  node_type: narrative
+  stability: 1.0
+  synthesis: The core message is that these treatments can transform a child's health
+    from a state of recurrent viral infections and asthma to a protected, healthy
+    state by rebalancing the immune system.
+  weight: 1.0
+- energy: 0.0
+  id: narrative:mechanisms
+  name: The protective effect is achieved by improving epithelial barriers and modulating
+    innate and adaptive immunity.
+  node_type: narrative
+  stability: 1.0
+  synthesis: This message explains how the treatments work at a biological level,
+    detailing the specific pathways (barrier function, immunity types) that lead to
+    the observed clinical benefits.
+  weight: 0.8
+- energy: 0.0
+  id: narrative:evidence
+  name: Strong clinical evidence supports the use of these treatments, particularly
+    OM-85.
+  node_type: narrative
+  stability: 1.0
+  synthesis: This message provides credibility and quantifies the level of scientific
+    backing for the treatments, highlighting that this is not just a theoretical model
+    but is supported by human trials.
+  weight: 0.7
+- bbox:
+  - 0.0
+  - 0.0
+  - 0.18
+  - 0.3
+  energy: 0.5
+  id: thing:pathological_child
+  name: Pathological child silhouette
+  node_type: thing
+  stability: 1.0
+  synthesis: A red silhouette of a coughing child, visually representing the initial
+    state of sickness, viral respiratory tract infections (RTIs), and asthma.
+  weight: 0.8
+- bbox:
+  - 0.8
+  - 0.0
+  - 0.2
+  - 0.25
+  energy: 0.0
+  id: thing:protected_child
+  name: Protected child silhouette
+  node_type: thing
+  stability: 1.0
+  synthesis: A green silhouette of a healthy, happy child, visually representing the
+    desired outcome of protection from illness after treatment.
+  weight: 0.8
+- bbox:
+  - 0.0
+  - 0.15
+  - 1.0
+  - 0.2
+  energy: 0.2
+  id: thing:epithelium_timeline
+  name: Epithelium timeline
+  node_type: thing
+  stability: 1.0
+  synthesis: A central diagram of the epithelial cell layer that visually transitions
+    from damaged and inflamed on the left to healthy and intact on the right, forming
+    the backbone of the narrative timeline.
+  weight: 0.9
+- bbox:
+  - 0.2
+  - 0.3
+  - 0.6
+  - 0.2
+  energy: 0.3
+  id: thing:immune_response_shift
+  name: Immune response diagram
+  node_type: thing
+  stability: 0.8
+  synthesis: Illustrates the shift in immune cells, from a Th2-biased response on
+    the left to a balanced Th1/Treg response on the right, visually explaining the
+    core immunological change.
+  weight: 0.7
+- bbox:
+  - 0.7
+  - 0.4
+  - 0.28
+  - 0.18
+  energy: 0.0
+  id: thing:evidence_box
+  name: Clinical Evidence box
+  node_type: thing
+  stability: 1.0
+  synthesis: A distinct box with a bar chart quantifying the number of clinical trials
+    (RCTs) for each treatment, providing evidence for their efficacy. OM-85 is highlighted
+    with the most evidence.
+  weight: 0.6
+- bbox:
+  - 0.08
+  - 0.78
+  - 0.2
+  - 0.15
+  energy: 0.0
+  id: thing:treatment_labels_bottom
+  name: Treatment labels (bottom)
+  node_type: thing
+  stability: 1.0
+  synthesis: Color-coded labels for the four treatments (OM-85, PMBL, MV130, CRL1505)
+    that act as the starting point for the mechanism of action flowchart.
+  weight: 0.5
+- bbox:
+  - 0.38
+  - 0.78
+  - 0.25
+  - 0.15
+  energy: 0.0
+  id: thing:mechanism_list
+  name: Mechanism list
+  node_type: thing
+  stability: 1.0
+  synthesis: A central list of four biological mechanisms (Epithelial Barrier, Innate
+    Immunity, etc.) with icons, explaining how the treatments function.
+  weight: 0.6
+- bbox:
+  - 0.7
+  - 0.78
+  - 0.25
+  - 0.15
+  energy: 0.0
+  id: thing:outcome_labels
+  name: Clinical outcome labels
+  node_type: thing
+  stability: 1.0
+  synthesis: Green labels on the right listing the positive clinical outcomes (reduced
+    RTIs, asthma prevention) that result from the mechanisms.
+  weight: 0.7
+- bbox:
+  - 0.28
+  - 0.8
+  - 0.45
+  - 0.1
+  energy: 0.0
+  id: thing:connecting_lines
+  name: Connecting lines in chart
+  node_type: thing
+  stability: 1.0
+  synthesis: Lines and arrows that visually link the treatments to their mechanisms
+    and the mechanisms to the final clinical outcomes, establishing a clear cause-and-effect
+    flow.
+  weight: 0.4
+- bbox:
+  - 0.1
+  - 0.08
+  - 0.15
+  - 0.1
+  energy: 0.6
+  id: thing:viruses
+  name: Virus icons
+  node_type: thing
+  stability: 1.0
+  synthesis: Red, spiky icons representing viruses that are shown attacking the epithelium
+    on the left side, establishing the initial pathological trigger.
+  weight: 0.5

@@ -1,0 +1,286 @@
+# Layout V16 — Evidence-first iteration
+# Based on V15. Changes driven by claim mapping:
+#   - 9/14 claims UNMAPPED in V15 (quantitative evidence missing)
+#   - "evidence" narrative at 18% reader attention → must reach >50%
+# Fixes:
+#   - Evidence bars: wider (0.18 → 0.28), taller, positioned more prominently
+#   - Evidence title: larger, bolder
+#   - Bronchus narrowed to make room (0.92 → 0.68)
+#   - Product outcomes added next to evidence bars (claim c4-c9)
+# Also: white background (no gradient), central directional arrow
+# All positions in fractions of canvas (0.0-1.0)
+
+canvas:
+  width: 3600
+  height: 2200
+  delivery_width: 1200
+  delivery_height: 733
+
+# V15: 2-panel layout instead of 3-zone
+panels:
+  top:
+    y_pct: 0.0
+    height_pct: 0.62
+  bottom:
+    y_pct: 0.63
+    height_pct: 0.37
+
+# Panel divider — subtle gray line between top and bottom
+panel_divider:
+  y_pct: 0.625
+  color: "#E5E7EB"
+  width: 2
+  margin_x_pct: 0.02
+
+# Bronchus — now spans full canvas width with small margins
+bronchus:
+  x_pct: 0.04
+  width_pct: 0.92
+  y_start_pct: 0.10
+  y_end_pct: 0.55
+  corner_radius: 22
+  border_width: 5
+  border_color: "#4B5563"
+  glow_enabled: true
+  glow_color: "#000000"
+  glow_opacity: 0.08
+  glow_blur: 30
+  bands:
+    lumen:
+      height_pct: 0.15
+    epithelium:
+      height_pct: 0.28
+    lamina:
+      height_pct: 0.35
+    muscle:
+      height_pct: 0.22
+  separator_width: 5
+  separator_color: "#6B7280"
+  separator_dash: "12,6"
+
+# V15: Central directional arrow (Pathological -> Protected)
+central_arrow:
+  enabled: true
+  color: "#1D3557"
+  opacity: 0.20
+  width_pct: 0.30
+  height: 80
+  y_center_pct: 0.33
+  head_width: 60
+
+# V15: NO gradient — pure white background
+
+# Zone orientation labels (above bronchus)
+zone_orientation:
+  pathological:
+    text: "Pathological"
+    color: "#DC2626"
+  protected:
+    text: "Protected"
+    color: "#059669"
+  font_size: 36
+  font_weight: "bold"
+  opacity: 0.85
+
+# Product pills — centered above bronchus
+product_pills:
+  y_pct: 0.045
+  pill_height: 52
+  pill_rx: 24
+  pill_gap: 28
+  font_size: 34
+  text_color: "#FFFFFF"
+
+# Child silhouettes — V15: at the EDGES of the bronchus
+child_sick:
+  x_pct: 0.06
+  y_pct: 0.12
+  scale: 2.7
+
+child_healthy:
+  x_pct: 0.90
+  y_pct: 0.12
+  scale: 2.25
+
+# Vicious cycle — V15: bottom-left of top panel
+vicious_cycle:
+  center_x_pct: 0.10
+  center_y_pct: 0.57
+  radius_x: 120
+  radius_y: 90
+  stations:
+    - label: "Viral RTIs"
+      angle_deg: -90
+    - label: "Th2 bias"
+      angle_deg: 0
+    - label: "Remodeling"
+      angle_deg: 90
+    - label: "Re-suscept."
+      angle_deg: 170
+  bottom_label: "Wheezing/Asthma"
+  font_size: 26
+
+# Evidence bars — V16: WIDER, more prominent, with outcome labels (claims c3-c9)
+evidence:
+  x_pct: 0.68
+  width_pct: 0.28
+  y_start_pct: 0.18
+  bar_height: 85
+  bar_gap: 22
+  max_width_pct: 0.94
+  title: "Hierarchie de l'Evidence Scientifique"
+  title_font_size: 46
+  title_underline: true
+  title_font_weight: 800
+  rct_inside_bars: true
+  items:
+    - product: om85
+      width_pct: 1.0
+      label: "OM-85 (18 RCTs)"
+      name: "OM-85"
+      outcome: "Reduction majeure des infections et du wheezing"
+    - product: pmbl
+      width_pct: 0.55
+      label: "PMBL (5 RCTs)"
+      name: "PMBL"
+      outcome: "Reduction des exacerbations d'asthme allergique"
+    - product: mv130
+      width_pct: 0.30
+      label: "MV130 (1 RCT)"
+      name: "MV130"
+      outcome: "Diminution de 40% des episodes de sifflement"
+    - product: crl1505
+      width_pct: 0.15
+      label: "CRL1505 (Preclinique)"
+      name: "CRL1505"
+      outcome: "Mecanisme prometteur via l'axe intestin-poumon"
+
+# Bottom panel: mechanism flow (WHAT -> HOW -> RESULT)
+bottom_panel:
+  title: "MECHANISM OF ACTION"
+  title_font_size: 44
+  title_font_weight: 800
+  title_y_pct: 0.66
+  title_color: "#1F2937"
+
+  products_column:
+    x_pct: 0.04
+    width_pct: 0.18
+    pill_height: 56
+    pill_gap: 16
+    pill_rx: 28
+    font_size: 32
+    y_start_pct: 0.72
+
+  arrows:
+    color: "#9CA3AF"
+    width: 3
+    opacity: 0.6
+    head_size: 10
+
+  mechanisms_column:
+    x_pct: 0.28
+    width_pct: 0.38
+    box_height: 56
+    box_gap: 16
+    box_rx: 12
+    border_left_width: 8
+    title_font_size: 30
+    icon_size: 36
+    icon_gap: 12
+    bg_color: "#FFFFFF"
+    bg_opacity: 0.94
+    border_color: "#D1D5DB"
+    y_start_pct: 0.72
+
+  outcomes_column:
+    x_pct: 0.72
+    width_pct: 0.24
+    badge_height: 56
+    badge_gap: 16
+    badge_rx: 28
+    font_size: 28
+    bg_color: "#059669"
+    text_color: "#FFFFFF"
+    border_color: "#047857"
+    y_start_pct: 0.72
+    items:
+      - text: "\u2193 Recurrent RTIs"
+      - text: "\u2193 Wheezing Episodes"
+      - text: "\u2713 Asthma Prevention"
+
+# CRL1505 relay arc — adjusted for full-width bronchus
+crl1505_relay:
+  gut_icon_y_pct: 0.58
+  gut_icon_x_pct: 0.70
+  target_band: "lamina"
+  target_x_pct: 0.75
+  arc_width: 7
+
+# Band content parameters
+band_content:
+  lumen:
+    virus_count: 3
+    virus_radius: 28
+    virus_x_range: [0.03, 0.22]
+    iga_count: 4
+    iga_height: 40
+    iga_x_range: [0.78, 0.95]
+  epithelium:
+    cell_count: 24
+    cell_height_pct: 0.60
+    gap_count_sick: 6
+    gap_count_healthy: 0
+    shield_x_pct: 0.55
+    staple_x_range: [0.50, 0.85]
+  lamina:
+    split_pct: 0.45
+    dc_sick_x_pct: 0.15
+    dc_healthy_x_pct: 0.75
+    dc_radius: 48
+    helix_scale: 0.5
+    balance_x_pct: 0.70
+    balance_width: 130
+  muscle:
+    thickness_sick_pct: 1.0
+    thickness_healthy_pct: 0.45
+
+# Band labels
+band_labels:
+  font_size: 20
+  color: "#9CA3AF"
+
+# Density parameters — same as V14
+density:
+  lumen_stipple_density: 0.0005
+  epithelium_stipple_density: 0.0010
+  lamina_stipple_density: 0.0008
+  stipple_r_min: 1.0
+  stipple_r_max: 2.0
+  lamina_crosshatch_spacing: 36
+  lamina_crosshatch_opacity: 0.04
+  muscle_fiber_count: 12
+  muscle_fiber_opacity: 0.08
+  epithelium_cells: 42
+  tight_junction_n_zigs: 6
+  tight_junction_amplitude: 3
+  nucleus_probability: 0.7
+  cilia_per_cell: 6
+  cilia_wave_amplitude: 2
+  virus_count_extra: 4
+  virus_extra_radius: 16
+  virus_extra_x_range: [0.02, 0.25]
+  macrophage_count_sick: 2
+  macrophage_count_healthy: 3
+  macrophage_radius: 20
+  t_helper_count: 4
+  t_helper_radius: 14
+  treg_count: 2
+  treg_radius: 16
+  immune_scatter_density: 0.0006
+  immune_scatter_r_min: 3
+  immune_scatter_r_max: 6
+
+font:
+  family: "Helvetica, Arial, sans-serif"
+  min_size: 36

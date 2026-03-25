@@ -1,0 +1,178 @@
+{
+  "claims": [
+    {
+      "id": "c1",
+      "text": "Four immunomodulators (OM-85, PMBL, MV130, CRL1505) share convergent mechanisms of epithelial barrier reinforcement and innate/adaptive immune modulation.",
+      "data_family": "categorical",
+      "values": [],
+      "priority": 2,
+      "source_sentence": "Four immunomodulators (OM-85, PMBL, MV130, CRL1505) share convergent mechanisms of epithelial barrier reinforcement and innate/adaptive immune modulation.",
+      "encoding_suggestion": "converging arrows from four icons to a central mechanism diagram"
+    },
+    {
+      "id": "c2",
+      "text": "OM-85 has the most substantial clinical evidence.",
+      "data_family": "semi-quantitative",
+      "values": [],
+      "priority": 2,
+      "source_sentence": "OM-85 has the most substantial clinical evidence with 18 RCTs demonstrating major reduction of infections and wheezing.",
+      "encoding_suggestion": "bar chart comparing evidence levels, with OM-85 as the highest bar"
+    },
+    {
+      "id": "c3",
+      "text": "OM-85 has evidence from 18 RCTs.",
+      "data_family": "quantitative",
+      "values": [
+        "18"
+      ],
+      "priority": 2,
+      "source_sentence": "OM-85 has the most substantial clinical evidence with 18 RCTs demonstrating major reduction of infections and wheezing.",
+      "encoding_suggestion": "number callout on a bar chart"
+    },
+    {
+      "id": "c4",
+      "text": "OM-85 demonstrates major reduction of infections.",
+      "data_family": "directional",
+      "values": [],
+      "priority": 1,
+      "source_sentence": "OM-85 has the most substantial clinical evidence with 18 RCTs demonstrating major reduction of infections and wheezing.",
+      "encoding_suggestion": "downward arrow icon labeled 'Infections'"
+    },
+    {
+      "id": "c5",
+      "text": "OM-85 demonstrates major reduction of wheezing.",
+      "data_family": "directional",
+      "values": [],
+      "priority": 1,
+      "source_sentence": "OM-85 has the most substantial clinical evidence with 18 RCTs demonstrating major reduction of infections and wheezing.",
+      "encoding_suggestion": "downward arrow icon labeled 'Wheezing'"
+    },
+    {
+      "id": "c6",
+      "text": "PMBL has evidence from 5 RCTs.",
+      "data_family": "quantitative",
+      "values": [
+        "5"
+      ],
+      "priority": 2,
+      "source_sentence": "PMBL (5 RCTs) reduces allergic asthma exacerbations.",
+      "encoding_suggestion": "number callout on a bar chart"
+    },
+    {
+      "id": "c7",
+      "text": "PMBL reduces allergic asthma exacerbations.",
+      "data_family": "directional",
+      "values": [],
+      "priority": 1,
+      "source_sentence": "PMBL (5 RCTs) reduces allergic asthma exacerbations.",
+      "encoding_suggestion": "downward arrow icon labeled 'Asthma Exacerbations'"
+    },
+    {
+      "id": "c8",
+      "text": "MV130 has evidence from 1 RCT.",
+      "data_family": "quantitative",
+      "values": [
+        "1"
+      ],
+      "priority": 2,
+      "source_sentence": "MV130 (1 RCT) shows 40% reduction in wheezing episodes.",
+      "encoding_suggestion": "number callout on a bar chart"
+    },
+    {
+      "id": "c9",
+      "text": "MV130 shows 40% reduction in wheezing episodes.",
+      "data_family": "quantitative",
+      "values": [
+        "40%"
+      ],
+      "priority": 1,
+      "source_sentence": "MV130 (1 RCT) shows 40% reduction in wheezing episodes.",
+      "encoding_suggestion": "large percentage callout or pie chart"
+    },
+    {
+      "id": "c10",
+      "text": "CRL1505 is a probiotic.",
+      "data_family": "categorical",
+      "values": [],
+      "priority": 3,
+      "source_sentence": "CRL1505 is a promising probiotic acting via the gut-lung axis (preclinical).",
+      "encoding_suggestion": "icon of a bacterium"
+    },
+    {
+      "id": "c11",
+      "text": "CRL1505 acts via the gut-lung axis.",
+      "data_family": "spatial",
+      "values": [],
+      "priority": 2,
+      "source_sentence": "CRL1505 is a promising probiotic acting via the gut-lung axis (preclinical).",
+      "encoding_suggestion": "spatial overlay showing a connection from gut to lungs"
+    },
+    {
+      "id": "c12",
+      "text": "The evidence for CRL1505 is preclinical.",
+      "data_family": "categorical",
+      "values": [],
+      "priority": 3,
+      "source_sentence": "CRL1505 is a promising probiotic acting via the gut-lung axis (preclinical).",
+      "encoding_suggestion": "text label 'Preclinical' on a timeline or diagram"
+    },
+    {
+      "id": "c13",
+      "text": "These agents offer a complementary strategy to break the link between early viral infections and asthma.",
+      "data_family": "ordinal",
+      "values": [],
+      "priority": 1,
+      "source_sentence": "These agents offer a complementary strategy to break the link between early viral infections and asthma, filling a therapeutic gap in managing children aged 0-5.",
+      "encoding_suggestion": "flow diagram showing a broken arrow in a causal chain"
+    },
+    {
+      "id": "c14",
+      "text": "These agents fill a therapeutic gap in managing children aged 0-5.",
+      "data_family": "categorical",
+      "values": [],
+      "priority": 1,
+      "source_sentence": "These agents offer a complementary strategy to break the link between early viral infections and asthma, filling a therapeutic gap in managing children aged 0-5.",
+      "encoding_suggestion": "icon of a puzzle piece completing a puzzle"
+    }
+  ],
+  "narratives": [
+    {
+      "id": "n1",
+      "title": "Breaking the Infection-Asthma Cycle",
+      "claim_ids": [
+        "c13",
+        "c14"
+      ],
+      "description": "This narrative illustrates the core thesis: a vicious cycle where early viral infections lead to asthma, and how bacterial-derived immunomodulators act as an intervention to break this cycle, filling a critical therapeutic gap for young children.",
+      "suggested_layout": "before-after"
+    },
+    {
+      "id": "n2",
+      "title": "Convergent Mechanisms of Action",
+      "claim_ids": [
+        "c1",
+        "c11"
+      ],
+      "description": "This story explains the shared biological mechanisms. A central diagram of the lung's epithelial barrier is targeted by arrows from the four immunomodulators, with icons representing 'barrier reinforcement' and 'immune modulation'. A smaller inset shows the specific gut-lung axis for CRL1505.",
+      "suggested_layout": "central diagram with converging inputs"
+    },
+    {
+      "id": "n3",
+      "title": "Clinical Evidence and Efficacy",
+      "claim_ids": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c8",
+        "c9",
+        "c10",
+        "c12"
+      ],
+      "description": "This narrative provides a comparative overview of the evidence for each agent. A grid compares OM-85, PMBL, MV130, and CRL1505 on their level of evidence (number of RCTs) and key clinical outcomes (reduction in infections, wheezing, or asthma exacerbations), highlighting the preclinical status of CRL1505.",
+      "suggested_layout": "comparison grid"
+    }
+  ]
+}

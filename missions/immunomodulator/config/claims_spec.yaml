@@ -1,0 +1,342 @@
+# Claims Spec — Immunomodulator GA
+# Generated from manuscript + claim_extractor + channel mapping
+# Each claim: priority, data family, ALL channels that should encode it
+# min_channels = minimum for robustness (below = fragile anti-pattern)
+#
+# Channel beta values (Stevens' power law):
+#   position: β=1.0  |  length: β=1.0  |  angle: β=0.9
+#   color_hue: β=0.7  |  area: β=0.7  |  color_value: β=0.6
+#   texture: β=0.5  |  shape: β=0.5
+
+claims:
+
+  # ════════════════════════════════════════════════════════
+  # P1 — PRIMARY MESSAGES (reader MUST receive in 5 seconds)
+  # ════════════════════════════════════════════════════════
+
+  c4:
+    text: "OM-85 demonstrates major reduction of infections"
+    priority: 1
+    data_family: directional
+    min_channels: 4
+    channels:
+      - channel: length
+        beta: 1.0
+        element: bar_om85
+        encoding: "longest bar = most evidence = most effective"
+      - channel: position_y
+        beta: 1.0
+        element: bar_om85
+        encoding: "top position in evidence hierarchy"
+      - channel: color_value
+        beta: 0.6
+        element: bar_om85
+        encoding: "full saturation teal #0D9488 = maximum confidence"
+      - channel: size
+        beta: 0.7
+        element: label_rcts_om85
+        encoding: "largest RCT count label (18 RCTs)"
+      - channel: icon
+        beta: 0.5
+        element: outcome_arrow_om85
+        encoding: "downward arrow ↓ Recurrent RTIs"
+      - channel: text_label
+        beta: 0.3
+        element: outcome_text_om85
+        encoding: "Réduction majeure des infections et du wheezing"
+
+  c5:
+    text: "OM-85 demonstrates major reduction of wheezing"
+    priority: 1
+    data_family: directional
+    min_channels: 3
+    channels:
+      - channel: icon
+        beta: 0.5
+        element: outcome_arrow_wheezing
+        encoding: "downward arrow ↓ Wheezing Episodes"
+      - channel: color_hue
+        beta: 0.7
+        element: outcome_badge_wheezing
+        encoding: "green = positive outcome"
+      - channel: text_label
+        beta: 0.3
+        element: outcome_text_wheezing
+        encoding: "↓ Wheezing Episodes"
+      - channel: spatial_proximity
+        beta: 0.5
+        element: outcome_badge_wheezing
+        encoding: "adjacent to OM-85 bar = linked"
+
+  c7:
+    text: "PMBL reduces allergic asthma exacerbations"
+    priority: 1
+    data_family: directional
+    min_channels: 3
+    channels:
+      - channel: length
+        beta: 1.0
+        element: bar_pmbl
+        encoding: "medium bar = solid evidence"
+      - channel: icon
+        beta: 0.5
+        element: outcome_arrow_pmbl
+        encoding: "downward arrow ↓ Asthma"
+      - channel: color_hue
+        beta: 0.7
+        element: outcome_badge_pmbl
+        encoding: "green = positive outcome"
+      - channel: text_label
+        beta: 0.3
+        element: outcome_text_pmbl
+        encoding: "Réduction des exacerbations d'asthme allergique"
+
+  c9:
+    text: "MV130 shows 40% reduction in wheezing episodes"
+    priority: 1
+    data_family: quantitative
+    min_channels: 3
+    channels:
+      - channel: length
+        beta: 1.0
+        element: bar_mv130
+        encoding: "short bar = limited evidence but real"
+      - channel: text_label
+        beta: 0.3
+        element: outcome_text_mv130
+        encoding: "Diminution de 40% des épisodes de sifflement"
+      - channel: color_value
+        beta: 0.6
+        element: bar_mv130
+        encoding: "purple #7C3AED = distinct product identity"
+      - channel: number
+        beta: 0.8
+        element: pct_label_mv130
+        encoding: "40% displayed as number"
+
+  c13:
+    text: "These agents break the link between early viral infections and asthma"
+    priority: 1
+    data_family: ordinal
+    min_channels: 5
+    channels:
+      - channel: spatial_sequence
+        beta: 1.0
+        element: vicious_cycle
+        encoding: "circular cycle with visible BREAK point"
+      - channel: color_gradient
+        beta: 0.7
+        element: background_gradient
+        encoding: "red (left/pathological) → green (right/protected)"
+      - channel: shape
+        beta: 0.5
+        element: cycle_break_icon
+        encoding: "lightning bolt or fracture breaking the cycle"
+      - channel: position_x
+        beta: 1.0
+        element: children_silhouettes
+        encoding: "sick child LEFT, healthy child RIGHT = transformation"
+      - channel: icon
+        beta: 0.5
+        element: child_sick
+        encoding: "coughing child = symptomatic"
+
+  c14:
+    text: "These agents fill a therapeutic gap in managing children aged 0-5"
+    priority: 1
+    data_family: categorical
+    min_channels: 3
+    channels:
+      - channel: icon
+        beta: 0.5
+        element: child_healthy
+        encoding: "arms-raised child = protected outcome"
+      - channel: text_label
+        beta: 0.3
+        element: title
+        encoding: "Briser le Cercle Vicieux des Infections Respiratoires Pédiatriques"
+      - channel: spatial_frame
+        beta: 0.5
+        element: overall_layout
+        encoding: "entire GA framed as problem→solution for children"
+
+  # ════════════════════════════════════════════════════════
+  # P2 — SUPPORTING MESSAGES (reader should understand)
+  # ════════════════════════════════════════════════════════
+
+  c1:
+    text: "Four immunomodulators share convergent mechanisms"
+    priority: 2
+    data_family: categorical
+    min_channels: 2
+    channels:
+      - channel: grouping
+        beta: 0.5
+        element: product_pills
+        encoding: "4 colored pills grouped together at top"
+      - channel: color_hue
+        beta: 0.7
+        element: product_pills
+        encoding: "each product = distinct color (teal, teal, purple, green)"
+      - channel: spatial_convergence
+        beta: 0.5
+        element: iga_convergence
+        encoding: "all 4 product paths converge to IgA point"
+
+  c2:
+    text: "OM-85 has the most substantial clinical evidence"
+    priority: 2
+    data_family: semi-quantitative
+    min_channels: 3
+    channels:
+      - channel: length
+        beta: 1.0
+        element: bar_om85
+        encoding: "longest bar among 4 products"
+      - channel: color_value
+        beta: 0.6
+        element: bar_om85
+        encoding: "darkest/most saturated = most evidence"
+      - channel: position_y
+        beta: 1.0
+        element: bar_om85
+        encoding: "top of hierarchy = first seen"
+
+  c3:
+    text: "OM-85 has evidence from 18 RCTs"
+    priority: 2
+    data_family: quantitative
+    min_channels: 2
+    channels:
+      - channel: length
+        beta: 1.0
+        element: bar_om85
+        encoding: "bar width proportional to 18/18 = 100%"
+      - channel: text_label
+        beta: 0.3
+        element: label_rcts_om85
+        encoding: "18 RCTs displayed inside or next to bar"
+
+  c6:
+    text: "PMBL has evidence from 5 RCTs"
+    priority: 2
+    data_family: quantitative
+    min_channels: 2
+    channels:
+      - channel: length
+        beta: 1.0
+        element: bar_pmbl
+        encoding: "bar width proportional to 5/18 = 28%"
+      - channel: text_label
+        beta: 0.3
+        element: label_rcts_pmbl
+        encoding: "5 RCTs displayed"
+
+  c8:
+    text: "MV130 has evidence from 1 RCT"
+    priority: 2
+    data_family: quantitative
+    min_channels: 2
+    channels:
+      - channel: length
+        beta: 1.0
+        element: bar_mv130
+        encoding: "bar width proportional to 1/18 = 6%"
+      - channel: text_label
+        beta: 0.3
+        element: label_rcts_mv130
+        encoding: "1 RCT displayed"
+
+  c11:
+    text: "CRL1505 acts via the gut-lung axis"
+    priority: 2
+    data_family: spatial
+    min_channels: 2
+    channels:
+      - channel: position_y
+        beta: 1.0
+        element: pont_crl1505
+        encoding: "bridge arcing from bottom (gut) to bronchus (lung)"
+      - channel: shape
+        beta: 0.5
+        element: pont_crl1505
+        encoding: "arc shape = connection between distant anatomical sites"
+      - channel: color_hue
+        beta: 0.7
+        element: pont_crl1505
+        encoding: "distinct green #059669 = unique mechanism"
+
+  # ════════════════════════════════════════════════════════
+  # P3 — CONTEXT (if the reader has time)
+  # ════════════════════════════════════════════════════════
+
+  c10:
+    text: "CRL1505 is a probiotic"
+    priority: 3
+    data_family: categorical
+    min_channels: 1
+    channels:
+      - channel: text_label
+        beta: 0.3
+        element: label_crl1505
+        encoding: "'CRL1505' label on product pill"
+      - channel: icon
+        beta: 0.5
+        element: gut_icon
+        encoding: "gut/intestine icon near CRL1505 bridge"
+
+  c12:
+    text: "The evidence for CRL1505 is preclinical"
+    priority: 3
+    data_family: categorical
+    min_channels: 1
+    channels:
+      - channel: color_value
+        beta: 0.6
+        element: bar_crl1505
+        encoding: "grey/desaturated #9CA3AF = not yet clinical"
+      - channel: length
+        beta: 1.0
+        element: bar_crl1505
+        encoding: "shortest bar = least evidence"
+      - channel: text_label
+        beta: 0.3
+        element: label_crl1505_preclinical
+        encoding: "'Préclinique' label"
+
+# ════════════════════════════════════════════════════════
+# NARRATIVES (groups of claims)
+# ════════════════════════════════════════════════════════
+
+narratives:
+  n1:
+    name: "Breaking the vicious cycle"
+    claims: [c13, c14, c4, c5]
+    target_coverage: 0.80
+    primary_zone: "top_panel"
+
+  n2:
+    name: "Evidence hierarchy"
+    claims: [c2, c3, c6, c8, c9, c12]
+    target_coverage: 0.60
+    primary_zone: "evidence_bars"
+
+  n3:
+    name: "Convergent mechanisms"
+    claims: [c1, c7, c11]
+    target_coverage: 0.50
+    primary_zone: "bottom_panel"
+
+# ════════════════════════════════════════════════════════
+# VALIDATION RULES
+# ════════════════════════════════════════════════════════
+
+validation:
+  - rule: "Every P1 claim must have >= min_channels active"
+    check: "fragile anti-pattern if below"
+  - rule: "Every P1 claim must be in a visited space (reader sim)"
+    check: "dead_space if the space containing P1 carriers is never visited"
+  - rule: "No P3 claim should use a stronger channel than a P1 claim"
+    check: "inverse anti-pattern if P3 uses length while P1 uses only text"
+  - rule: "Total word count from text_label channels <= 35"
+    check: "encyclopedie anti-pattern if exceeded"
