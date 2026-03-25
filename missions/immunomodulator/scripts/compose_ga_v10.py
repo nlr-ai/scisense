@@ -1,5 +1,5 @@
 """
-Parametric GA Compositor V10.4 — "La Bronche Vivante"
+Parametric GA Compositor V10.5 — "La Bronche Vivante"
 
 4-band bronchial cross-section (longitudinal view):
   Band 1: LUMEN — virus entry (left) -> IgA protection (right)
@@ -29,6 +29,20 @@ V10.4 changes (calibrated from V2A_4 NotebookLM infographic):
   - Fix 3: Evidence bars darker for stronger evidence (luminance = strength)
   - Fix 4: CRL1505 relay arc opacity reduced (0.7 -> 0.55)
   - Fix 5: Vicious cycle repositioned to wrap around bronchus left entrance
+
+V10.5 changes (organic density — close wireframe/infographic gap):
+  - Fix 1: Stipple textures on lumen, epithelium, lamina backgrounds
+  - Fix 2: Cross-hatch texture in lamina propria (connective tissue grain)
+  - Fix 3: Wavy fiber lines in muscle band (smooth muscle fibers)
+  - Fix 4: Epithelial nuclei hints (elliptical nucleolus in cells)
+  - Fix 5: Tight junction zigzags between healthy-side epithelial cells
+  - Fix 6: More cilia (6/cell), wave-offset for organic look
+  - Fix 7: More virus particles on sick side (small scattered virions)
+  - Fix 8: Macrophages + T-helpers + Tregs in lamina propria
+  - Fix 9: Immune cell scatter dots in lamina (population density)
+  - Fix 10: Improved sick->healthy gradient transitions (3-stop gradients)
+  - Fix 11: Cell count increased to 42 for denser epithelium
+  - Fix 12: Background text contrast ensured (semi-transparent backing behind labels)
 """
 
 import yaml
@@ -57,6 +71,13 @@ from scripts.vec_lib import (
     draw_child_contour,
     draw_gradient_band,
     draw_mucus_droplet,
+    draw_stipple_field,
+    draw_crosshatch,
+    draw_fiber_lines,
+    draw_tight_junction,
+    draw_cell_nucleus,
+    draw_macrophage,
+    draw_t_helper,
     render_png,
 )
 
@@ -189,24 +210,24 @@ def draw_bronchus_frame(dwg, layout, palette, W, H):
         stroke_width=bc["border_width"]
     ))
 
-    # === V10.4 FIX 2: Band-level horizontal gradients (sick->healthy tissue color) ===
+    # === V10.5 FIX 10: 3-stop band gradients (sick -> neutral -> healthy) ===
     bands = get_band_rects(layout, W, H)
-    band_gradient_pairs = {
-        "lumen":      ("#FEF2F2", "#F0FDF4"),   # pale red -> pale green
-        "epithelium": ("#FECDD3", "#D1FAE5"),   # pink -> mint
-        "lamina":     ("#FEE2E2", "#ECFDF5"),   # pale red -> pale green
-        # muscle already has its own gradient from draw_muscle(), skip
+    band_gradient_triplets = {
+        "lumen":      ("#FEF2F2", "#FAFAFA", "#F0FDF4"),   # pale red -> neutral -> pale green
+        "epithelium": ("#FECDD3", "#F3F4F6", "#D1FAE5"),   # pink -> gray -> mint
+        "lamina":     ("#FEE2E2", "#F9FAFB", "#ECFDF5"),   # pale red -> near-white -> pale green
     }
     for bname, (bx2, by2, bw2, bh2) in bands.items():
-        if bname in band_gradient_pairs:
-            sick_col, healthy_col = band_gradient_pairs[bname]
+        if bname in band_gradient_triplets:
+            sick_col, mid_col, healthy_col = band_gradient_triplets[bname]
             grad_id = f"band_grad_{bname}"
             band_lg = dwg.linearGradient(("0%", "0%"), ("100%", "0%"), id=grad_id)
             band_lg.add_stop_color("0%", sick_col)
+            band_lg.add_stop_color("45%", mid_col)
             band_lg.add_stop_color("100%", healthy_col)
             dwg.defs.add(band_lg)
             dwg.add(dwg.rect((bx2, by2), (bw2, bh2),
-                             fill=f"url(#{grad_id})", opacity=0.4))
+                             fill=f"url(#{grad_id})", opacity=0.45))
         elif bname == "muscle":
             # Keep subtle fill for muscle (gradient handled by draw_muscle)
             dwg.add(dwg.rect((bx2, by2), (bw2, bh2),
@@ -233,10 +254,11 @@ def draw_bronchus_frame(dwg, layout, palette, W, H):
 # ===================================================================
 
 def draw_band_labels(dwg, layout, palette, W, H):
-    """Draw small rotated labels on the LEFT edge of each band."""
+    """Draw small rotated labels on the LEFT edge of each band.
+    V10.5 FIX 12: Semi-transparent backing for readability against textures."""
     bands = get_band_rects(layout, W, H)
     font_family = layout["font"]["family"]
-    label_color = "#9CA3AF"
+    label_color = "#6B7280"
     label_font_size = 20
 
     band_names = {
@@ -251,8 +273,18 @@ def draw_band_labels(dwg, layout, palette, W, H):
         # Position: just inside the left edge, vertically centered
         lx = bx + 14
         ly = by + bh // 2
+        # Semi-transparent backing rectangle (rotated with text)
+        label_len = len(label) * label_font_size * 0.55
+        back_w = label_len
+        back_h = label_font_size + 6
+        back_x = lx - label_len / 2
+        back_y = ly - back_h / 2
+        backing = dwg.rect((back_x, back_y), (back_w, back_h),
+                           fill="white", opacity=0.65, rx=3, ry=3)
+        backing.attribs["transform"] = f"rotate(-90, {lx}, {ly})"
+        dwg.add(backing)
         # Rotated -90 degrees around insertion point
-        txt = dwg.text(label, insert=(lx, ly),
+        txt = dwg.text(label, insert=(lx, ly + label_font_size * 0.35),
                        font_size=label_font_size, fill=label_color,
                        font_family=font_family,
                        text_anchor="middle",
@@ -265,28 +297,35 @@ def draw_band_labels(dwg, layout, palette, W, H):
 # ===================================================================
 
 def draw_zone_orientation(dwg, layout, palette, W, H):
-    """Draw 'Pathological' at top-left, 'Protected' at top-right of bronchus."""
+    """Draw 'Pathological' at top-left, 'Protected' at top-right of bronchus.
+    V10.5 FIX 12: Semi-transparent backing for readability."""
     bx, by, bw, bh = get_bronchus_rect(layout, W, H)
     font_family = layout["font"]["family"]
 
-    # Pathological (left side) — red-ish
+    # Pathological (left side) — red-ish with backing
+    path_x, path_y = bx + 20, by - 12
+    dwg.add(dwg.rect((path_x - 4, path_y - 22), (170, 28),
+                     fill="white", opacity=0.6, rx=3))
     dwg.add(dwg.text("Pathological",
-                     insert=(bx + 20, by - 12),
+                     insert=(path_x, path_y),
                      font_size=28,
                      fill="#DC2626",
                      font_family=font_family,
                      font_weight="bold",
-                     opacity=0.7))
+                     opacity=0.8))
 
-    # Protected (right side) — green-ish
+    # Protected (right side) — green-ish with backing
+    prot_x = bx + bw - 20
+    dwg.add(dwg.rect((prot_x - 135, by - 34), (140, 28),
+                     fill="white", opacity=0.6, rx=3))
     dwg.add(dwg.text("Protected",
-                     insert=(bx + bw - 20, by - 12),
+                     insert=(prot_x, by - 12),
                      font_size=28,
                      fill="#059669",
                      font_family=font_family,
                      font_weight="bold",
                      text_anchor="end",
-                     opacity=0.7))
+                     opacity=0.8))
 
 
 # ===================================================================
@@ -296,7 +335,17 @@ def draw_zone_orientation(dwg, layout, palette, W, H):
 def draw_lumen(dwg, layout, palette, W, H):
     bx, by, bw, bh = get_band_rects(layout, W, H)["lumen"]
     bc = layout["band_content"]["lumen"]
+    dc = layout.get("density", {})
     virus_color = palette["virus"]
+
+    # === V10.5 FIX 1: Stipple texture in lumen (faint air particles) ===
+    stipple_color = palette.get("density", {}).get("lumen_stipple", "#CBD5E1")
+    draw_stipple_field(dwg, bx, by, bw, bh,
+                       color=stipple_color,
+                       density=dc.get("lumen_stipple_density", 0.0008),
+                       r_min=dc.get("stipple_r_min", 1.0),
+                       r_max=dc.get("stipple_r_max", 2.5),
+                       opacity=0.10, seed=100)
 
     # Viruses on the left
     random.seed(42)
@@ -306,6 +355,17 @@ def draw_lumen(dwg, layout, palette, W, H):
         vx = random.randint(vx_min, vx_max)
         vy = by + int(bh * 0.3) + random.randint(0, int(bh * 0.4))
         draw_virus_icon(dwg, vx, vy, bc["virus_radius"], virus_color)
+
+    # === V10.5 FIX 7: Extra small virus particles scattered on sick side ===
+    extra_count = dc.get("virus_count_extra", 4)
+    extra_r = dc.get("virus_extra_radius", 14)
+    extra_x_range = dc.get("virus_extra_x_range", [0.02, 0.38])
+    random.seed(200)
+    for i in range(extra_count):
+        vx = bx + int(bw * extra_x_range[0]) + random.randint(
+            0, int(bw * (extra_x_range[1] - extra_x_range[0])))
+        vy = by + int(bh * 0.15) + random.randint(0, int(bh * 0.7))
+        draw_virus_icon(dwg, vx, vy, extra_r, virus_color)
 
     # Red arrows showing virus direction
     for i in range(2):
@@ -318,13 +378,13 @@ def draw_lumen(dwg, layout, palette, W, H):
             fill=virus_color, opacity=0.5
         ))
 
-    # === FIX 9: MUCUS DROPLETS on sick side ===
+    # === FIX 9: MUCUS DROPLETS on sick side (increased count) ===
     random.seed(99)
-    for i in range(5):
-        mx = bx + int(bw * 0.03) + random.randint(0, int(bw * 0.25))
+    for i in range(8):
+        mx = bx + int(bw * 0.03) + random.randint(0, int(bw * 0.28))
         my = by + int(bh * 0.15) + random.randint(0, int(bh * 0.65))
-        mr = random.randint(4, 8)
-        draw_mucus_droplet(dwg, mx, my, mr, color="#D97706", opacity=0.45)
+        mr = random.randint(3, 9)
+        draw_mucus_droplet(dwg, mx, my, mr, color="#D97706", opacity=0.40)
 
     # === FIX 5: CONVERGENCE LINES from actual product locations ===
     bands = get_band_rects(layout, W, H)
@@ -405,9 +465,19 @@ def draw_lumen(dwg, layout, palette, W, H):
 def draw_epithelium(dwg, layout, palette, W, H):
     bx, by, bw, bh = get_band_rects(layout, W, H)["epithelium"]
     bc = layout["band_content"]["epithelium"]
+    dc = layout.get("density", {})
 
-    # === FIX 3: Increased density (24 -> 36 cells) ===
-    n_cells = 36
+    # === V10.5 FIX 1: Stipple texture behind epithelium ===
+    stipple_color = palette.get("density", {}).get("epithelium_stipple", "#9CA3AF")
+    draw_stipple_field(dwg, bx, by, bw, bh,
+                       color=stipple_color,
+                       density=dc.get("epithelium_stipple_density", 0.0015),
+                       r_min=dc.get("stipple_r_min", 1.0),
+                       r_max=dc.get("stipple_r_max", 2.5),
+                       opacity=0.08, seed=101)
+
+    # === V10.5 FIX 11: Increased cell count (36 -> 42) ===
+    n_cells = dc.get("epithelium_cells", 42)
     cell_w = bw / n_cells
     cell_h = int(bh * bc["cell_height_pct"])
     cell_y = by + (bh - cell_h) // 2
@@ -423,12 +493,20 @@ def draw_epithelium(dwg, layout, palette, W, H):
 
     om85_color = palette["products"]["om85"]
     pmbl_color = palette["products"]["pmbl"]
+    nucleus_color = palette.get("density", {}).get("epithelium_nucleus", "#6B7280")
+    tj_color = palette.get("density", {}).get("tight_junction", "#374151")
+    nucleus_prob = dc.get("nucleus_probability", 0.7)
+    n_cilia_cfg = dc.get("cilia_per_cell", 6)
+    tj_n_zigs = dc.get("tight_junction_n_zigs", 6)
+    tj_amplitude = dc.get("tight_junction_amplitude", 3)
+
+    random.seed(300)  # for nucleus placement decisions
 
     for i in range(n_cells):
         cx = bx + int(i * cell_w)
         t = i / max(1, n_cells - 1)
 
-        # === FIX 3: Gradient fills on cells (P27 texture) ===
+        # Gradient fills on cells (P27 texture)
         cell_base = lerp_color(
             palette["bands"]["epithelium_sick"],
             palette["bands"]["epithelium_healthy"],
@@ -456,29 +534,50 @@ def draw_epithelium(dwg, layout, palette, W, H):
                 fill=palette["virus"], opacity=0.2
             ))
         else:
+            # Vary cell shape slightly for organic look
+            cell_rx = 2 + int(t * 2)  # rounder cells on healthy side
             dwg.add(dwg.rect(
                 (cx + 1, cell_y), (int(cell_w) - 2, cell_h),
                 fill=f"url(#{grad_id})", stroke="#D1D5DB", stroke_width=1,
-                rx=2, ry=2
+                rx=cell_rx, ry=cell_rx
             ))
 
-            # === V10.4 FIX 1: CILIA on top of intact cells ===
-            # Cilia only appear in transition zone and healthy side (t > 0.3)
-            # Height increases with health (t)
-            if t > 0.3:
-                n_cilia = 4
-                cilia_h_base = int(cell_h * 0.18)
-                # Scale cilia height with health: 0.3->1.0 maps to 0.4->1.0 of base height
-                cilia_scale = 0.4 + 0.6 * ((t - 0.3) / 0.7)
+            # === V10.5 FIX 4: Nucleus hints inside epithelial cells ===
+            if random.random() < nucleus_prob:
+                nuc_cx = cx + cell_w * 0.5
+                nuc_cy = cell_y + cell_h * 0.55
+                nuc_rx = cell_w * 0.22
+                nuc_ry = cell_h * 0.18
+                draw_cell_nucleus(dwg, nuc_cx, nuc_cy, nuc_rx, nuc_ry,
+                                  nucleus_color, opacity=0.25)
+
+            # === V10.5 FIX 6: More cilia with wave offset ===
+            # Cilia appear in transition zone and healthy side (t > 0.25)
+            if t > 0.25:
+                cilia_h_base = int(cell_h * 0.20)
+                cilia_scale = 0.35 + 0.65 * ((t - 0.25) / 0.75)
                 cilia_h = max(2, int(cilia_h_base * cilia_scale))
                 cilia_color = lerp_color(cell_base, "#1F2937", 0.3)
-                for c in range(n_cilia):
-                    cx_cilia = cx + int(cell_w * (c + 1) / (n_cilia + 1))
+                wave_amp = dc.get("cilia_wave_amplitude", 2)
+                for c in range(n_cilia_cfg):
+                    cx_cilia = cx + int(cell_w * (c + 0.5) / n_cilia_cfg)
+                    # Wave offset for organic look
+                    wave_offset = wave_amp * math.sin(c * 1.2 + i * 0.7)
                     dwg.add(dwg.line(
-                        (cx_cilia, cell_y - 1), (cx_cilia, cell_y - cilia_h),
+                        (cx_cilia, cell_y - 1),
+                        (cx_cilia + wave_offset, cell_y - cilia_h),
                         stroke=cilia_color,
-                        stroke_width=1.5, stroke_linecap="round"
+                        stroke_width=1.3, stroke_linecap="round"
                     ))
+
+            # === V10.5 FIX 5: Tight junction zigzags (healthy side) ===
+            if t > 0.50 and i > 0 and (i - 1) not in gap_indices:
+                draw_tight_junction(dwg, cx, cell_y + int(cell_h * 0.1),
+                                    cell_y + int(cell_h * 0.9),
+                                    tj_color, n_zigs=tj_n_zigs,
+                                    amplitude=tj_amplitude,
+                                    stroke_width=1.0,
+                                    opacity=0.3 + 0.3 * t)
 
             # PMBL staples between cells (right portion)
             if t > 0.45 and i > 0 and i not in gap_indices:
@@ -535,6 +634,7 @@ def draw_epithelium(dwg, layout, palette, W, H):
 def draw_lamina_propria(dwg, layout, palette, W, H):
     bx, by, bw, bh = get_band_rects(layout, W, H)["lamina"]
     bc = layout["band_content"]["lamina"]
+    dc_cfg = layout.get("density", {})
 
     split_y = by + int(bh * bc["split_pct"])
 
@@ -542,6 +642,24 @@ def draw_lamina_propria(dwg, layout, palette, W, H):
     mv130_color = palette["products"]["mv130"]
     crl1505_color = palette["products"]["crl1505"]
     pmbl_color = palette["products"]["pmbl"]
+
+    density_pal = palette.get("density", {})
+
+    # === V10.5 FIX 1: Stipple texture in lamina ===
+    stipple_color = density_pal.get("lamina_stipple", "#D1D5DB")
+    draw_stipple_field(dwg, bx, by, bw, bh,
+                       color=stipple_color,
+                       density=dc_cfg.get("lamina_stipple_density", 0.0012),
+                       r_min=dc_cfg.get("stipple_r_min", 1.0),
+                       r_max=dc_cfg.get("stipple_r_max", 2.5),
+                       opacity=0.10, seed=102)
+
+    # === V10.5 FIX 2: Cross-hatch texture (connective tissue grain) ===
+    draw_crosshatch(dwg, bx, by, bw, bh,
+                    color=stipple_color,
+                    spacing=dc_cfg.get("lamina_crosshatch_spacing", 28),
+                    stroke_width=0.6,
+                    opacity=dc_cfg.get("lamina_crosshatch_opacity", 0.06))
 
     # === FIX 7: Increased DC radius (42 -> 55) ===
     dc_radius = 55
@@ -589,6 +707,71 @@ def draw_lamina_propria(dwg, layout, palette, W, H):
         fill="#9CA3AF"
     ))
 
+    # === V10.5 FIX 8: Macrophages in lamina propria ===
+    mac_r = dc_cfg.get("macrophage_radius", 18)
+    mac_dormant_color = density_pal.get("macrophage_dormant", "#9CA3AF")
+    mac_active_color = density_pal.get("macrophage_active", "#3B82F6")
+
+    # Dormant macrophages on sick side
+    mac_sick_count = dc_cfg.get("macrophage_count_sick", 2)
+    random.seed(400)
+    for m in range(mac_sick_count):
+        mx = bx + int(bw * 0.08) + random.randint(0, int(bw * 0.18))
+        my = split_y + random.randint(int((by + bh - split_y) * 0.15),
+                                       int((by + bh - split_y) * 0.85))
+        draw_macrophage(dwg, mx, my, mac_r, mac_dormant_color,
+                        active=False, opacity=0.45, seed=m + 400)
+
+    # Active macrophages on healthy side
+    mac_healthy_count = dc_cfg.get("macrophage_count_healthy", 3)
+    for m in range(mac_healthy_count):
+        mx = bx + int(bw * 0.55) + random.randint(0, int(bw * 0.30))
+        my = split_y + random.randint(int((by + bh - split_y) * 0.15),
+                                       int((by + bh - split_y) * 0.85))
+        draw_macrophage(dwg, mx, my, mac_r, mac_active_color,
+                        active=True, opacity=0.45, seed=m + 410)
+
+    # === V10.5 FIX 8: T-helper cells scattered in upper lamina ===
+    th_color = density_pal.get("t_helper", "#60A5FA")
+    th_count = dc_cfg.get("t_helper_count", 4)
+    th_r = dc_cfg.get("t_helper_radius", 12)
+    random.seed(500)
+    for t_i in range(th_count):
+        # Spread across the band, biased toward middle-right
+        tx = bx + int(bw * 0.30) + random.randint(0, int(bw * 0.55))
+        ty = by + random.randint(int((split_y - by) * 0.15),
+                                  int((split_y - by) * 0.85))
+        draw_t_helper(dwg, tx, ty, th_r, th_color, opacity=0.5,
+                      font_family=layout["font"]["family"])
+
+    # === V10.5 FIX 8: Treg cells on healthy side ===
+    treg_color = density_pal.get("treg", "#34D399")
+    treg_count = dc_cfg.get("treg_count", 2)
+    treg_r = dc_cfg.get("treg_radius", 14)
+    for t_i in range(treg_count):
+        tx = bx + int(bw * 0.65) + random.randint(0, int(bw * 0.25))
+        ty = by + random.randint(int((split_y - by) * 0.2),
+                                  int((split_y - by) * 0.8))
+        draw_t_helper(dwg, tx, ty, treg_r, treg_color, label="Treg",
+                      opacity=0.55, font_family=layout["font"]["family"])
+
+    # === V10.5 FIX 9: Immune cell scatter dots (population density) ===
+    scatter_density = dc_cfg.get("immune_scatter_density", 0.0006)
+    scatter_r_min = dc_cfg.get("immune_scatter_r_min", 3)
+    scatter_r_max = dc_cfg.get("immune_scatter_r_max", 6)
+    # Sick side: red-ish scatter (inflammatory infiltrate)
+    draw_stipple_field(dwg, bx, by, int(bw * 0.35), bh,
+                       color="#F87171",
+                       density=scatter_density * 0.8,
+                       r_min=scatter_r_min, r_max=scatter_r_max,
+                       opacity=0.12, seed=600)
+    # Healthy side: blue/green scatter (organized immune cells)
+    draw_stipple_field(dwg, bx + int(bw * 0.55), by, int(bw * 0.45), bh,
+                       color=om85_color,
+                       density=scatter_density * 0.5,
+                       r_min=scatter_r_min, r_max=scatter_r_max,
+                       opacity=0.08, seed=601)
+
     # === UPPER: Adaptive Balance ===
 
     # Unbalanced Th1/Th2 (left)
@@ -614,6 +797,8 @@ def draw_lamina_propria(dwg, layout, palette, W, H):
 def draw_muscle(dwg, layout, palette, W, H):
     bx, by, bw, bh = get_band_rects(layout, W, H)["muscle"]
     bc = layout["band_content"]["muscle"]
+    dc_cfg = layout.get("density", {})
+    density_pal = palette.get("density", {})
 
     draw_gradient_band(dwg, bx, by, bw, bh,
                        palette["bands"]["muscle_sick"],
@@ -621,6 +806,17 @@ def draw_muscle(dwg, layout, palette, W, H):
                        n_slices=40, opacity=0.7,
                        thickness_left=bc["thickness_sick_pct"],
                        thickness_right=bc["thickness_healthy_pct"])
+
+    # === V10.5 FIX 3: Wavy fiber lines (smooth muscle fibers) ===
+    fiber_color = density_pal.get("muscle_fiber", "#92400E")
+    n_fibers = dc_cfg.get("muscle_fiber_count", 16)
+    fiber_opacity = dc_cfg.get("muscle_fiber_opacity", 0.12)
+    draw_fiber_lines(dwg, bx, by, bw, bh,
+                     color=fiber_color,
+                     n_fibers=n_fibers,
+                     stroke_width=1.2,
+                     opacity=fiber_opacity,
+                     seed=700)
 
 
 # ===================================================================
@@ -985,7 +1181,7 @@ def main():
     print("Rendering PNG...")
     render_png(svg_path, full_png, delivery_png, W, H, dw, dh)
 
-    print("\nV10.4 compilation complete.")
+    print("\nV10.5 compilation complete.")
 
 
 if __name__ == "__main__":

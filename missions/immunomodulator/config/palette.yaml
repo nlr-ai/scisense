@@ -40,4 +40,21 @@ text:
 
 virus: "#DC2626"
 
+# V10.5 organic density colors
+density:
+  # Stipple / texture tints per band
+  lumen_stipple: "#CBD5E1"        # slate-300 (faint air particles)
+  epithelium_stipple: "#9CA3AF"   # gray-400 (cell granularity)
+  lamina_stipple: "#D1D5DB"       # gray-300 (tissue grain)
+  muscle_fiber: "#92400E"         # amber-800 (muscle fibers)
+  # Tight junction (healthy side)
+  tight_junction: "#374151"       # gray-700
+  # Nucleus hint inside epithelial cells
+  epithelium_nucleus: "#6B7280"   # gray-500
+  # Immune cells
+  macrophage_dormant: "#9CA3AF"   # gray-400
+  macrophage_active: "#3B82F6"    # blue-500
+  t_helper: "#60A5FA"             # blue-400
+  treg: "#34D399"                 # green-400
+
 background: "#FAFAFA"

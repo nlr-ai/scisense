@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Profil — Premier Regard{% endblock %}
+
+{% block content %}
+<div class="onboard">
+    <h1>Votre profil</h1>
+    <p>Ces informations nous aident à calibrer nos résultats. Aucune donnée personnelle n'est collectée.</p>
+
+    <form method="post" action="/onboard">
+        <fieldset>
+            <legend>Expertise clinique</legend>
+            <div class="btn-group" data-name="clinical_domain">
+                {% for d in config.profile.clinical_domains %}
+                <label class="chip">
+                    <input type="radio" name="clinical_domain" value="{{ d }}" {% if loop.first %}checked{% endif %}>
+                    <span>{{ d }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Années d'expérience</legend>
+            <div class="btn-group" data-name="experience_years">
+                {% for e in config.profile.experience_ranges %}
+                <label class="chip">
+                    <input type="radio" name="experience_years" value="{{ e }}" {% if loop.first %}checked{% endif %}>
+                    <span>{{ e }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Habitude d'analyse de données</legend>
+            <div class="btn-group" data-name="data_literacy">
+                {% for d in config.profile.data_literacy %}
+                <label class="chip">
+                    <input type="radio" name="data_literacy" value="{{ d }}" {% if loop.first %}checked{% endif %}>
+                    <span>{{ d }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Familiarité avec le système GRADE</legend>
+            <div class="btn-group">
+                <label class="chip">
+                    <input type="radio" name="grade_familiar" value="1">
+                    <span>Oui</span>
+                </label>
+                <label class="chip">
+                    <input type="radio" name="grade_familiar" value="0" checked>
+                    <span>Non</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Vision des couleurs</legend>
+            <div class="btn-group" data-name="colorblind_status">
+                {% for c in config.profile.colorblind_options %}
+                <label class="chip">
+                    <input type="radio" name="colorblind_status" value="{{ c }}" {% if loop.first %}checked{% endif %}>
+                    <span>{{ c }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">Continuer</button>
+    </form>
+</div>
+{% endblock %}

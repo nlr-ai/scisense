@@ -1,0 +1,190 @@
+timer:
+  exposure_ms: 5000
+  countdown_seconds: 3
+
+# ── Flux Mode ───────────────────────────────────────────────────────────
+# Ambient attention protocol: target GA is embedded in a feed of N items.
+# Participant scrolls through naturally. Questions are about one random item.
+# Rationale: real-world GA consumption happens during passive browsing,
+# not focused 5-second exposure with countdown priming (System 2 bias).
+flux:
+  enabled: true
+  n_items: 6                # total items in feed (including target)
+  item_duration_ms: 4000    # each item visible for 4s
+  target_position: random   # "random" or fixed int (1-indexed)
+  scroll_transition_ms: 300 # transition between items
+
+profile:
+  clinical_domains:
+    - "Pédiatre"
+    - "Médecin Généraliste"
+    - "Chercheur Bio/Médical"
+    - "Professionnel Tech/Data"
+    - "Grand Public"
+  data_literacy:
+    - "Auteur publié (peer-review)"
+    - "Profil Tech/Data"
+    - "Grand public"
+  experience_ranges:
+    - "<5 ans"
+    - "5-15 ans"
+    - ">15 ans"
+  colorblind_options:
+    - "Vision normale"
+    - "Daltonien (deutéranopie)"
+    - "Daltonien (protanopie)"
+    - "Je ne sais pas"
+
+domains:
+  med:
+    label: "Médical"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quel produit vous a semblé le mieux documenté ?"
+    q3: "Cela modifierait-il votre prise en charge ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  tech:
+    label: "Tech / IA"
+    q1: "Quel était le problème ou le goulot d'étranglement initial ?"
+    q2: "Quel modèle/algorithme présente le benchmark le plus robuste ?"
+    q3: "Intégreriez-vous cette architecture dans votre stack ?"
+    q3_choices: ["Oui", "Non", "Besoin de voir le repo"]
+  policy:
+    label: "Politique de santé publique"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quel résultat de santé vous a semblé le plus impacté par la couverture Medicaid ?"
+    q3: "Cela changerait-il votre position sur l'extension de la couverture santé ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  education:
+    label: "Éducation"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quelle intervention pédagogique vous a semblé la plus efficace ?"
+    q3: "Cela modifierait-il vos pratiques d'enseignement ou de formation ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  climate:
+    label: "Climat / Environnement"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quelle solution climatique vous a semblé avoir le plus grand impact ?"
+    q3: "Cela changerait-il vos comportements ou choix de consommation ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  psychology:
+    label: "Psychologie"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quelle condition ou intervention vous a semblé avoir le plus grand effet ?"
+    q3: "Cela changerait-il votre compréhension de ce phénomène psychologique ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  economics:
+    label: "Économie"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quel résultat économique vous a semblé le plus marquant ?"
+    q3: "Cela influencerait-il votre position sur cette politique économique ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  neuroscience:
+    label: "Neurosciences"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quelle condition a montré le meilleur résultat neurologique ?"
+    q3: "Cela changerait-il vos habitudes liées au cerveau (sommeil, exercice, etc.) ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  nutrition:
+    label: "Nutrition / Santé publique"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quelle intervention nutritionnelle vous a semblé la plus efficace ?"
+    q3: "Cela modifierait-il vos choix alimentaires ou votre position sur ces politiques ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  energy:
+    label: "Énergie / Ingénierie"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quelle technologie vous a semblé la plus performante ?"
+    q3: "Cela changerait-il votre vision du mix énergétique futur ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  epidemiology:
+    label: "Épidémiologie"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quelle intervention ou sous-groupe a montré le meilleur résultat ?"
+    q3: "Cela influencerait-il vos pratiques de prévention ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  ecology:
+    label: "Écologie / Biologie"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quel facteur ou intervention vous a semblé le plus déterminant ?"
+    q3: "Cela changerait-il votre compréhension des priorités de conservation ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  transport:
+    label: "Transport / Urbanisme"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quel mode de transport vous a semblé le plus performant sur ce critère ?"
+    q3: "Cela influencerait-il vos choix de mobilité ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  agriculture:
+    label: "Agriculture"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quelle méthode agricole vous a semblé la plus productive ?"
+    q3: "Cela changerait-il votre vision des systèmes de production alimentaire ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  materials:
+    label: "Science des matériaux"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quelle alternative vous a semblé la plus prometteuse ?"
+    q3: "Cela influencerait-il vos choix de matériaux ou vos recommandations ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+  generic:
+    label: "Générique"
+    q1: "Que venez-vous de voir ?"
+    q2: "Quel élément vous a semblé le plus solidement démontré ?"
+    q3: "Cette information changerait-elle votre façon de faire ?"
+    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+
+scoring:
+  keywords:
+    med:
+      - "immunomodulat"
+      - "immunolog"
+      - "infection"
+      - "respiratoire"
+      - "RTI"
+      - "bronch"
+      - "enfant"
+      - "pédiat"
+      - "OM-85"
+      - "poumon"
+      - "immunit"
+
+# ── Constants ──────────────────────────────────────────────────────────
+# Classification: PHENOMENON = justified by science/cognition
+#                 CALIBRATED = derived from empirical data (overridable here)
+#                 ARBITRARY  = no justification (must be externalized here)
+#
+# See docs/SEMANTIC_SCORING.md "Constant Audit" section for full rationale.
+
+constants:
+  # -- Semantic scoring (semantic.py) --
+  # CALIBRATED: model benchmarked in docs/SEMANTIC_SCORING.md section 1.
+  # Sample: 9 French test phrases, 2 GA images.
+  semantic_model_name: "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+  # CALIBRATED: threshold derived from calibration gap [0.37, 0.52].
+  # 0.40 sits in the clean middle. See docs/SEMANTIC_SCORING.md section 3.
+  # Sample: 9 calibration phrases.
+  s9a_pass_threshold: 0.40
+
+  # -- Speed-accuracy (scoring.py) --
+  # CALIBRATED: RT2 fast/slow boundary. S2b_Mathematics.md section 3.
+  # Based on cognitive reaction time literature: pre-attentive processing
+  # completes in <250ms (Treisman), full decision in 1-3s.
+  # 3000ms chosen as upper bound of fluent decision-making.
+  rt2_fast_slow_ms: 3000
+  # CALIBRATED: RT2 hesitant/lost boundary. S2b_Mathematics.md section 3.
+  # Beyond 8000ms the participant is not guided by the design.
+  rt2_hesitant_lost_ms: 8000
+
+  # -- Composite score (scoring.py, app.py) --
+  # CALIBRATED: S2b pass/fail display threshold. S2b_Mathematics.md section 7.
+  # Interpretation boundary for dashboard label.
+  s2b_pass_threshold: 0.70
+
+  # -- McNemar test (analytics.py) --
+  # CALIBRATED: minimum number of paired observations for McNemar.
+  # Statistical convention — below 10 pairs the chi2 approximation is unreliable.
+  mcnemar_min_pairs: 10
+
+  # -- Session (app.py) --
+  # ARBITRARY: participant cookie lifetime in seconds (30 days).
+  cookie_max_age_seconds: 2592000

@@ -27,6 +27,40 @@
 | Date | Changement | Auteur |
 |------|-----------|--------|
 | 2026-03-24 | Creation complete du doc chain 10 facets | Silas |
+| 2026-03-24 | V10.5 organic density improvements (12 fixes) | Silas |
+
+### V10.5 Changes Detail (2026-03-24)
+
+**vec_lib.py** -- 7 new generic drawing functions added:
+- `draw_stipple_field()` -- random stipple dots for tissue backgrounds
+- `draw_crosshatch()` -- cross-hatch pattern with clipping for connective tissue
+- `draw_fiber_lines()` -- wavy Catmull-Rom fiber lines for muscle tissue
+- `draw_tight_junction()` -- zigzag tight junction between epithelial cells
+- `draw_cell_nucleus()` -- elliptical nucleus with nucleolus dot
+- `draw_macrophage()` -- amoeboid irregular-outline macrophage with kidney nucleus
+- `draw_t_helper()` -- round T-cell with optional label (Th1/Th2/Treg)
+
+**compose_ga_v10.py** -- 12 fixes:
+1. Stipple textures on lumen, epithelium, lamina backgrounds (3 bands)
+2. Cross-hatch texture in lamina propria (connective tissue grain)
+3. Wavy fiber lines in muscle band (smooth muscle fibers)
+4. Epithelial nuclei hints (elliptical nucleolus in ~70% of cells)
+5. Tight junction zigzags between healthy-side epithelial cells
+6. More cilia (6/cell up from 4), wave-offset for organic look
+7. More virus particles on sick side (+4 smaller scattered virions)
+8. Macrophages (2 dormant sick, 3 active healthy) + T-helpers (4) + Tregs (2) in lamina propria
+9. Immune cell scatter dots (inflammatory infiltrate left, organized right)
+10. Improved sick->healthy gradient transitions (3-stop gradients: sick->neutral->healthy)
+11. Cell count increased to 42 for denser epithelium (from 36)
+12. Semi-transparent backing behind band labels and zone orientation for readability
+
+**layout_v10.yaml** -- new `density:` section with 20 tunable parameters
+**palette.yaml** -- new `density:` section with 10 color definitions
+
+**Artefact sizes:**
+- SVG: ~470KB (vs ~180KB in V10.4)
+- Full PNG: ~816KB (2200x1120)
+- Delivery PNG: ~277KB (1100x560, 600 DPI)
 
 ## Remarques / Questions
 

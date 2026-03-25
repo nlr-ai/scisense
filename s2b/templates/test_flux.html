@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+{% block title %}Test — Premier Regard{% endblock %}
+
+{% block head %}
+<style>
+    .flux-briefing {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+    .flux-briefing h1 {
+        font-size: 1.6rem;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+    .flux-briefing p {
+        font-size: 1.05rem;
+        color: #555;
+        max-width: 520px;
+        margin: 0.8rem auto;
+        line-height: 1.6;
+    }
+    .flux-feed-container {
+        position: relative;
+        width: 100%;
+        max-width: 580px;
+        margin: 0 auto;
+        overflow: hidden;
+        background: #111;
+        border-radius: 8px;
+    }
+    .flux-feed-item {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .flux-feed-item.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .flux-feed-item.exiting {
+        opacity: 0;
+        transform: translateY(-40px);
+    }
+    .flux-feed-item img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    .flux-progress {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 1rem;
+        padding: 0.5rem 0;
+    }
+    .flux-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ddd;
+        transition: background 0.3s ease;
+    }
+    .flux-dot.seen {
+        background: #888;
+    }
+    .flux-dot.active {
+        background: #1565C0;
+    }
+    /* Selection panel — S10 saillance step */
+    .flux-selection {
+        text-align: center;
+        padding: 2.5rem 1rem;
+    }
+    .flux-selection p {
+        font-size: 1.1rem;
+        color: #444;
+        max-width: 480px;
+        margin: 0 auto 1.5rem auto;
+        line-height: 1.6;
+    }
+    .selection-thumbnails {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    .selection-thumb {
+        width: 200px;
+        cursor: pointer;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        overflow: hidden;
+        transition: border-color 0.2s ease, transform 0.15s ease;
+    }
+    .selection-thumb:hover {
+        border-color: #1565C0;
+        transform: scale(1.03);
+    }
+    .selection-thumb img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+    .flux-transition {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+    .flux-transition p {
+        font-size: 1.1rem;
+        color: #444;
+        max-width: 480px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="arena" id="arena">
+
+    <!-- BRIEFING — no countdown, no timing mention, no priming -->
+    <div class="state-panel" id="panel-briefing">
+        <div class="flux-briefing">
+            <h1>Contenu scientifique</h1>
+            <p>Vous allez voir defiler du contenu scientifique. Parcourez-le naturellement, comme vous le feriez sur une revue en ligne.</p>
+            <button class="btn btn-primary" id="btn-start">Commencer</button>
+        </div>
+    </div>
+
+    <!-- FEED -->
+    <div class="state-panel hidden" id="panel-feed">
+        <div class="flux-feed-container" id="feed-container">
+            {% for item in feed_items %}
+            <div class="flux-feed-item" data-index="{{ loop.index0 }}" data-filename="{{ item.filename }}">
+                <img src="{{ item.path }}" alt="Content">
+            </div>
+            {% endfor %}
+        </div>
+        <div class="flux-progress" id="feed-progress">
+            {% for item in feed_items %}
+            <div class="flux-dot" data-index="{{ loop.index0 }}"></div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- SELECTION — S10 saillance: thumbnail recognition step -->
+    <div class="state-panel hidden" id="panel-selection">
+        <div class="flux-selection">
+            <p>Sur quelle image portent les questions ?</p>
+            <div class="selection-thumbnails" id="selection-thumbnails">
+                {% for thumb in selection_thumbs %}
+                <div class="selection-thumb" data-filename="{{ thumb.filename }}">
+                    <img src="{{ thumb.path }}" alt="Thumbnail">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Q1: Free recall -->
+    <div class="state-panel hidden" id="panel-q1">
+        <h2>Question 1/4</h2>
+        <p class="question-text">{{ questions.q1 }}</p>
+        <textarea id="q1-input" rows="3" placeholder="Decrivez ce que vous avez vu..." autofocus></textarea>
+        <button class="btn btn-primary" id="btn-q1">Suivant</button>
+    </div>
+
+    <!-- Q2: Product hierarchy -->
+    <div class="state-panel hidden" id="panel-q2">
+        <h2>Question 2/4</h2>
+        <p class="question-text">{{ questions.q2 }}</p>
+        <div class="product-choices" id="q2-choices">
+            {% for p in products %}
+            <button class="btn btn-choice" data-value="{{ p }}">{{ p }}</button>
+            {% endfor %}
+            <button class="btn btn-choice btn-muted" data-value="Je ne sais pas">Je ne sais pas</button>
+        </div>
+    </div>
+
+    <!-- Q3: Actionability -->
+    <div class="state-panel hidden" id="panel-q3">
+        <h2>Question 3/4</h2>
+        <p class="question-text">{{ questions.q3 }}</p>
+        <div class="product-choices" id="q3-choices">
+            {% for c in questions.q3_choices %}
+            <button class="btn btn-choice" data-value="{{ c }}">{{ c }}</button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Q4: Free comment -->
+    <div class="state-panel hidden" id="panel-q4">
+        <h2>Commentaire libre (optionnel)</h2>
+        <p class="question-text">Remarques, impressions, ce qui vous a frappe ou manque ?</p>
+        <textarea id="q4-input" rows="3" placeholder="Optionnel..."></textarea>
+        <button class="btn btn-primary" id="btn-q4">Terminer</button>
+        <button class="btn btn-secondary" id="btn-q4-skip">Passer</button>
+    </div>
+
+    <!-- SUBMITTING -->
+    <div class="state-panel hidden" id="panel-submitting">
+        <div class="spinner"></div>
+        <p>Enregistrement...</p>
+    </div>
+
+    <!-- Hidden form for submission -->
+    <form id="submit-form" method="post" action="/submit" style="display:none">
+        <input type="hidden" name="ga_image_id" value="{{ image.id }}">
+        <input type="hidden" name="q1_text" id="f-q1-text">
+        <input type="hidden" name="q1_time_ms" id="f-q1-time">
+        <input type="hidden" name="q2_choice" id="f-q2-choice">
+        <input type="hidden" name="q2_time_ms" id="f-q2-time">
+        <input type="hidden" name="q3_choice" id="f-q3-choice">
+        <input type="hidden" name="q3_time_ms" id="f-q3-time">
+        <input type="hidden" name="q4_text" id="f-q4-text">
+        <input type="hidden" name="tab_switched" id="f-tab-switched" value="0">
+        <input type="hidden" name="exposure_actual_ms" id="f-exposure-actual" value="0">
+        <input type="hidden" name="q1_first_keystroke_ms" id="f-q1-first-ks" value="0">
+        <input type="hidden" name="q1_last_keystroke_ms" id="f-q1-last-ks" value="0">
+        <input type="hidden" name="exposure_mode" id="f-exposure-mode" value="stream">
+        <input type="hidden" name="stream_position" id="f-stream-position">
+        <input type="hidden" name="stream_length" id="f-stream-length">
+        <input type="hidden" name="stream_selected_id" id="f-stream-selected-id">
+        <input type="hidden" name="target_filename" id="f-target-filename">
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const ITEM_DURATION_MS = {{ item_duration_ms }};
+    const SCROLL_TRANSITION_MS = {{ scroll_transition_ms }};
+    const TARGET_POSITION = {{ target_position }};  // 0-indexed
+    const TARGET_FILENAME = "{{ target_filename }}";
+    const FEED_COUNT = {{ feed_items | length }};
+
+    const panels = {
+        briefing: document.getElementById('panel-briefing'),
+        feed: document.getElementById('panel-feed'),
+        selection: document.getElementById('panel-selection'),
+        q1: document.getElementById('panel-q1'),
+        q2: document.getElementById('panel-q2'),
+        q3: document.getElementById('panel-q3'),
+        q4: document.getElementById('panel-q4'),
+        submitting: document.getElementById('panel-submitting'),
+    };
+
+    let currentState = 'briefing';
+    let questionStart = 0;
+    let q1Start = 0;
+    let feedStart = 0;
+    const responses = {
+        q1_text: '', q1_time: 0, q2_choice: '', q2_time: 0, q3_choice: '', q3_time: 0,
+        tab_switched: false, exposure_actual_ms: 0,
+        q1_first_keystroke_ms: 0, q1_last_keystroke_ms: 0,
+        stream_selected_id: '',
+    };
+
+    // Tab switch detection during feed
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && currentState === 'feed') {
+            responses.tab_switched = true;
+        }
+    });
+
+    function showPanel(name) {
+        Object.values(panels).forEach(p => p.classList.add('hidden'));
+        panels[name].classList.remove('hidden');
+        currentState = name;
+    }
+
+    // Preload all feed images
+    const feedItems = document.querySelectorAll('.flux-feed-item');
+    const feedDots = document.querySelectorAll('.flux-dot');
+    feedItems.forEach(item => {
+        const img = new Image();
+        img.src = item.querySelector('img').src;
+    });
+
+    // Also preload selection thumbnails
+    document.querySelectorAll('.selection-thumb img').forEach(img => {
+        const preload = new Image();
+        preload.src = img.src;
+    });
+
+    // Set container height based on first image aspect ratio (560/1100 ~= 0.509)
+    const feedContainer = document.getElementById('feed-container');
+    function setContainerHeight() {
+        const w = feedContainer.offsetWidth;
+        feedContainer.style.height = Math.round(w * 560 / 1100) + 'px';
+    }
+    setContainerHeight();
+    window.addEventListener('resize', setContainerHeight);
+
+    // ── Start button ──
+    document.getElementById('btn-start').addEventListener('click', () => {
+        showPanel('feed');
+        startFeed();
+    });
+
+    // ── Feed auto-scroll ──
+    function startFeed() {
+        feedStart = performance.now();
+        let currentIndex = 0;
+
+        function showItem(index) {
+            // Remove all states
+            feedItems.forEach(fi => {
+                fi.classList.remove('active', 'exiting');
+            });
+            feedDots.forEach(d => d.classList.remove('active'));
+
+            // Mark previous dots as seen
+            for (let i = 0; i < index; i++) {
+                feedDots[i].classList.add('seen');
+            }
+
+            // Show current
+            feedItems[index].classList.add('active');
+            feedDots[index].classList.add('active');
+        }
+
+        function advanceFeed() {
+            if (currentIndex >= FEED_COUNT) {
+                // Feed complete — record total exposure
+                responses.exposure_actual_ms = Math.round(performance.now() - feedStart);
+                // Mark last dot as seen
+                feedDots[FEED_COUNT - 1].classList.add('seen');
+                feedDots[FEED_COUNT - 1].classList.remove('active');
+                // Show selection panel (S10 saillance step)
+                showPanel('selection');
+                return;
+            }
+
+            showItem(currentIndex);
+            currentIndex++;
+
+            setTimeout(() => {
+                // Exit animation
+                if (currentIndex <= FEED_COUNT) {
+                    const prevItem = feedItems[currentIndex - 1];
+                    prevItem.classList.remove('active');
+                    prevItem.classList.add('exiting');
+                }
+                // Short gap for transition animation, then show next
+                setTimeout(advanceFeed, SCROLL_TRANSITION_MS);
+            }, ITEM_DURATION_MS);
+        }
+
+        advanceFeed();
+    }
+
+    // ── Selection: thumbnail recognition (S10) ──
+    document.querySelectorAll('.selection-thumb').forEach(thumb => {
+        thumb.addEventListener('click', () => {
+            // Record which thumbnail was selected
+            responses.stream_selected_id = thumb.dataset.filename;
+            // Proceed to Q1 (questions are always about the TARGET GA)
+            showPanel('q1');
+            q1Start = performance.now();
+            questionStart = performance.now();
+            document.getElementById('q1-input').focus();
+        });
+    });
+
+    // ── Keystroke timing on Q1 ──
+    document.getElementById('q1-input').addEventListener('keydown', () => {
+        const elapsed = Math.round(performance.now() - q1Start);
+        if (!responses.q1_first_keystroke_ms) {
+            responses.q1_first_keystroke_ms = elapsed;
+        }
+        responses.q1_last_keystroke_ms = elapsed;
+    });
+
+    // ── Q1: free text ──
+    document.getElementById('btn-q1').addEventListener('click', () => {
+        responses.q1_text = document.getElementById('q1-input').value;
+        responses.q1_time = Math.round(performance.now() - questionStart);
+        showPanel('q2');
+        questionStart = performance.now();
+    });
+
+    // ── Q2: product choice ──
+    document.querySelectorAll('#q2-choices .btn-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            responses.q2_choice = btn.dataset.value;
+            responses.q2_time = Math.round(performance.now() - questionStart);
+            showPanel('q3');
+            questionStart = performance.now();
+        });
+    });
+
+    // ── Q3: actionability ──
+    document.querySelectorAll('#q3-choices .btn-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+            responses.q3_choice = btn.dataset.value;
+            responses.q3_time = Math.round(performance.now() - questionStart);
+            showPanel('q4');
+        });
+    });
+
+    // ── Q4: free comment ──
+    document.getElementById('btn-q4').addEventListener('click', () => {
+        responses.q4_text = document.getElementById('q4-input').value;
+        submitTest();
+    });
+    document.getElementById('btn-q4-skip').addEventListener('click', () => {
+        responses.q4_text = '';
+        submitTest();
+    });
+
+    // ── Submit ──
+    function submitTest() {
+        showPanel('submitting');
+        document.getElementById('f-q1-text').value = responses.q1_text;
+        document.getElementById('f-q1-time').value = responses.q1_time;
+        document.getElementById('f-q2-choice').value = responses.q2_choice;
+        document.getElementById('f-q2-time').value = responses.q2_time;
+        document.getElementById('f-q3-choice').value = responses.q3_choice;
+        document.getElementById('f-q3-time').value = responses.q3_time;
+        document.getElementById('f-q4-text').value = responses.q4_text || '';
+        document.getElementById('f-tab-switched').value = responses.tab_switched ? 1 : 0;
+        document.getElementById('f-exposure-actual').value = responses.exposure_actual_ms;
+        document.getElementById('f-q1-first-ks').value = responses.q1_first_keystroke_ms;
+        document.getElementById('f-q1-last-ks').value = responses.q1_last_keystroke_ms;
+        // Stream metadata
+        document.getElementById('f-exposure-mode').value = 'stream';
+        document.getElementById('f-stream-position').value = TARGET_POSITION + 1;  // 1-indexed for storage
+        document.getElementById('f-stream-length').value = FEED_COUNT;
+        document.getElementById('f-stream-selected-id').value = responses.stream_selected_id;
+        document.getElementById('f-target-filename').value = TARGET_FILENAME;
+        document.getElementById('submit-form').submit();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Résultat — Premier Regard{% endblock %}
+
+{% block content %}
+<div class="reveal">
+    <h1>Votre résultat</h1>
+
+    <div class="score-hero">
+        <div class="score-hero-value {{ 'pass' if s2b_score >= 0.70 else 'fail' }}">
+            {{ (s2b_score * 100) | round(0) }}%
+        </div>
+        <div class="score-hero-label">
+            Score S2b — {{ s2b_label }}
+        </div>
+        <div class="score-hero-meta">
+            Speed-Accuracy : <strong>{{ speed_accuracy }}</strong>
+        </div>
+    </div>
+
+    {% if test.exposure_mode == 'stream' %}
+    <div class="card" style="background:#e3f2fd; border-left:4px solid #1565C0; padding:0.8rem 1rem; margin-bottom:1rem;">
+        <strong>Mode Stream (attention ambiante)</strong>
+        — Position cible : {{ test.stream_position or '?' }}/{{ test.stream_length or '?' }}
+        {% if test.s10_hit is not none %}
+        | S10 : {{ 'Hit' if test.s10_hit else 'Miss' }}
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="card" style="background:#fff3e0; border-left:4px solid #fb8c00; padding:0.8rem 1rem; margin-bottom:1rem;">
+        <strong>Mode Spotlight (attention dirigee)</strong>
+        — Exposition : 5s avec decompte
+    </div>
+    {% endif %}
+
+    <div class="score-grid">
+        <div class="score-card {{ 'pass' if test.s9a_pass else 'fail' }}">
+            <div class="score-label">Identification du sujet</div>
+            <div class="score-icon">{{ '&#10003;' if test.s9a_pass else '&#10007;' }}</div>
+            {% if s9a_score is defined and s9a_score > 0 %}
+            <div class="score-detail">
+                Similarite semantique : {{ (s9a_score * 100) | round(0) }}%
+            </div>
+            {% endif %}
+        </div>
+        <div class="score-card {{ 'pass' if test.s9b_pass else 'fail' }}">
+            <div class="score-label">Hiérarchie des preuves</div>
+            <div class="score-icon">{{ '&#10003;' if test.s9b_pass else '&#10007;' }}</div>
+        </div>
+        <div class="score-card {{ 'pass' if test.s9c_pass else 'fail' }}">
+            <div class="score-label">Impact sur la pratique</div>
+            <div class="score-icon">{{ '&#10003;' if test.s9c_pass else '&#10007;' }}</div>
+        </div>
+    </div>
+
+    {% if test.tab_switched %}
+    <div class="card card-invalid">
+        <strong class="invalid-title">Test invalide (changement d'onglet)</strong>
+        <div class="invalid-detail">
+            Exposition reelle : {{ (test.exposure_actual_ms / 1000) | round(1) if test.exposure_actual_ms else '?' }}s / 5.0s
+        </div>
+    </div>
+    {% endif %}
+
+    {% if test.q1_first_keystroke_ms %}
+    <div class="card">
+        <h2>Dynamique du rappel (Q1)</h2>
+        <table class="result-table">
+            <tr>
+                <td class="label">Latence d'acces</td>
+                <td>
+                    <span class="mono-value">{{ test.q1_first_keystroke_ms }}ms</span>
+                    {% if test.q1_first_keystroke_ms < 1500 %}
+                    <span class="latency-tag latency-fast">(ancrage immediat)</span>
+                    {% elif test.q1_first_keystroke_ms <= 4000 %}
+                    <span class="latency-tag latency-normal">(recuperation standard)</span>
+                    {% else %}
+                    <span class="latency-tag latency-slow">(reconstruction)</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% if test.q1_last_keystroke_ms %}
+            <tr>
+                <td class="label">Duree de production</td>
+                <td><span class="mono-value">{{ test.q1_last_keystroke_ms - test.q1_first_keystroke_ms }}ms</span></td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <h2>Vos réponses</h2>
+        <table class="result-table">
+            <tr>
+                <td class="label">Rappel libre</td>
+                <td>{{ test.q1_text or '(vide)' }}</td>
+                <td class="time">{{ (test.q1_time_ms / 1000) | round(1) }}s</td>
+            </tr>
+            <tr>
+                <td class="label">Produit choisi</td>
+                <td>{{ test.q2_choice or '(vide)' }}
+                    {% if test.correct_product %}
+                    <span class="correct-answer">(réponse : {{ test.correct_product }})</span>
+                    {% endif %}
+                </td>
+                <td class="time">{{ (test.q2_time_ms / 1000) | round(1) }}s</td>
+            </tr>
+            <tr>
+                <td class="label">Actionnabilité</td>
+                <td>{{ test.q3_choice or '(vide)' }}</td>
+                <td class="time">{{ (test.q3_time_ms / 1000) | round(1) }}s</td>
+            </tr>
+        </table>
+    </div>
+
+    {% if stats and stats.total and stats.total > 1 %}
+    <div class="card">
+        <h2>Comparaison ({{ stats.total }} tests sur cette image)</h2>
+        <table class="result-table">
+            <tr>
+                <td>Identification du sujet</td>
+                <td>{{ stats.pct_s9a | round(0) }}% de réussite</td>
+            </tr>
+            <tr>
+                <td>Hiérarchie des preuves</td>
+                <td>{{ stats.pct_s9b | round(0) }}% de réussite</td>
+            </tr>
+            <tr>
+                <td>Temps moyen Q2</td>
+                <td>{{ (stats.avg_q2_time / 1000) | round(1) }}s</td>
+            </tr>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="reveal-image">
+        <h2>L'image que vous avez vue</h2>
+        <img src="/ga/{{ test.filename }}" alt="GA">
+        {% if test.title %}
+        <p class="image-title">{{ test.title }}</p>
+        {% endif %}
+    </div>
+
+    <div class="actions">
+        {% if has_more %}
+        <a href="/test" class="btn btn-primary">Image suivante</a>
+        {% else %}
+        <p>Vous avez vu toutes les images disponibles.</p>
+        {% endif %}
+        <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -142,6 +142,45 @@ band_content:
     thickness_sick_pct: 1.0       # full band height
     thickness_healthy_pct: 0.45   # thinner = resolved
 
+# V10.5 organic density parameters
+density:
+  # Stipple texture density (dots per px^2) per band
+  lumen_stipple_density: 0.0008
+  epithelium_stipple_density: 0.0015
+  lamina_stipple_density: 0.0012
+  # Stipple dot radius range [min, max]
+  stipple_r_min: 1.0
+  stipple_r_max: 2.5
+  # Cross-hatch for lamina propria
+  lamina_crosshatch_spacing: 28
+  lamina_crosshatch_opacity: 0.06
+  # Muscle fiber lines
+  muscle_fiber_count: 16
+  muscle_fiber_opacity: 0.12
+  # Epithelium details
+  epithelium_cells: 42           # total cells (increased from 36)
+  tight_junction_n_zigs: 6
+  tight_junction_amplitude: 3
+  nucleus_probability: 0.7       # fraction of cells that show nucleus hint
+  cilia_per_cell: 6              # increased from 4
+  cilia_wave_amplitude: 2        # subtle wave in cilia
+  # Lumen extra content
+  virus_count_extra: 4           # additional small virus particles (left side)
+  virus_extra_radius: 14         # smaller than main viruses
+  virus_extra_x_range: [0.02, 0.38]
+  # Lamina propria immune cell counts
+  macrophage_count_sick: 2
+  macrophage_count_healthy: 3
+  macrophage_radius: 18
+  t_helper_count: 4
+  t_helper_radius: 12
+  treg_count: 2
+  treg_radius: 14
+  # Additional immune cell scatter in lamina
+  immune_scatter_density: 0.0006
+  immune_scatter_r_min: 3
+  immune_scatter_r_max: 6
+
 font:
   family: "Helvetica, Arial, sans-serif"
   min_size: 28

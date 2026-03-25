@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Premier Regard — SciSense{% endblock %}
+
+{% block content %}
+<div class="landing">
+    <h1>Premier Regard</h1>
+    <p class="subtitle">Test de compréhension visuelle en 5 secondes</p>
+
+    <div class="card">
+        <h2>La science visuelle est cassée.</h2>
+        <p>Les résumés graphiques médicaux génèrent des clics, mais déforment la réalité clinique.
+           Votre cerveau est trompé par de mauvais choix de design — couleurs, masses, formes —
+           qui faussent le niveau de preuve réel.</p>
+        <p><strong>SciSense</strong> construit le premier compilateur visuel (VEC) qui encode
+           la science sans illusion. Ce test mesure votre perception brute.</p>
+    </div>
+
+    <div class="card">
+        <h2>Le protocole</h2>
+        <ol>
+            <li>Remplissez votre profil (30 secondes)</li>
+            <li>Une image scientifique s'affiche pendant <strong>exactement 5 secondes</strong></li>
+            <li>Elle disparaît. Vous répondez à 3 questions de mémoire</li>
+            <li>Découvrez votre score et enchaînez</li>
+        </ol>
+    </div>
+
+    <a href="/onboard" class="btn btn-primary">Commencer</a>
+    <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+</div>
+{% endblock %}

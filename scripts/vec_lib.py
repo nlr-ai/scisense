@@ -334,6 +334,244 @@ def draw_mucus_droplet(dwg, cx, cy, r, color="#D97706", opacity=0.5):
 
 
 # ===================================================================
+# DRAWING: STIPPLE TEXTURE (organic tissue background)
+# ===================================================================
+
+def draw_stipple_field(dwg, x, y, w, h, color, density=0.003,
+                       r_min=1, r_max=3, opacity=0.15, seed=0):
+    """Fill a rectangular region with random stipple dots.
+
+    Args:
+        dwg: svgwrite Drawing
+        x, y, w, h: bounding rectangle
+        color: dot fill color (hex)
+        density: dots per square pixel (e.g. 0.003 = ~3 dots per 1000 px^2)
+        r_min, r_max: dot radius range
+        opacity: dot opacity
+        seed: random seed for reproducibility
+    """
+    n_dots = max(1, int(w * h * density))
+    rng = random.Random(seed)
+    for _ in range(n_dots):
+        dx = x + rng.random() * w
+        dy = y + rng.random() * h
+        dr = rng.uniform(r_min, r_max)
+        dwg.add(dwg.circle((dx, dy), dr, fill=color, opacity=opacity))
+
+
+# ===================================================================
+# DRAWING: CROSS-HATCH TEXTURE (fibrous tissue)
+# ===================================================================
+
+def draw_crosshatch(dwg, x, y, w, h, color, spacing=18,
+                    stroke_width=0.8, opacity=0.12, angle_deg=45):
+    """Fill a rectangle with a cross-hatch pattern (two sets of parallel lines).
+
+    Args:
+        dwg: svgwrite Drawing
+        x, y, w, h: bounding rectangle
+        color: line color (hex)
+        spacing: distance between parallel lines
+        stroke_width: line width
+        opacity: line opacity
+        angle_deg: angle of primary hatch lines (secondary = -angle)
+    """
+    # We create a clipping path to constrain lines to the rectangle
+    clip_id = f"clip_hatch_{int(x)}_{int(y)}"
+    clip = dwg.defs.add(dwg.clipPath(id=clip_id))
+    clip.add(dwg.rect((x, y), (w, h)))
+
+    g = dwg.g(clip_path=f"url(#{clip_id})")
+
+    diag = math.sqrt(w * w + h * h)
+    cx_r, cy_r = x + w / 2, y + h / 2
+
+    for angle_sign in [1, -1]:
+        angle = math.radians(angle_deg * angle_sign)
+        cos_a, sin_a = math.cos(angle), math.sin(angle)
+        n_lines = int(diag / spacing) + 2
+        for i in range(-n_lines, n_lines + 1):
+            offset = i * spacing
+            # Line perpendicular to angle, shifted by offset
+            px = cx_r + offset * (-sin_a)
+            py = cy_r + offset * cos_a
+            x1 = px - diag * cos_a
+            y1 = py - diag * sin_a
+            x2 = px + diag * cos_a
+            y2 = py + diag * sin_a
+            g.add(dwg.line((x1, y1), (x2, y2),
+                           stroke=color, stroke_width=stroke_width,
+                           opacity=opacity))
+    dwg.add(g)
+
+
+# ===================================================================
+# DRAWING: FIBER PATTERN (muscle/connective tissue)
+# ===================================================================
+
+def draw_fiber_lines(dwg, x, y, w, h, color, n_fibers=12,
+                     stroke_width=1.0, opacity=0.15, seed=0):
+    """Draw wavy horizontal fiber lines across a rectangular region.
+
+    Args:
+        dwg: svgwrite Drawing
+        x, y, w, h: bounding rectangle
+        color: fiber color (hex)
+        n_fibers: number of fiber lines
+        stroke_width: line width
+        opacity: line opacity
+        seed: random seed
+    """
+    rng = random.Random(seed)
+    for i in range(n_fibers):
+        fy = y + h * (i + 0.5) / n_fibers + rng.uniform(-2, 2)
+        n_pts = 8
+        pts = []
+        for j in range(n_pts):
+            px = x + w * j / (n_pts - 1)
+            py = fy + rng.uniform(-h * 0.06, h * 0.06)
+            pts.append((px, py))
+        if len(pts) >= 4:
+            padded = [pts[0]] + pts + [pts[-1]]
+            segments = catmull_rom_to_bezier(padded)
+            if segments:
+                path_d = f"M {pts[0][0]},{pts[0][1]} "
+                for cp1, cp2, end in segments:
+                    path_d += f"C {cp1[0]},{cp1[1]} {cp2[0]},{cp2[1]} {end[0]},{end[1]} "
+                dwg.add(dwg.path(d=path_d, fill="none",
+                                 stroke=color, stroke_width=stroke_width,
+                                 opacity=opacity))
+
+
+# ===================================================================
+# DRAWING: TIGHT JUNCTION (zigzag between epithelial cells)
+# ===================================================================
+
+def draw_tight_junction(dwg, x, y_top, y_bottom, color, n_zigs=5,
+                        amplitude=3, stroke_width=1.2, opacity=0.5):
+    """Draw a zigzag tight junction line between two epithelial cells.
+
+    Args:
+        dwg: svgwrite Drawing
+        x: x position of the junction
+        y_top, y_bottom: vertical extent
+        color: junction color (hex)
+        n_zigs: number of zigzag segments
+        amplitude: horizontal displacement of zigzag
+        stroke_width: line width
+        opacity: line opacity
+    """
+    h = y_bottom - y_top
+    pts = []
+    for i in range(n_zigs * 2 + 1):
+        t = i / (n_zigs * 2)
+        py = y_top + h * t
+        px = x + amplitude * (1 if i % 2 == 1 else -1 if i % 2 == 0 and i > 0 else 0)
+        pts.append((px, py))
+    path_d = f"M {pts[0][0]},{pts[0][1]} "
+    for px, py in pts[1:]:
+        path_d += f"L {px},{py} "
+    dwg.add(dwg.path(d=path_d, fill="none", stroke=color,
+                     stroke_width=stroke_width, opacity=opacity))
+
+
+# ===================================================================
+# DRAWING: CELL NUCLEUS (organelle hint)
+# ===================================================================
+
+def draw_cell_nucleus(dwg, cx, cy, rx, ry, color, opacity=0.35):
+    """Draw an elliptical nucleus with a nucleolus dot inside.
+
+    Args:
+        dwg: svgwrite Drawing
+        cx, cy: center
+        rx, ry: horizontal and vertical radii
+        color: nucleus color (hex)
+        opacity: fill opacity
+    """
+    dwg.add(dwg.ellipse((cx, cy), (rx, ry), fill=color, opacity=opacity,
+                        stroke=color, stroke_width=0.8, stroke_opacity=opacity + 0.1))
+    # Nucleolus (darker small dot)
+    dwg.add(dwg.circle((cx + rx * 0.15, cy - ry * 0.1), min(rx, ry) * 0.3,
+                       fill=color, opacity=min(1.0, opacity + 0.2)))
+
+
+# ===================================================================
+# DRAWING: MACROPHAGE (irregular amoeboid shape)
+# ===================================================================
+
+def draw_macrophage(dwg, cx, cy, radius, color, active=False, opacity=0.6, seed=0):
+    """Draw a macrophage with an irregular amoeboid outline.
+
+    Args:
+        dwg: svgwrite Drawing
+        cx, cy: center
+        radius: approximate radius
+        color: fill color (hex)
+        active: if True, brighter fill + pseudopods extended
+        opacity: fill opacity
+        seed: random seed
+    """
+    rng = random.Random(seed)
+    n_points = 10
+    pts = []
+    for i in range(n_points):
+        angle = 2 * math.pi * i / n_points
+        r_var = radius * (0.75 + rng.uniform(0, 0.5))
+        if active:
+            r_var *= 1.2
+        pts.append((cx + r_var * math.cos(angle), cy + r_var * math.sin(angle)))
+
+    if len(pts) >= 4:
+        padded = [pts[-1]] + pts + [pts[0], pts[1]]
+        segments = catmull_rom_to_bezier(padded)
+        if segments:
+            fill_color = lighten_hex(color, 0.2) if active else color
+            path_d = f"M {pts[0][0]},{pts[0][1]} "
+            for cp1, cp2, end in segments:
+                path_d += f"C {cp1[0]},{cp1[1]} {cp2[0]},{cp2[1]} {end[0]},{end[1]} "
+            path_d += "Z"
+            dwg.add(dwg.path(d=path_d, fill=fill_color, opacity=opacity,
+                             stroke=color, stroke_width=1.5))
+
+    # Nucleus (kidney-shaped = ellipse offset)
+    nuc_rx = radius * 0.35
+    nuc_ry = radius * 0.25
+    dwg.add(dwg.ellipse((cx - radius * 0.1, cy), (nuc_rx, nuc_ry),
+                        fill=darken_hex(color, 0.3), opacity=min(1.0, opacity + 0.15)))
+
+
+# ===================================================================
+# DRAWING: T-HELPER CELL (small round cell with halo)
+# ===================================================================
+
+def draw_t_helper(dwg, cx, cy, radius, color, label=None, opacity=0.6,
+                  font_family="Helvetica, Arial, sans-serif"):
+    """Draw a T-helper cell (small round cell with optional label).
+
+    Args:
+        dwg: svgwrite Drawing
+        cx, cy: center
+        radius: cell radius
+        color: fill color
+        label: optional label (e.g. "Th1", "Treg")
+        opacity: fill opacity
+        font_family: font for label
+    """
+    # Outer membrane
+    dwg.add(dwg.circle((cx, cy), radius, fill=color, opacity=opacity,
+                       stroke=darken_hex(color, 0.2), stroke_width=1.2))
+    # Nucleus
+    dwg.add(dwg.circle((cx, cy), radius * 0.55, fill=darken_hex(color, 0.25),
+                       opacity=min(1.0, opacity + 0.1)))
+    if label:
+        dwg.add(dwg.text(label, insert=(cx, cy + radius * 0.25),
+                         font_size=max(8, int(radius * 0.7)),
+                         fill="white", font_family=font_family,
+                         text_anchor="middle", font_weight="bold"))
+
+
+# ===================================================================
 # RENDERING: SVG -> PNG via Playwright
 # ===================================================================
 
