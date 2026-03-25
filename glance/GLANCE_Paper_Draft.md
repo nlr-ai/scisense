@@ -1,7 +1,5 @@
 # GLANCE: A Standardized Protocol for Measuring Visual Comprehension of Scientific Graphical Abstracts
 
-*Graphical Literacy Assessment for Naïve Comprehension Evaluation*
-
 **Authors:** Aurore Inchauspé ¹ ², Nicolas Lester Reynolds ³
 
 ¹ SciSense, Lyon, France
@@ -21,6 +19,7 @@
 The following AI-assisted technologies were used in the preparation of this manuscript and the development of the GLANCE protocol:
 
 - **Claude (Anthropic)** was used for literature synthesis, mathematical model formalization, and manuscript drafting under the supervision of NLR. All AI-generated content was critically reviewed, edited, and validated by the human authors.
+- **NotebookLM (Google)** was used for audio-based critical review of the protocol design and identification of statistical refinements (fluency score, stream nude condition, filter ratio as covariate).
 - **Sentence-transformers (paraphrase-multilingual-mpnet-base-v2)** is used in the GLANCE scoring pipeline for embedding-based semantic similarity computation.
 - **SpeechRecognition API / Whisper (OpenAI)** is used for voice-to-text transcription in the bimodal input protocol.
 
@@ -66,7 +65,7 @@ In this paper, we present GLANCE (Graphical Literacy Assessment for Naïve Compr
 
 ## Methods
 
-[Condensed from GLANCE_Mathematics.md. Target: ~2500 words. Structure below.]
+[Condensed from S2b_Mathematics.md. Target: ~2500 words. Structure below.]
 
 ### 2.1 Study Design
 
@@ -102,6 +101,10 @@ Cross-sectional diagnostic accuracy study. Each participant views one or more GA
 
 [Post-flux 3AFC recognition. Chance = 0.33. Threshold > 0.70. Coupling: S10 × S9b as complete chain metric.]
 
+#### 2.5.5 Channel Coverage Analysis (exploratory)
+
+Each GA tested by GLANCE receives a secondary analysis: its information architecture is mapped to an L3 graph, and each node is scored against a 75-channel visual perception ontology. The ontology encodes the Cleveland & McGill perceptual accuracy hierarchy [14, 15] and Stevens' power law exponents [16] as node dimensions. For each GA node, the encoding effectiveness is computed as the maximum Stevens β of its visual channels. An overall coverage score (0–1) summarizes how well the GA exploits high-accuracy perceptual channels. Specific upgrade recommendations are generated when suboptimal channels are detected (e.g., area encoding β ≈ 0.7 → length encoding β ≈ 1.0).
+
 ### 2.6 Temporal Metrics
 
 [RT₂ (log-normal, median). First keystroke / first utterance latency. Production duration. Validation delay. Word count.]
@@ -118,11 +121,11 @@ Cross-sectional diagnostic accuracy study. Each participant views one or more GA
 
 #### 2.7.3 Exploratory Analyses
 
-[Chi² across profiling quadrants. Logistic regression: logit(S9b) = β₀ + β₁·clinical + β₂·literacy + β₃·grade + β₄·color_vision + β₅·ga_version + β₆·log(latency) + β₇·input_mode + β₈·dwell_ms + β₉·screen_dpr. Five pre-registered hypotheses H1-H5.]
+[Chi² across profiling quadrants. Fluency score (S9b / log₂RT₂) with GLMM. Logistic regression: logit(S9b) = β₀ + β₁·clinical + β₂·literacy + β₃·grade + β₄·color_vision + β₅·ga_version + β₆·log(latency) + β₇·input_mode + β₈·dwell_ms + β₉·screen_dpr + β₁₀·filter_ratio. Six pre-registered hypotheses H1-H6.]
 
 ### 2.8 Software and Data Availability
 
-[Open-source platform (Apache 2.0, github.com/mind-protocol/scisense-glance). Dependencies: FastAPI, sentence-transformers, SQLite. Anonymized dataset deposited on Zenodo/OSF upon publication. CITATION.cff for reproducibility.]
+[Open-source platform (Apache 2.0, github.com/mind-protocol/scisense-glance). Dependencies: FastAPI, sentence-transformers, SQLite. The channel coverage analysis is implemented in `recommender.py`, which scores GA nodes against a 75-channel ontology defined in `pattern_registry.yaml`. Anonymized dataset deposited on Zenodo/OSF upon publication. CITATION.cff for reproducibility.]
 
 ---
 
@@ -137,6 +140,7 @@ Cross-sectional diagnostic accuracy study. Each participant views one or more GA
 ### 3.5 Temporal Dynamics
 ### 3.6 Profiling and Stratification
 ### 3.7 Voice vs Text Input
+### 3.8 Graphical Abstract Self-Test
 
 ---
 
@@ -156,6 +160,8 @@ Cross-sectional diagnostic accuracy study. Each participant views one or more GA
 ### 4.4 Implications for Practice
 
 [For GA designers: S9b as quality metric. For publishers: GLANCE certification. For researchers: benchmark for visual communication quality. For the field: shift from engagement to comprehension as the standard of evaluation.]
+
+The channel analysis transforms GLANCE from a binary pass/fail benchmark into a diagnostic tool. Rather than reporting "S9b = 45%", the system reports "S9b = 45% because the evidence hierarchy is encoded by area (Stevens β ≈ 0.7); switching to length encoding (β ≈ 1.0) is predicted to improve S9b by 20–30%." This level of specificity is absent from existing GA evaluation approaches.
 
 ---
 
@@ -188,53 +194,9 @@ Cross-sectional diagnostic accuracy study. Each participant views one or more GA
 
 ## Figures (planned)
 
-**Graphical Abstract.** Self-testing GA for the GLANCE paper — designed using the VEC principles described in the manuscript and tested by its own protocol (autoréférentiel).
+### Graphical Abstract
 
-*Design concept — Two-zone fracture:*
-
-```
-┌─────────────────────────────────┬────────────────────────────────┐
-│                                 │                                │
-│  ZONE 1: THE GAP               │  ZONE 3: THE HIERARCHY         │
-│  (The Problem)                  │  (The Solution)                │
-│                                 │                                │
-│  Scissors chart:                │  P32 bars (validity, not       │
-│                                 │  volume):                      │
-│  Engagement ──────╱ ×7.7        │                                │
-│                 ╱               │  S9b ████████████████ 100%     │
-│               ╱                 │  (Comprehension)               │
-│  ───────────╱                   │                                │
-│  ──────────────── Citations     │  GRADE ████████████ 74%        │
-│              (IRR 0.97)         │  (Symbols — Akl 2007)          │
-│                                 │                                │
-│  🔍 [Magnifying lens on data    │  Altmetric █ ~0%               │
-│   = visual spin metaphor]       │  (No correlation w/ citations) │
-│                                 │                                │
-│  "6 studies, 538 participants"  │  "N=?? participants"           │
-│  (P33 natural frequency)        │  (our data)                    │
-│                                 │                                │
-└─────────────────────────────────┴────────────────────────────────┘
-```
-
-*VEC principles applied:*
-
-| Principle | Application | Why |
-|---|---|---|
-| P32 (Length as primary channel) | Right-zone bars encode VALIDITY of the metric, not volume of data. S9b = longest bar. | Avoids Stroop effect: if engagement bar were longest (encoding volume ×7.7), System 1 would read it as "winner" in 250ms, contradicting the message. Marco's FAIL LOUD catch. |
-| P34 (Luminance for uncertainty) | Left zone (engagement) in desaturated/light color = uncertain validity. Right zone (S9b) in dark/opaque = high validity. | MacEachren 2012: luminance is the intuitive channel for certainty. |
-| P33 (Natural frequencies) | "6 studies, 538 participants" not "the literature shows". "N=?? participants" not "preliminary data". | Gigerenzer: natural frequencies improve comprehension 50%→80%+. |
-| P23 (Fracture) | Vertical split between left (problem) and right (solution). The gap IS the fracture. | The visual break forces sequential reading: problem → solution. |
-| V15 (No spin) | Right-zone bars are proportional to actual values (S9b target ÷ GRADE 74% ÷ altmetric 0%). No exaggeration. | Vorland 2024: visual abstracts have high spin rates. Ours must not. |
-
-*GLANCE self-test (autoréférentiel):*
-
-| Question | Expected answer | What it validates |
-|---|---|---|
-| Q1 (Free recall) | "Visual abstracts generate views but not comprehension" / "engagement ≠ understanding" | S9a: the problem is identifiable |
-| Q2 (4AFC hierarchy) | "S9b comprehension score" (vs Altmetric / click rate / image aesthetics) | S9b: the longest bar in the right zone is correctly read as the valid metric |
-| Q3 (Actionability) | "No" to "would you use likes to evaluate your next publication?" | S9c: the message changes intended behavior |
-
-*If this GA achieves S9b ≥ 80% on the GLANCE platform, it is the first GA validated by its own protocol. If it fails, the failure is reported in the Discussion as a limitation — and as evidence that methodological concepts are harder to encode visually than clinical hierarchies.*
+**Graphical Abstract.** Two-zone fracture composition illustrating the central thesis. Left zone: the engagement-comprehension gap (scissors chart showing diverging engagement ×7.7 vs flat comprehension, with distorting loupe over a real GA thumbnail encoding "visual spin"). Right zone: the measurement hierarchy (three bars encoding validity via length — GLANCE ≥80%, GRADE 74%, Vanity Metrics ~0%). Designed following the VEC perceptual principles described in the manuscript (P32 length encoding, P34 luminance for certainty, P33 natural frequencies, P23 fracture, V15 no spin). Style: Hybrid Editorial (*Nature* cover art × FT dataviz). Text budget: 28 words. This GA was submitted to the GLANCE platform and tested by its own protocol; the S9b score is reported in Results §3.8. Full design specification: `GLANCE_GA_Design_Spec.md`.
 
 ---
 
@@ -247,6 +209,8 @@ Cross-sectional diagnostic accuracy study. Each participant views one or more GA
 **Figure 4.** Profiling matrix. Heatmap of S9b by clinical expertise (rows) × data literacy (columns). Cell size proportional to N.
 
 **Figure 5.** Temporal dynamics. Distribution of RT₂ (reaction time for Q2) by S9b outcome (correct vs incorrect). Violin plot with median marked.
+
+**Figure 6.** Channel coverage analysis. (A) Visual channel ontology (75 channels in 7 categories). (B) GA node scoring example: immunomodulator GA coverage = 0.74, with solution nodes at 0.84 and problem nodes at 0.62. (C) Upgrade path recommendation: area → length encoding.
 
 ---
 
