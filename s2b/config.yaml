@@ -47,100 +47,100 @@ profile:
 domains:
   med:
     label: "Médical"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quel produit vous a semblé le mieux documenté ?"
-    q3: "Cela modifierait-il votre prise en charge ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel produit semblait le mieux documenté ?"
+    q3: "Si vous étiez concerné, ça changerait quelque chose pour vous ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   tech:
     label: "Tech / IA"
-    q1: "Quel était le problème ou le goulot d'étranglement initial ?"
-    q2: "Quel modèle/algorithme présente le benchmark le plus robuste ?"
-    q3: "Intégreriez-vous cette architecture dans votre stack ?"
-    q3_choices: ["Oui", "Non", "Besoin de voir le repo"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel modèle avait le meilleur résultat ?"
+    q3: "Vous l'utiliseriez dans votre travail ?"
+    q3_choices: ["Oui", "Non", "Faudrait creuser"]
   policy:
     label: "Politique de santé publique"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quel résultat de santé vous a semblé le plus impacté par la couverture Medicaid ?"
-    q3: "Cela changerait-il votre position sur l'extension de la couverture santé ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette étude, quel résultat de santé était le plus impacté ?"
+    q3: "Ça changerait votre avis sur le sujet ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   education:
     label: "Éducation"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quelle intervention pédagogique vous a semblé la plus efficace ?"
-    q3: "Cela modifierait-il vos pratiques d'enseignement ou de formation ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle approche semblait la plus efficace ?"
+    q3: "Vous changeriez quelque chose dans votre façon d'enseigner ou d'apprendre ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   climate:
     label: "Climat / Environnement"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quelle solution climatique vous a semblé avoir le plus grand impact ?"
-    q3: "Cela changerait-il vos comportements ou choix de consommation ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle solution avait le plus grand impact ?"
+    q3: "Ça changerait vos habitudes ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   psychology:
     label: "Psychologie"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quelle condition ou intervention vous a semblé avoir le plus grand effet ?"
-    q3: "Cela changerait-il votre compréhension de ce phénomène psychologique ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette étude, quelle condition avait le plus grand effet ?"
+    q3: "Ça change votre compréhension du sujet ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   economics:
     label: "Économie"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quel résultat économique vous a semblé le plus marquant ?"
-    q3: "Cela influencerait-il votre position sur cette politique économique ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel résultat était le plus marquant ?"
+    q3: "Ça changerait votre avis sur cette politique ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   neuroscience:
     label: "Neurosciences"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quelle condition a montré le meilleur résultat neurologique ?"
-    q3: "Cela changerait-il vos habitudes liées au cerveau (sommeil, exercice, etc.) ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette étude, quelle condition avait le meilleur résultat ?"
+    q3: "Vous changeriez vos habitudes (sommeil, sport...) ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   nutrition:
     label: "Nutrition / Santé publique"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quelle intervention nutritionnelle vous a semblé la plus efficace ?"
-    q3: "Cela modifierait-il vos choix alimentaires ou votre position sur ces politiques ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle intervention semblait la plus efficace ?"
+    q3: "Ça changerait ce que vous mangez ou recommandez ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   energy:
     label: "Énergie / Ingénierie"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quelle technologie vous a semblé la plus performante ?"
-    q3: "Cela changerait-il votre vision du mix énergétique futur ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle techno semblait la plus performante ?"
+    q3: "Ça change votre vision du sujet ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   epidemiology:
     label: "Épidémiologie"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quelle intervention ou sous-groupe a montré le meilleur résultat ?"
-    q3: "Cela influencerait-il vos pratiques de prévention ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette étude, quel groupe ou intervention avait le meilleur résultat ?"
+    q3: "Ça changerait vos pratiques de prévention ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   ecology:
     label: "Écologie / Biologie"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quel facteur ou intervention vous a semblé le plus déterminant ?"
-    q3: "Cela changerait-il votre compréhension des priorités de conservation ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel facteur semblait le plus déterminant ?"
+    q3: "Ça change votre compréhension des priorités ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   transport:
     label: "Transport / Urbanisme"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quel mode de transport vous a semblé le plus performant sur ce critère ?"
-    q3: "Cela influencerait-il vos choix de mobilité ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel mode de transport était le plus performant ?"
+    q3: "Ça changerait vos choix de mobilité ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   agriculture:
     label: "Agriculture"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quelle méthode agricole vous a semblé la plus productive ?"
-    q3: "Cela changerait-il votre vision des systèmes de production alimentaire ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle méthode semblait la plus productive ?"
+    q3: "Ça change votre vision du sujet ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   materials:
     label: "Science des matériaux"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quelle alternative vous a semblé la plus prometteuse ?"
-    q3: "Cela influencerait-il vos choix de matériaux ou vos recommandations ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quelle alternative semblait la plus prometteuse ?"
+    q3: "Vous recommanderiez ce matériau ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
   generic:
     label: "Générique"
-    q1: "Que venez-vous de voir ?"
-    q2: "Quel élément vous a semblé le plus solidement démontré ?"
-    q3: "Cette information changerait-elle votre façon de faire ?"
-    q3_choices: ["Oui", "Non", "Besoin de plus de données"]
+    q1: "De quoi parlait ce post ?"
+    q2: "Dans cette image, quel élément semblait le mieux démontré ?"
+    q3: "Ça changerait quelque chose pour vous ?"
+    q3_choices: ["Oui", "Non", "Pas assez d'info"]
 
 scoring:
   keywords:
