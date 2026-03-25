@@ -1,0 +1,281 @@
+# GLANCE Paper GA — L3 Information Graph
+# 19 vectors mapped to 12 nodes + links
+# Refined: 2026-03-25
+
+nodes:
+  - id: "space:ga:zone_left"
+    name: "Zone Problème"
+    node_type: space
+    synthesis: "Espace du problème — engagement sans compréhension. Valence structurelle négative."
+    weight: 0.85
+    energy: 0.15
+    stability: 0.90
+    recency: 0.3
+    valence: -1.0
+    permanence: 1.0
+    ambivalence: 0.0
+
+  - id: "space:ga:zone_right"
+    name: "Zone Solution"
+    node_type: space
+    synthesis: "Espace de la solution — mesure, hiérarchie, benchmark. Valence structurelle positive."
+    weight: 0.90
+    energy: 0.30
+    stability: 0.80
+    recency: 0.8
+    valence: 1.0
+    permanence: 1.0
+    ambivalence: 0.0
+
+  - id: "thing:engagement"
+    name: "Engagement (×7 vues)"
+    node_type: thing
+    synthesis: "Les GAs multiplient l'engagement par 7.7× (Ibrahim 2017). Fait répliqué 6 fois."
+    weight: 0.80
+    energy: 0.10
+    stability: 0.95
+    recency: 0.3
+    content: "Ibrahim 2017: 7.7× impressions, 8.4× retweets. Oska 2020: 5×. Chapman 2019: +57%."
+
+  - id: "thing:comprehension"
+    name: "Compréhension (0)"
+    node_type: thing
+    synthesis: "Les GAs ne transfèrent pas la compréhension. 3ème sur 4 formats (Bredbenner 2019, N=538)."
+    weight: 0.75
+    energy: 0.10
+    stability: 0.90
+    recency: 0.3
+
+  - id: "narrative:gap"
+    name: "Le Gap"
+    node_type: narrative
+    synthesis: "Engagement ≠ Compréhension. La thèse centrale du paper. Polarity contradiction."
+    weight: 0.95
+    energy: 0.20
+    stability: 0.90
+    recency: 0.5
+    polarity: -1.0
+
+  - id: "narrative:spin"
+    name: "Visual Spin"
+    node_type: narrative
+    synthesis: "Le mécanisme de distorsion. Stevens β≈0.7 compresse l'aire. Vorland 2024 documente le spin textuel, extrapolé au visuel."
+    weight: 0.50
+    energy: 0.75
+    stability: 0.65
+    recency: 0.7
+    friction: 0.8
+    aversion: 0.7
+    content: "Noeud flou — l'extrapolation de Vorland (spin textuel) vers le spin visuel perceptif n'est pas directe."
+
+  - id: "thing:glance"
+    name: "GLANCE (≥80%)"
+    node_type: thing
+    synthesis: "Le protocole GLANCE. Premier benchmark de compréhension GA. Target S9b ≥80% (vs GRADE 74%)."
+    weight: 1.00
+    energy: 0.90
+    stability: 0.40
+    recency: 1.0
+    hierarchy: 1.0
+    trust: 0.80
+    content: "DANGER: weight max + stability min + energy max. Le ≥80% est un TARGET, pas un résultat. Instable tant que N=0."
+
+  - id: "thing:grade"
+    name: "GRADE (74%)"
+    node_type: thing
+    synthesis: "Système GRADE — référence. 74% compréhension (Akl 2007, RCT N=84). Le benchmark à battre."
+    weight: 0.70
+    energy: 0.05
+    stability: 0.95
+    recency: 0.2
+    hierarchy: 0.74
+
+  - id: "thing:vanity"
+    name: "Vanity Metrics (~0%)"
+    node_type: thing
+    synthesis: "Altmetrics, impressions, likes. Corrélation nulle avec compréhension (Bennett 2023, P=.829)."
+    weight: 0.30
+    energy: 0.05
+    stability: 0.90
+    recency: 0.2
+    hierarchy: 0.05
+    aversion: 0.9
+
+  - id: "thing:ga_thumbnail"
+    name: "GA Thumbnail"
+    node_type: thing
+    synthesis: "L'image d'un GA réel utilisée comme ancre visuelle du domaine. À déterminer : quel GA montrer."
+    weight: 0.85
+    energy: 0.80
+    stability: 0.70
+    recency: 0.9
+    content: "Non résolu — quel GA montrer ? Comment la loupe le déforme ?"
+
+  - id: "moment:akl_2007"
+    name: "Akl 2007 (RCT)"
+    node_type: moment
+    synthesis: "RCT N=84. Symboles GRADE = 74% compréhension vs 14% numérique (P<.001)."
+    weight: 0.74
+    energy: 0.05
+    stability: 0.95
+    recency: 0.1
+    trust: 0.85
+
+  - id: "moment:6_rcts"
+    name: "6 RCTs (corpus)"
+    node_type: moment
+    synthesis: "6 études expérimentales sur l'engagement des GAs. 538-562 participants. Direction unanime."
+    weight: 0.90
+    energy: 0.05
+    stability: 0.95
+    recency: 0.2
+    trust: 0.90
+
+  - id: "actor:scisense"
+    name: "SciSense"
+    node_type: actor
+    synthesis: "L'organisation qui construit GLANCE. Signature discrète (30% opacity)."
+    weight: 0.40
+    energy: 0.05
+    stability: 0.85
+    recency: 0.9
+    affinity: 1.0
+
+links:
+  - id: "link:engagement_gap"
+    node_a: "thing:engagement"
+    node_b: "narrative:gap"
+    weight: 0.90
+    hierarchy: 0.95
+    valence: -0.8
+    trust: 0.85
+    synthesis: "L'engagement alimente le gap — plus de vues, pas plus de compréhension."
+
+  - id: "link:comprehension_gap"
+    node_a: "thing:comprehension"
+    node_b: "narrative:gap"
+    weight: 0.85
+    valence: -0.9
+    trust: 0.90
+    synthesis: "L'absence de compréhension est le cœur du gap."
+
+  - id: "link:gap_to_glance"
+    node_a: "narrative:gap"
+    node_b: "thing:glance"
+    weight: 0.95
+    hierarchy: -0.8
+    affinity: 0.9
+    permanence: 0.8
+    synthesis: "Le gap est résolu par GLANCE — lien critique du GA."
+
+  - id: "link:spin_to_gap"
+    node_a: "narrative:spin"
+    node_b: "narrative:gap"
+    weight: 0.60
+    friction: 0.8
+    aversion: 0.7
+    synthesis: "Le spin visuel est le mécanisme qui crée le gap."
+
+  - id: "link:glance_hierarchy"
+    node_a: "thing:glance"
+    node_b: "thing:grade"
+    weight: 0.80
+    hierarchy: 0.26
+    trust: 0.80
+    synthesis: "GLANCE ≥80% > GRADE 74%. La hiérarchie par longueur (P32)."
+
+  - id: "link:grade_hierarchy"
+    node_a: "thing:grade"
+    node_b: "thing:vanity"
+    weight: 0.60
+    hierarchy: 0.69
+    aversion: 0.5
+    synthesis: "GRADE 74% >> Vanity ~0%. Le fond du classement."
+
+  - id: "link:akl_to_grade"
+    node_a: "moment:akl_2007"
+    node_b: "thing:grade"
+    weight: 0.74
+    trust: 0.85
+    stability: 0.95
+    synthesis: "Akl 2007 est la source du 74%."
+
+  - id: "link:rcts_to_engagement"
+    node_a: "moment:6_rcts"
+    node_b: "thing:engagement"
+    weight: 0.90
+    trust: 0.90
+    stability: 0.95
+    synthesis: "Les 6 RCTs prouvent le ×7 engagement."
+
+  - id: "link:scisense_to_glance"
+    node_a: "actor:scisense"
+    node_b: "thing:glance"
+    weight: 0.40
+    affinity: 1.0
+    trust: 0.7
+    synthesis: "SciSense construit GLANCE. Signature discrète."
+
+  - id: "link:thumbnail_to_spin"
+    node_a: "thing:ga_thumbnail"
+    node_b: "narrative:spin"
+    weight: 0.70
+    friction: 0.6
+    synthesis: "Le thumbnail est déformé par la loupe du spin."
+
+  # Containment links (space → contents)
+  - id: "link:zone_left_engagement"
+    node_a: "space:ga:zone_left"
+    node_b: "thing:engagement"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone gauche contient engagement."
+
+  - id: "link:zone_left_comprehension"
+    node_a: "space:ga:zone_left"
+    node_b: "thing:comprehension"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone gauche contient compréhension."
+
+  - id: "link:zone_left_gap"
+    node_a: "space:ga:zone_left"
+    node_b: "narrative:gap"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone gauche contient le gap."
+
+  - id: "link:zone_left_spin"
+    node_a: "space:ga:zone_left"
+    node_b: "narrative:spin"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone gauche contient le spin."
+
+  - id: "link:zone_left_thumbnail"
+    node_a: "space:ga:zone_left"
+    node_b: "thing:ga_thumbnail"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone gauche contient le thumbnail."
+
+  - id: "link:zone_right_glance"
+    node_a: "space:ga:zone_right"
+    node_b: "thing:glance"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone droite contient GLANCE."
+
+  - id: "link:zone_right_grade"
+    node_a: "space:ga:zone_right"
+    node_b: "thing:grade"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone droite contient GRADE."
+
+  - id: "link:zone_right_vanity"
+    node_a: "space:ga:zone_right"
+    node_b: "thing:vanity"
+    hierarchy: -1.0
+    permanence: 1.0
+    synthesis: "Zone droite contient Vanity."
