@@ -619,6 +619,11 @@
     // Set container height based on first image aspect ratio (560/1100 ~= 0.509)
     const feedContainer = document.getElementById('feed-container');
 
+    // ── Feed state (must be declared before startFeed can be called) ──
+    let scrollAnimId = null;
+    const dwellTimes = {};
+    const dwellStarts = {};
+
     // ── Start button or auto-start ──
     const firstTest = {{ 'true' if first_test else 'false' }};
     document.getElementById('btn-start').addEventListener('click', () => {
@@ -631,11 +636,6 @@
     }
 
     // ── Feed inertial flick scroll + IntersectionObserver dwell tracking ──
-    // Simulates real mobile scroll: flick → decelerate → pause → flick
-    let scrollAnimId = null;
-    const dwellTimes = {}; // filename -> total visible ms
-    const dwellStarts = {}; // filename -> timestamp when entered viewport
-
     function startFeed() {
         feedStart = performance.now();
 
@@ -755,15 +755,26 @@
     // ── Selection: thumbnail recognition (S10) ──
     document.querySelectorAll('.selection-thumb').forEach(thumb => {
         thumb.addEventListener('click', () => {
-            // Record which thumbnail was selected
             responses.stream_selected_id = thumb.dataset.filename;
-            // Proceed to Q1 (questions are always about the TARGET GA)
-            showPanel('q1');
-            q1Start = performance.now();
-            questionStart = performance.now();
-            // Focus the appropriate input
-            const textInput = document.getElementById('q1-input');
-            if (textInput) textInput.focus();
+
+            if (thumb.dataset.filename === TARGET_FILENAME) {
+                // S10 hit — user noticed the target, ask questions
+                showPanel('q1');
+                q1Start = performance.now();
+                questionStart = performance.now();
+                const textInput = document.getElementById('q1-input');
+                if (textInput) textInput.focus();
+            } else {
+                // S10 miss — user didn't notice the target, skip questions
+                responses.q1_text = '';
+                responses.q1_time = 0;
+                responses.q1_input_mode = INPUT_MODE;
+                responses.q2_choice = '';
+                responses.q2_time = 0;
+                responses.q3_choice = '';
+                responses.q3_time = 0;
+                submitTest();
+            }
         });
     });
 
@@ -852,26 +863,21 @@
                 responses.q1_last_keystroke_ms = elapsed;
             });
 
-            // Override Q1 button to capture voice data
-            const btnQ1 = document.getElementById('btn-q1');
-            console.log('[S2b voice] btn-q1 found:', !!btnQ1);
-            if (btnQ1) {
-                btnQ1.addEventListener('click', (e) => {
-                    console.log('[S2b voice] Valider clicked, text:', q1InputVoice.value);
-                    e.stopPropagation();
-                    if (isRecording) recognition.stop();
-                    responses.q1_text = q1InputVoice.value;
-                    responses.q1_time = Math.round(performance.now() - questionStart);
-                    responses.q1_input_mode = 'voice';
-                    responses.q1_raw_transcript = rawTranscript;
-                    showPanel('q2');
-                    questionStart = performance.now();
-                });
-            }
+            // Store recognition state on window for unified Q1 handler
+            window._s2bRecognition = recognition;
+            window._s2bIsRecording = false;
+            window._s2bRawTranscript = '';
+
+            recognition.addEventListener('start', () => { window._s2bIsRecording = true; });
+            recognition.addEventListener('end', () => { window._s2bIsRecording = false; });
+            recognition.onresult = ((origHandler) => (event) => {
+                origHandler(event);
+                window._s2bRawTranscript = rawTranscript;
+            })(recognition.onresult);
         }
     }
 
-    // ── Text mode: keystroke timing + Q1 handler (only if NOT voice) ──
+    // ── Text mode: keystroke timing ──
     if (INPUT_MODE !== 'voice') {
         const q1Input = document.getElementById('q1-input');
         if (q1Input) {
@@ -882,16 +888,35 @@
                 }
                 responses.q1_last_keystroke_ms = elapsed;
             });
-
-            document.getElementById('btn-q1').addEventListener('click', () => {
-                responses.q1_text = q1Input.value;
-                responses.q1_time = Math.round(performance.now() - questionStart);
-                responses.q1_input_mode = 'text';
-                showPanel('q2');
-                questionStart = performance.now();
-            });
         }
     }
+
+    // ── Q1 submit handler (unified voice + text) ──
+    // Uses querySelectorAll to bind ALL btn-q1 elements (voice mode has two: fallback + main)
+    document.querySelectorAll('#panel-q1 [id="btn-q1"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (INPUT_MODE === 'voice') {
+                const q1Voice = document.getElementById('q1-input-voice');
+                const q1Fallback = document.getElementById('q1-input');
+                // Stop recognition if running
+                if (window._s2bRecognition && window._s2bIsRecording) {
+                    window._s2bRecognition.stop();
+                }
+                // Voice-supported: use q1-input-voice; unsupported fallback: use q1-input
+                responses.q1_text = (q1Voice && q1Voice.value) ? q1Voice.value
+                                  : (q1Fallback ? q1Fallback.value : '');
+                responses.q1_raw_transcript = window._s2bRawTranscript || '';
+                responses.q1_input_mode = 'voice';
+            } else {
+                const q1Text = document.getElementById('q1-input');
+                responses.q1_text = q1Text ? q1Text.value : '';
+                responses.q1_input_mode = 'text';
+            }
+            responses.q1_time = Math.round(performance.now() - questionStart);
+            showPanel('q2');
+            questionStart = performance.now();
+        });
+    });
 
     // ── Q2: product choice ──
     document.querySelectorAll('#q2-choices .btn-choice').forEach(btn => {
