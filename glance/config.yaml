@@ -169,7 +169,7 @@ constants:
   # -- Semantic scoring (semantic.py) --
   # CALIBRATED: model benchmarked in docs/SEMANTIC_SCORING.md section 1.
   # Sample: 9 French test phrases, 2 GA images.
-  semantic_model_name: "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+  semantic_model_name: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
   # CALIBRATED: threshold derived from calibration gap [0.37, 0.52].
   # 0.40 sits in the clean middle. See docs/SEMANTIC_SCORING.md section 3.
   # Sample: 9 calibration phrases.
@@ -194,6 +194,22 @@ constants:
   # CALIBRATED: minimum number of paired observations for McNemar.
   # Statistical convention — below 10 pairs the chi2 approximation is unreliable.
   mcnemar_min_pairs: 10
+
+  # -- System 2 Deep Analysis (scoring.py) --
+  # CALIBRATED: cosine similarity threshold for a reference node to count
+  # as "received" during deliberate free recall. Uses same threshold as S9a
+  # (S2b_Mathematics.md) — the reasoning is identical: below 0.40 the
+  # participant's language is too far from the reference to count as a match.
+  s2_coverage_threshold: 0.40
+
+  # -- System 2 timing --
+  # PHENOMENON: 90-second cap for System 2 free recall.
+  # Cognitive justification: 60-120s is standard for free-recall tasks in
+  # experimental psychology. 90s balances completeness with participant fatigue.
+  s2_max_duration_ms: 90000
+  # PHENOMENON: 5-second silence auto-stop.
+  # Speech pauses > 5s indicate the participant has finished their recall.
+  s2_silence_timeout_ms: 5000
 
   # -- Session (app.py) --
   # ARBITRARY: participant cookie lifetime in seconds (30 days).

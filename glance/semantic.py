@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 # Calibrated constants loaded from config.yaml; see docs/SEMANTIC_SCORING.md.
 
 MODEL_NAME = get_constant("semantic_model_name",
-                          "sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
+                          "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 S9A_PASS_THRESHOLD = get_constant("s9a_pass_threshold", 0.40)
 
 # Embedding dimension is determined by the model, not a free constant.
@@ -30,7 +30,7 @@ _MODEL_DIM_LOOKUP = {
     "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2": 384,
     "sentence-transformers/paraphrase-multilingual-mpnet-base-v2": 768,
 }
-EMBEDDING_DIM = _MODEL_DIM_LOOKUP.get(MODEL_NAME, 768)
+EMBEDDING_DIM = _MODEL_DIM_LOOKUP.get(MODEL_NAME, 384)
 
 # ── Module-level state (lazy-initialized) ────────────────────────────────
 
@@ -43,7 +43,7 @@ _ref_cache: dict[str, np.ndarray] = {}
 def load_model():
     """Lazy-load the sentence-transformers embedding model.
 
-    First call downloads the model (~470MB) if not cached in
+    First call downloads the model (~250MB) if not cached in
     ~/.cache/huggingface/. Subsequent calls return the cached instance.
     Load time: ~15s first run, ~2s from cache.
     """

@@ -4,7 +4,7 @@ import sqlite3
 import os
 import json
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "data", "glance.db")
+DB_PATH = os.environ.get("GLANCE_DB_PATH", os.path.join(os.path.dirname(__file__), "data", "glance.db"))
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS participants (
@@ -97,6 +97,10 @@ CREATE TABLE IF NOT EXISTS tests (
     q5_rt INTEGER,
     rejection_reason TEXT,
     stream_show_title INTEGER DEFAULT 1,
+    s2_transcript TEXT,
+    s2_duration_ms INTEGER,
+    s2_chunks TEXT,
+    s2_node_coverage TEXT,
     FOREIGN KEY (participant_id) REFERENCES participants(id),
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
     UNIQUE(participant_id, ga_image_id)
@@ -117,7 +121,23 @@ def init_db():
     conn = get_db()
     conn.executescript(SCHEMA)
     conn.commit()
+    # Migrate: add System 2 columns if missing (for existing DBs)
+    _migrate_add_columns(conn, "tests", [
+        ("s2_transcript", "TEXT"),
+        ("s2_duration_ms", "INTEGER"),
+        ("s2_chunks", "TEXT"),
+        ("s2_node_coverage", "TEXT"),
+    ])
     conn.close()
+
+
+def _migrate_add_columns(conn, table: str, columns: list[tuple[str, str]]):
+    """Add columns to a table if they don't already exist."""
+    existing = {row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    for col_name, col_type in columns:
+        if col_name not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}")
+    conn.commit()
 
 
 def create_participant(token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode="text"):
@@ -259,6 +279,20 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
     db.commit()
     db.close()
     return test_id
+
+
+def update_test_system2(test_id: int, s2_transcript: str, s2_duration_ms: int,
+                        s2_chunks: str, s2_node_coverage: str):
+    """Update a test row with System 2 deep analysis data."""
+    db = get_db()
+    db.execute(
+        """UPDATE tests SET s2_transcript = ?, s2_duration_ms = ?,
+           s2_chunks = ?, s2_node_coverage = ?
+           WHERE id = ?""",
+        (s2_transcript, s2_duration_ms, s2_chunks, s2_node_coverage, test_id),
+    )
+    db.commit()
+    db.close()
 
 
 def get_test(test_id):
