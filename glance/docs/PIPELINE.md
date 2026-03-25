@@ -43,7 +43,7 @@ This produces 36 PNG images + 36 sidecar JSON files in a single run. Each JSON i
 
 ## Pipeline Steps
 
-### SELECT -> EXTRACT -> RENDER -> CONTROL -> TAG -> DROP -> SEED
+### SELECT -> EXTRACT -> RENDER -> CONTROL -> TAG -> DROP -> SEED -> RECOMMEND
 
 ```
 1. SELECT      Choose a paper with a clear evidence hierarchy
@@ -59,6 +59,8 @@ This produces 36 PNG images + 36 sidecar JSON files in a single run. Each JSON i
 6. DROP         Place PNG + JSON in ga_library/
                 |
 7. SEED         Restart server (or fresh DB) to auto-seed
+                |
+8. RECOMMEND    Run recommender.py on the GA graph → prioritized fixes report
 ```
 
 For batch generation, steps 2-6 are automated by `generate_library.py`.
@@ -226,6 +228,46 @@ To add new images to an existing database:
 - **Option B:** Keep existing data by manually inserting via SQLite.
 
 After adding or editing semantic_references in JSON files, call `semantic.clear_cache()` or restart the server to force re-embedding.
+
+---
+
+## Step 8: RECOMMEND -- Generate Actionable Fixes
+
+After the GA is tested (or before, as a design-time audit), run the recommendation engine on the GA's information graph to get prioritized, actionable design changes.
+
+```bash
+cd C:\Users\reyno\scisense\glance
+python recommender.py data/glance_ga_graph.yaml
+```
+
+This produces `exports/ga_analysis_report.md` with:
+
+1. **CRITICAL fixes** -- nodes with high weight but low stability (claims without empirical backing)
+2. **HIGH fixes** -- nodes with high energy (unresolved design elements)
+3. **Strengths** -- nodes that are well-established (high weight + high stability)
+4. **Accessibility warnings** -- colorblindness, text density, small-detail readability
+5. **Channel upgrade paths** -- specific encoding substitutions with expected S9b improvement
+
+### How recommendations are generated
+
+The engine scans every node in the GA graph for tension signals:
+
+| Signal | Condition | Priority | Meaning |
+|--------|-----------|----------|---------|
+| Unvalidated claim | `weight > 0.7 AND stability < 0.5` | CRITICAL | The GA asserts something it hasn't proven |
+| Unresolved design | `energy > 0.6` | HIGH | The visual encoding for this element is not finalized |
+| Established | `weight > 0.6 AND stability > 0.8` | (strength) | Solid -- backed by data or settled design |
+
+Channel upgrade paths are derived from Cleveland & McGill (1984) and Stevens (1957). The key substitution: **area -> length** gains +20-30% on S9b because Stevens beta goes from 0.7 to 1.0.
+
+### Integration with the 99 EUR audit
+
+The recommendation report is the core deliverable of the GLANCE GA Audit product. The client receives:
+- The raw GLANCE test scores (S9a, S9b, S9c, composite)
+- The recommendation report with exact fixes and expected impact
+- Channel upgrade paths specific to their GA's encoding choices
+
+This is what separates a score from a service.
 
 ---
 

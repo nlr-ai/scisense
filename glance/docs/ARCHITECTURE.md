@@ -107,6 +107,8 @@ Both modes produce the same S9a/S9b/S9c scores and store to the same DB schema. 
 | `analytics.py` | Aggregate statistics. Per-quadrant breakdown, speed-accuracy distribution, A/B delta with McNemar, S10 saillance rate. |
 | `config.yaml` | All configuration: timer, flux mode, profile options, 15 domain question sets + generic fallback, scoring constants. |
 | `config_loader.py` | YAML config reader with in-process caching. Exposes `get_constant(key, default)`. |
+| `recommender.py` | Recommendation engine (explainability layer). Analyzes GA graphs for tension (high weight + low stability), unresolved energy, channel effectiveness (Cleveland & McGill + Stevens), and accessibility. Generates prioritized fixes with expected S9b impact. Powers the 99 EUR audit deliverable. |
+| `pattern_registry.yaml` | Channel-to-diagnostic-question mapping. Used by recommender.py for channel upgrade paths and by the adaptive Q4/Q5 system. |
 | `S2b_Mathematics.md` | Mathematical model. Defines all formulas, metrics, thresholds, statistical tests. 10 sections. |
 | `generate_leurres.py` | Matplotlib generator for 10 distractor images (title cards, scatter plots, heatmaps, GA-style figures). |
 | `static/style.css` | Dark-theme CSS. Design tokens, responsive layout, VEC perceptual principles applied. |
@@ -213,6 +215,40 @@ All timing is measured via `performance.now()`. The hidden form collects 17 fiel
 5. **Speed-accuracy:** classifies into `{fast_right, slow_right, fast_wrong, slow_wrong}` using `RT2_FAST_SLOW_MS` (default 3000ms).
 
 Additionally, `submit_test()` in `app.py` computes `s10_hit` for stream-mode tests by comparing `stream_selected_id` against `target_filename`.
+
+### 3b. Score & Recommend (GA Audit)
+
+For GA audit clients (99 EUR tier), the recommendation engine (`recommender.py`) analyzes the GA's information graph and generates actionable design fixes:
+
+```
+GA graph YAML (19 nodes, 38 links)
+    |
+    v
+analyze_ga()
+    |  scan each node for tension signals:
+    |    - weight > 0.7 AND stability < 0.5 → CRITICAL (unvalidated claim)
+    |    - energy > 0.6 → HIGH (unresolved design element)
+    |    - weight > 0.6 AND stability > 0.8 → strength (established)
+    |
+    v
+channel upgrade paths (UPGRADE_PATHS)
+    |  area → length: +20-30% S9b (Stevens β 0.7 → 1.0)
+    |  volume → length: +30-40% S9b
+    |  color_saturation → luminance: +15-25% uncertainty perception
+    |  color_hue → length + hue: +10-20% S9b (add redundant magnitude channel)
+    |  no_channel → length: 0% → 60-80% perception
+    |
+    v
+accessibility checks (3 checks)
+    |  color_pair_close: 8% male colorblindness
+    |  text_density: 30-word budget (V3)
+    |  small_details: 50% readability (V7)
+    |
+    v
+generate_report() → exports/ga_analysis_report.md
+```
+
+The output is a prioritized markdown report: CRITICAL fixes first, then HIGH, then channel upgrade table, then accessibility warnings. This report is the core deliverable of the 99 EUR GA audit product.
 
 ### 4. Reveal
 
