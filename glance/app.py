@@ -42,6 +42,12 @@ with open(os.path.join(BASE, "config.yaml"), encoding="utf-8") as f:
 def startup():
     init_db()
     _seed_images()
+    # Preload semantic model to avoid slow first submission
+    try:
+        from semantic import load_model
+        load_model()
+    except Exception:
+        pass  # Model loading is optional — keyword fallback works
 
 
 def _seed_images():
