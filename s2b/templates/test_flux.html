@@ -32,13 +32,52 @@
         overflow: hidden;
         box-shadow: 0 0 0 2px #333, 0 20px 60px rgba(0,0,0,0.5);
     }
-    .flux-phone-notch {
+    /* iOS Status Bar */
+    .ios-status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 20px 4px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        font-family: -apple-system, 'SF Pro Text', sans-serif;
+        height: 44px;
+        position: relative;
+    }
+    .ios-time {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    .ios-dynamic-island {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
         width: 126px;
         height: 37px;
         background: #000;
         border-radius: 20px;
-        margin: 0 auto 8px;
-        border: 2px solid #1c1c1e;
+        top: 0;
+    }
+    .ios-indicators {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        color: #fff;
+    }
+    .ios-signal { letter-spacing: -2px; font-size: 10px; }
+    .ios-wifi svg, .ios-battery svg { vertical-align: middle; }
+
+    /* iOS App Header */
+    .ios-app-header {
+        padding: 8px 16px;
+        border-bottom: 1px solid #1c1c1e;
+        font-size: 17px;
+        font-weight: 700;
+        color: #fff;
+        font-family: -apple-system, 'SF Pro Display', sans-serif;
     }
     .flux-phone-home {
         width: 134px;
@@ -58,7 +97,8 @@
             aspect-ratio: auto;
             box-shadow: none;
         }
-        .flux-phone-notch { display: none; }
+        .ios-status-bar { display: none; }
+        .ios-app-header { display: none; }
         .flux-phone-home { display: none; }
         .flux-feed-container {
             border-radius: 0;
@@ -67,7 +107,7 @@
     }
     .flux-feed-container {
         width: 100%;
-        height: 100%;         /* fill phone frame */
+        height: calc(100% - 90px); /* fill phone frame minus iOS chrome */
         overflow-y: scroll;
         background: var(--bg, #0f172a);
         border-radius: 35px;  /* inner radius = outer - padding */
@@ -234,7 +274,28 @@
     <!-- FEED -->
     <div class="state-panel hidden" id="panel-feed">
         <div class="flux-phone-frame">
-        <div class="flux-phone-notch"></div>
+        <div class="ios-status-bar">
+            <div class="ios-time">21:43</div>
+            <div class="ios-dynamic-island"></div>
+            <div class="ios-indicators">
+                <span class="ios-signal">●●●●○</span>
+                <span class="ios-wifi">
+                    <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor">
+                        <path d="M7.5 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm-3.2-2.7a4.5 4.5 0 016.4 0l-.9.9a3.2 3.2 0 00-4.6 0l-.9-.9zm-2.5-2.5a7.5 7.5 0 0111.4 0l-.9.9a6.2 6.2 0 00-9.6 0l-.9-.9z"/>
+                    </svg>
+                </span>
+                <span class="ios-battery">
+                    <svg width="25" height="12" viewBox="0 0 25 12" fill="currentColor">
+                        <rect x="0" y="1" width="21" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                        <rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="currentColor"/>
+                        <rect x="22" y="4" width="2" height="4" rx="1" fill="currentColor" opacity="0.4"/>
+                    </svg>
+                </span>
+            </div>
+        </div>
+        <div class="ios-app-header">
+            <div class="ios-app-title">Feed</div>
+        </div>
         <div class="flux-feed-container" id="feed-container">
           <div class="flux-feed-inner" id="feed-inner">
             {% for item in feed_items %}
@@ -393,6 +454,13 @@
     const TARGET_FILENAME = "{{ target_filename }}";
     const FEED_COUNT = {{ feed_items | length }};
     const INPUT_MODE = "{{ input_mode }}";
+
+    // Set iOS status bar time to current time
+    const timeEl = document.querySelector('.ios-time');
+    if (timeEl) {
+        const now = new Date();
+        timeEl.textContent = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    }
 
     const panels = {
         briefing: document.getElementById('panel-briefing'),
