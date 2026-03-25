@@ -111,9 +111,9 @@
         overflow-y: scroll;
         background: #f3f2ef;  /* LinkedIn-style light gray feed bg */
         border-radius: 35px;
-        /* No scroll-behavior: smooth — it fights with rAF-driven scrollTop */
         scrollbar-width: none;          /* Firefox */
         -ms-overflow-style: none;       /* IE/Edge legacy */
+        touch-action: none;             /* Disable manual touch/swipe scroll */
     }
     .flux-feed-container::-webkit-scrollbar {
         display: none;                  /* Chrome/Safari/Edge */
@@ -347,9 +347,9 @@
     <!-- BRIEFING — only shown on first test, then auto-skipped -->
     <div class="state-panel {% if not first_test %}hidden{% endif %}" id="panel-briefing">
         <div class="flux-briefing">
-            <h1>Contenu scientifique</h1>
-            <p>Vous allez voir defiler du contenu scientifique. Parcourez-le naturellement, comme vous le feriez sur une revue en ligne.</p>
-            <button class="btn btn-primary" id="btn-start">Commencer</button>
+            <h1>Un feed va defiler</h1>
+            <p>Regardez-le comme vous scrolleriez votre fil LinkedIn. On vous posera des questions apres.</p>
+            <button class="btn btn-primary btn-large" id="btn-start">C'est parti</button>
         </div>
     </div>
 
@@ -590,24 +590,32 @@
     };
 
     // ── Tab defocus: pause scroll, discard test on return ──
+    let feedHasStarted = false;  // guard: don't discard before feed actually starts
+    let defocusTimestamp = 0;
+    const MIN_DEFOCUS_MS = 2000; // ignore defocus < 2s (DevTools, alt-tab accidental)
+
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
+            defocusTimestamp = performance.now();
             // Pause scroll animation immediately
             if (scrollAnimId) {
                 cancelAnimationFrame(scrollAnimId);
                 scrollAnimId = null;
             }
-            // Stop voice recognition if active
             if (window._s2bRecognition && window._s2bIsRecording) {
                 try { window._s2bRecognition.stop(); } catch(e) {}
             }
         } else {
-            // User returned — check if we were in an active test state
+            const awayMs = performance.now() - defocusTimestamp;
             const activeStates = ['feed', 'selection', 'q1', 'q2', 'q3', 'q4'];
-            if (activeStates.includes(currentState)) {
-                // Test is contaminated — mark and discard silently
+            if (feedHasStarted && awayMs > MIN_DEFOCUS_MS && activeStates.includes(currentState)) {
+                // Gone >2s during active test — contaminated, discard
                 responses.tab_switched = true;
                 window.location.href = '/test';
+            } else if (currentState === 'feed' && scrollAnimId === null && feedHasStarted) {
+                // Short defocus during feed — resume scroll
+                newFlick();
+                scrollAnimId = requestAnimationFrame(scrollStep);
             }
         }
     });
@@ -634,6 +642,8 @@
 
     // Set container height based on first image aspect ratio (560/1100 ~= 0.509)
     const feedContainer = document.getElementById('feed-container');
+    // Disable manual scroll — only JS scrollTop allowed
+    feedContainer.addEventListener('wheel', (e) => e.preventDefault(), { passive: false });
 
     // ── Feed state (must be declared before startFeed can be called) ──
     let scrollAnimId = null;
@@ -653,6 +663,7 @@
 
     // ── Feed inertial flick scroll + IntersectionObserver dwell tracking ──
     function startFeed() {
+        feedHasStarted = true;
         feedStart = performance.now();
 
         // Track dwell time per item via IntersectionObserver

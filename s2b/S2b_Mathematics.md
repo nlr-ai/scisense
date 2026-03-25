@@ -195,6 +195,69 @@ q1_text,                -- texte FINAL (tapé ou transcript validé) — scoré 
 
 `q1_text` reste le champ unique d'entrée du scoring sémantique. Que le participant ait tapé ou parlé, `embed(q1_text)` est calculé sur le texte final validé. Le scoring ne change pas. Seul l'input change — il est plus riche en voice.
 
+**Le problème du méta-talk (observé en crash test) :**
+
+Le voice capture le stream of consciousness — y compris le méta-talk ("est-ce que ça marche", "trop bien ça", "j'ai envie de faire mon truc", "qu'est-ce que je voulais"). Sur un transcript réel de ~80 mots, ~15 sont du rappel et ~65 sont du bruit. L'embedding calculé sur les 80 mots est tiré vers le bruit — le cos_sim avec la référence est artificiellement bas. Le scoring punit la verbosité, pas l'ignorance.
+
+En mode texte ce problème n'existe pas : l'auto-édition filtre le méta-talk gratuitement (personne ne tape "bon voilà c'est trop bien ça").
+
+**Solution — Filtrage sémantique par phrases :**
+
+Preprocessing du transcript voice AVANT le scoring :
+
+```
+1. Segmentation : découper q1_raw_transcript en phrases
+   (par ponctuation STT ou pauses > 500ms dans l'audio)
+
+2. Scoring par phrase : embed(phrase_i) vs embed(ref_text)
+   → cos_sim_i pour chaque phrase
+
+3. Filtrage : garder uniquement les phrases avec cos_sim_i > θ_filter
+   θ_filter = 0.15 (seuil bas — filtre le bruit évident,
+   garde les approximations pertinentes)
+
+4. Recomposition : q1_text_filtered = join(phrases retenues)
+
+5. Scoring final : S9a_raw = cos_sim(embed(q1_text_filtered), embed(ref_text))
+```
+
+**Exemple sur le crash test :**
+
+```
+Phrase                                              cos_sim    Retenue?
+"alors est-ce que ça marche alors oui"              0.03       ✗ méta-talk
+"j'ai vu abstract une comparaison matricielle       0.41       ✓ RAPPEL
+ de mélanome de je sais pas quoi avec des 
+ corrélations"
+"oh non bon voilà toi c'est ça c'est trop bien ça"  0.02       ✗ méta-talk
+"et ensuite il y a un abstract enfin il y a un       0.18       ✓ rappel vague
+ paper qui expliquait"
+"qui explique à tous les choix derrière"             0.08       ✗ trop vague
+"je t'explique ainsi dire un business plan"          0.05       ✗ hors-sujet
+"j'ai envie de faire mon truc là"                    0.01       ✗ méta-talk
+"qu'est-ce que je voulais"                           0.01       ✗ méta-talk
+
+→ q1_text_filtered = "j'ai vu abstract une comparaison matricielle 
+                       de mélanome avec des corrélations. 
+                       et ensuite il y a un paper qui expliquait"
+→ S9a_raw passe de ~0.12 (sur 80 mots bruités) à ~0.38 (sur 20 mots filtrés)
+```
+
+Le filtrage n'invente rien — il retire le bruit. Le rappel réel est préservé. Le brut est toujours stocké (`q1_raw_transcript`) pour traçabilité et ré-analyse.
+
+**Variables additionnelles :**
+
+```
+q1_text_filtered,       -- texte après filtrage sémantique (voice only, null si text)
+q1_phrases_total,       -- nombre de phrases dans le transcript brut
+q1_phrases_retained,    -- nombre de phrases retenues après filtrage
+q1_filter_ratio,        -- phrases_retained / phrases_total (proxy du ratio signal/bruit)
+```
+
+`q1_filter_ratio` est une métrique intéressante en soi : un ratio de 0.20 (20% de signal) vs 0.80 (80% de signal) indique des styles cognitifs différents. Les "penseurs à voix haute" ont un ratio bas. Les "rapporteurs focalisés" ont un ratio élevé. En phase 4, on peut tester si le ratio corrèle avec S9b — les gens qui filtrent mal leur propre parole décodent-ils aussi mal les GAs ?
+
+**Justification (paper)** : Le filtrage par seuil de similarité sémantique sur les segments du transcript suit la méthodologie de passage retrieval en NLP (Robertson & Zaragoza, 2009, *Foundations and Trends in IR*). Le seuil θ_filter = 0.15 est calibré pour maximiser le recall (ne pas perdre de rappel pertinent) au prix d'un peu de bruit résiduel — un choix conservateur justifié par le fait que l'embedding final tolère mieux le bruit résiduel que le signal manquant. Le stockage du transcript brut permet la ré-analyse avec des modèles de filtrage améliorés.
+
 **Adaptation de la chronométrie keystroke** :
 
 En mode voice, les métriques keystroke (`q1_first_keystroke_ms`, `q1_last_keystroke_ms`) sont remplacées par leurs équivalents vocaux :
@@ -769,15 +832,95 @@ ALTER TABLE test_results ADD COLUMN exposure_valid INTEGER DEFAULT 1; -- 0 si dw
 
 #### Variantes de feed simulé
 
-Le chrome du feed est paramétrique. `ga_metadata.json` spécifie le `feed_style` :
+**Plateformes cibles — liste définitive :**
 
-| Style | Layout | Quand l'utiliser |
-|-------|--------|-----------------|
-| `linkedin` | Carte blanche, avatar rond, titre en gras, boutons 👍💬↗🔖 | Audience chercheurs/cliniciens (la plupart partagent sur LinkedIn) |
-| `twitter` | Carte sombre, handle @journal, boutons ♡🔁💬 | Audience tech/data + dissémination rapide |
-| `toc_journal` | Grille sobre, titre + auteurs + thumbnail, pas de boutons sociaux | Simulation table des matières MDPI/Elsevier/PubMed |
+Le GA n'est jamais vu dans le vide. Il est vu sur une plateforme spécifique, au milieu d'un content mix spécifique. Les 3 plateformes à simuler sont choisies par usage réel des chercheurs (Collins et al., 2016 ; données 2025-2026) :
 
-Le style est taggé dans `test_results` (`stimulus_frame`). Les résultats par style sont analysés séparément — le layout peut affecter S10 (saillance).
+| Priorité | Plateforme | Pourquoi | Phase |
+|----------|-----------|----------|-------|
+| **1** | **LinkedIn** | Canal #1 de dissémination scientifique professionnelle. >50% des chercheurs l'utilisent. C'est là que le scroll-stopping compte. | V3 |
+| **2** | **TOC Journal** (MDPI, Elsevier, PubMed) | C'est là que les GAs sont vus *en premier* — dans la table des matières du journal. Grille de thumbnails à 200px. | V3 |
+| **3** | **X/Twitter** | En déclin (11% actifs en 2025) mais encore 2M posts recherche/semaine. Layout compact, sombre. | V4 |
+
+Bluesky et ResearchGate sont exclus pour le MVP : Bluesky n'a pas encore de content mix stabilisé, et ResearchGate n'a pas de feed scrollable (c'est une page de profil/article statique).
+
+**Le content mix — le GA n'est pas seul dans le feed :**
+
+Un feed LinkedIn réel en 2025-2026 n'est pas 100% posts texte+image. Les données AuthoredUp (621 833 posts) et Socialinsider (1.3M posts) montrent la distribution suivante :
+
+| Type de contenu | % du feed LinkedIn 2025 | Ce que voit le participant |
+|---|---|---|
+| Image + texte | ~30% | Photo, infographie, GA, schéma |
+| Vidéo native | ~20% | Thumbnail vidéo avec bouton play, autoplay muet |
+| Carrousel / document PDF | ~15% | Slide 1/N avec flèche "suivant" |
+| Texte seul | ~16% | Bloc de texte, pas d'image |
+| Lien externe | ~15% | Carte de preview avec mini-thumbnail |
+| Poll | ~4% | Question + barres de votes |
+
+**Implication pour le feed simulé :** Si le flux S2b est composé de 8 posts, le mix réaliste est :
+
+```
+Post 1: [Texte seul — commentaire d'opinion d'un chercheur]
+Post 2: [Vidéo — thumbnail avec bouton ▶, autoplay muet NON activé]
+Post 3: [Image + texte — GA DISTRACTEUR d'un autre paper]
+Post 4: [Carrousel — slide 1/6 d'un thread pédagogique]
+Post 5: [Image + texte — GA CIBLE]
+Post 6: [Lien externe — preview card d'un article de journal]
+Post 7: [Vidéo — thumbnail talking-head avec sous-titres]
+Post 8: [Image + texte — photo de conférence avec légende]
+```
+
+Le GA cible est en compétition avec des vidéos, des carrousels et du texte pur. C'est la *vraie* condition attentionnelle. Un feed de 8 GA alignés ne simule rien — dans la réalité, le GA est un signal visuel parmi des signaux hétérogènes.
+
+**Simulation des types non-GA :**
+
+Les distracteurs non-GA n'ont pas besoin d'être interactifs. Ils doivent *ressembler* au vrai contenu :
+
+| Type | Simulation | Source |
+|---|---|---|
+| Vidéo | Thumbnail statique avec icône ▶ superposée + durée "1:23" | Screenshot de vraies vidéos LinkedIn de conférences/talks |
+| Carrousel | Slide 1 statique avec indicateur "1/6 ›" | Screenshot de vrais carrousels pédagogiques |
+| Texte seul | 3-4 lignes de texte + "...voir plus" | Vrais posts texte anonymisés |
+| Lien externe | Preview card avec titre + mini-thumbnail + nom de domaine | Screenshots de vrais link previews |
+| Photo | Photo de conférence / labo / équipe | Photos libres de droits thème science |
+
+Ces distracteurs sont des **images statiques** dans le feed scrollant — pas de vidéo qui joue, pas de carrousel qui slide. Le but est la *concurrence visuelle*, pas l'interactivité. Le cerveau du participant voit un feed hétérogène et doit discriminer "quel post mérite mon attention" — c'est la condition écologique réelle.
+
+**Coût de production des distracteurs :**
+
+Chaque style de feed (LinkedIn, TOC, Twitter) requiert une bibliothèque de distracteurs :
+- 15-20 distracteurs par style (pour éviter la répétition entre sessions)
+- Chaque distracteur = 1 screenshot + metadata (type, titre, auteur fictif)
+- Estimation : 2h de travail agent pour constituer la bibliothèque initiale de 20 distracteurs LinkedIn
+- Les distracteurs sont réutilisables entre sessions (mélangés par seed)
+
+**Feed TOC Journal — layout différent :**
+
+La TOC journal n'est pas un feed vertical de posts. C'est une **grille** ou une **liste** :
+
+```
+┌─────────────────────────────────────────────────────┐
+│  MDPI Children — Table of Contents — Vol. 12, No. 3 │
+├─────────────────────────────────────────────────────┤
+│  ┌─────┐  Immunomodulators for Recurrent RTIs      │
+│  │ GA₁ │  Chen, S. et al. · Received: 12 Mar 2026  │
+│  └─────┘  [PDF] [HTML] [GA]                         │
+├─────────────────────────────────────────────────────┤
+│  ┌─────┐  Machine Learning in Pediatric Radiology   │
+│  │ GA₂ │  Kumar, R. et al. · Received: 28 Feb 2026 │
+│  └─────┘  [PDF] [HTML] [GA]                         │
+├─────────────────────────────────────────────────────┤
+│  ┌─────┐  CRISPR-Based Diagnostics for Rare...      │
+│  │ GA₃ │  Dubois, A. et al. · Received: 5 Mar 2026 │
+│  └─────┘  [PDF] [HTML]                              │
+├─────────────────────────────────────────────────────┤
+│  ...                                                 │
+└─────────────────────────────────────────────────────┘
+```
+
+Le GA est un thumbnail de ~200px dans une liste sobre. Pas de boutons sociaux. Pas de vidéo. Le scroll est vertical et lent. C'est le stress test ultime de P6 (mobile-first) et V7 (lisibilité au downscale).
+
+Le style est taggé dans `test_results` (`stimulus_frame` et `stream_feed_style`). Les résultats par style sont analysés séparément.
 
 #### Données additionnelles en mode stream
 
