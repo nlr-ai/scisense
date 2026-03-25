@@ -150,6 +150,8 @@ def _build_flux_feed(target_image, flux_config):
             "journal": l.get("journal", ""),
             "likes": l.get("likes", 0),
             "comments": l.get("comments", 0),
+            "content_type": l.get("content_type", "paper"),
+            "pfp": l.get("pfp", ""),
         }
         for l in selected
     ]
@@ -163,6 +165,8 @@ def _build_flux_feed(target_image, flux_config):
         "journal": "Scientific Journal",
         "likes": random.randint(30, 200),
         "comments": random.randint(5, 40),
+        "content_type": "paper",
+        "pfp": "",
     }
 
     # Determine target position
@@ -395,6 +399,51 @@ def reveal(request: Request, test_id: int):
         "speed_accuracy": speed_acc,
         "s9a_score": round(float(s9a_score), 3),
         "s10_hit": s10_hit,
+    })
+
+
+@app.get("/spin", response_class=HTMLResponse)
+def spin_page(request: Request):
+    """Proposition C landing: zero-friction spin reveal.
+
+    Picks a random CONTROL GA (area/pie encoding), shows it for 5s,
+    asks Q2 only, then reveals Stevens beta ~0.7 explanation with
+    side-by-side comparison to the VEC bar chart version.
+    """
+    db = get_db()
+    # Pick a random control image
+    control_row = db.execute(
+        "SELECT * FROM ga_images WHERE is_control = 1 ORDER BY RANDOM() LIMIT 1"
+    ).fetchone()
+    if not control_row:
+        db.close()
+        raise HTTPException(status_code=503, detail="No control images in library")
+    control = dict(control_row)
+
+    # Find the corresponding VEC version: same correct_product + domain, not control
+    vec_row = db.execute(
+        """SELECT * FROM ga_images
+           WHERE is_control = 0
+             AND correct_product = ?
+             AND domain = ?
+           LIMIT 1""",
+        (control["correct_product"], control["domain"]),
+    ).fetchone()
+    db.close()
+
+    vec = dict(vec_row) if vec_row else None
+    products = json.loads(control["products"]) if control["products"] else []
+
+    # Get the domain-specific Q2 text
+    domain = control["domain"]
+    questions = CONFIG["domains"].get(domain, CONFIG["domains"]["generic"])
+
+    return templates.TemplateResponse("spin.html", {
+        "request": request,
+        "control": control,
+        "vec": vec,
+        "products": products,
+        "q2_text": questions["q2"],
     })
 
 
