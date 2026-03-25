@@ -19,22 +19,33 @@
         margin: 0.8rem auto;
         line-height: 1.6;
     }
-    /* Mobile simulation frame on desktop */
+    /* iPhone 14 emulation frame on desktop */
     .flux-phone-frame {
-        max-width: 420px;
+        max-width: 390px;        /* iPhone 14 CSS width */
+        aspect-ratio: 390 / 844; /* 19.5:9 */
         margin: 0 auto;
-        border: 3px solid #334155;
-        border-radius: 32px;
-        padding: 8px;
+        border: 3px solid #1c1c1e; /* iPhone bezel color */
+        border-radius: 47px;     /* iPhone corner radius */
+        padding: 12px;
         background: #000;
         position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 0 2px #333, 0 20px 60px rgba(0,0,0,0.5);
     }
     .flux-phone-notch {
-        width: 120px;
-        height: 6px;
-        background: #334155;
+        width: 126px;
+        height: 37px;
+        background: #000;
+        border-radius: 20px;
+        margin: 0 auto 8px;
+        border: 2px solid #1c1c1e;
+    }
+    .flux-phone-home {
+        width: 134px;
+        height: 5px;
+        background: #666;
         border-radius: 3px;
-        margin: 4px auto 6px;
+        margin: 8px auto 0;
     }
     @media (max-width: 480px) {
         /* On actual mobile, no fake frame needed */
@@ -44,15 +55,22 @@
             padding: 0;
             background: transparent;
             max-width: 100%;
+            aspect-ratio: auto;
+            box-shadow: none;
         }
         .flux-phone-notch { display: none; }
+        .flux-phone-home { display: none; }
+        .flux-feed-container {
+            border-radius: 0;
+            height: 85vh;
+        }
     }
     .flux-feed-container {
         width: 100%;
-        height: 75vh;
+        height: 100%;         /* fill phone frame */
         overflow-y: scroll;
         background: var(--bg, #0f172a);
-        border-radius: 8px;
+        border-radius: 35px;  /* inner radius = outer - padding */
         /* No scroll-behavior: smooth — it fights with rAF-driven scrollTop */
         scrollbar-width: none;          /* Firefox */
         -ms-overflow-style: none;       /* IE/Edge legacy */
@@ -243,6 +261,7 @@
             {% endfor %}
           </div>
         </div>
+        <div class="flux-phone-home"></div>
         </div>
         <div class="flux-progress" id="feed-progress">
             {% for item in feed_items %}
