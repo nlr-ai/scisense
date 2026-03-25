@@ -1,89 +1,170 @@
 {% extends "base.html" %}
 {% block title %}Profil — Premier Regard{% endblock %}
 
+{% block head %}
+<style>
+    .field-help {
+        font-size: var(--text-xs, 0.75rem);
+        color: var(--text-dim, #64748b);
+        margin-bottom: var(--sp-4, 1rem);
+        line-height: 1.4;
+    }
+    .chip span { transition: all 0.15s ease; }
+    .chip-med input:checked + span { background: #2563eb; border-color: #2563eb; }
+    .chip-tech input:checked + span { background: #7c3aed; border-color: #7c3aed; }
+    .chip-public input:checked + span { background: #059669; border-color: #059669; }
+    .chip-research input:checked + span { background: #0d9488; border-color: #0d9488; }
+    .chip-pharma input:checked + span { background: #d97706; border-color: #d97706; }
+    .chip-student input:checked + span { background: #ec4899; border-color: #ec4899; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="onboard">
     <h1>Votre profil</h1>
-    <p>Ces informations nous aident à calibrer nos résultats. Aucune donnée personnelle n'est collectée.</p>
+    <p>30 secondes. Aucune donnee personnelle collectee.</p>
 
     <form method="post" action="/onboard">
+
         <fieldset>
-            <legend>Expertise clinique</legend>
-            <div class="btn-group" data-name="clinical_domain">
-                {% for d in config.profile.clinical_domains %}
-                <label class="chip">
-                    <input type="radio" name="clinical_domain" value="{{ d }}" {% if loop.first %}checked{% endif %}>
-                    <span>{{ d }}</span>
+            <legend>Votre domaine</legend>
+            <p class="field-help">Votre activite principale. Pas besoin d'etre medecin — tous les profils nous interessent.</p>
+            <div class="btn-group">
+                <label class="chip chip-med">
+                    <input type="radio" name="clinical_domain" value="Pédiatre">
+                    <span>👶 Pediatre</span>
                 </label>
-                {% endfor %}
+                <label class="chip chip-med">
+                    <input type="radio" name="clinical_domain" value="Médecin Généraliste">
+                    <span>🩺 Medecin generaliste</span>
+                </label>
+                <label class="chip chip-med">
+                    <input type="radio" name="clinical_domain" value="Médecin spécialiste">
+                    <span>🔬 Medecin specialiste</span>
+                </label>
+                <label class="chip chip-pharma">
+                    <input type="radio" name="clinical_domain" value="Pharmacien">
+                    <span>💊 Pharmacien</span>
+                </label>
+                <label class="chip chip-med">
+                    <input type="radio" name="clinical_domain" value="Infirmier">
+                    <span>🏥 Infirmier·e</span>
+                </label>
+                <label class="chip chip-research">
+                    <input type="radio" name="clinical_domain" value="Chercheur Bio/Médical">
+                    <span>🧬 Chercheur bio/medical</span>
+                </label>
+                <label class="chip chip-tech">
+                    <input type="radio" name="clinical_domain" value="Professionnel Tech/Data">
+                    <span>💻 Tech / Data / IA</span>
+                </label>
+                <label class="chip chip-student">
+                    <input type="radio" name="clinical_domain" value="Étudiant">
+                    <span>🎓 Etudiant·e</span>
+                </label>
+                <label class="chip chip-public" >
+                    <input type="radio" name="clinical_domain" value="Grand Public" checked>
+                    <span>🌍 Grand public</span>
+                </label>
             </div>
         </fieldset>
 
         <fieldset>
-            <legend>Années d'expérience</legend>
-            <div class="btn-group" data-name="experience_years">
-                {% for e in config.profile.experience_ranges %}
-                <label class="chip">
-                    <input type="radio" name="experience_years" value="{{ e }}" {% if loop.first %}checked{% endif %}>
-                    <span>{{ e }}</span>
-                </label>
-                {% endfor %}
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend>Habitude d'analyse de données</legend>
-            <div class="btn-group" data-name="data_literacy">
-                {% for d in config.profile.data_literacy %}
-                <label class="chip">
-                    <input type="radio" name="data_literacy" value="{{ d }}" {% if loop.first %}checked{% endif %}>
-                    <span>{{ d }}</span>
-                </label>
-                {% endfor %}
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend>Familiarité avec le système GRADE</legend>
+            <legend>Experience</legend>
+            <p class="field-help">Depuis combien de temps exercez-vous ou etudiez-vous dans votre domaine ?</p>
             <div class="btn-group">
                 <label class="chip">
-                    <input type="radio" name="grade_familiar" value="1">
-                    <span>Oui</span>
+                    <input type="radio" name="experience_years" value="Étudiant" checked>
+                    <span>📚 Etudiant</span>
                 </label>
                 <label class="chip">
+                    <input type="radio" name="experience_years" value="<5 ans">
+                    <span>🌱 &lt;5 ans</span>
+                </label>
+                <label class="chip">
+                    <input type="radio" name="experience_years" value="5-15 ans">
+                    <span>🌿 5-15 ans</span>
+                </label>
+                <label class="chip">
+                    <input type="radio" name="experience_years" value=">15 ans">
+                    <span>🌳 &gt;15 ans</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Rapport aux donnees</legend>
+            <p class="field-help">A quel point etes-vous a l'aise avec les graphiques, stats, et papiers scientifiques ?</p>
+            <div class="btn-group">
+                <label class="chip chip-public">
+                    <input type="radio" name="data_literacy" value="Grand public" checked>
+                    <span>👀 Je lis rarement des graphiques</span>
+                </label>
+                <label class="chip">
+                    <input type="radio" name="data_literacy" value="Lecteur régulier">
+                    <span>📖 Je lis des papers regulierement</span>
+                </label>
+                <label class="chip chip-research">
+                    <input type="radio" name="data_literacy" value="Auteur publié (peer-review)">
+                    <span>✍️ J'ai publie en peer-review</span>
+                </label>
+                <label class="chip chip-tech">
+                    <input type="radio" name="data_literacy" value="Profil Tech/Data">
+                    <span>📊 Je manipule des donnees quotidiennement</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Systeme GRADE</legend>
+            <p class="field-help">Utilisez-vous le systeme GRADE pour evaluer le niveau de preuve ? (Si vous ne savez pas ce que c'est, c'est non)</p>
+            <div class="btn-group">
+                <label class="chip">
                     <input type="radio" name="grade_familiar" value="0" checked>
-                    <span>Non</span>
+                    <span>🤷 Non / je ne connais pas</span>
+                </label>
+                <label class="chip">
+                    <input type="radio" name="grade_familiar" value="1">
+                    <span>✅ Oui</span>
                 </label>
             </div>
         </fieldset>
 
         <fieldset>
             <legend>Vision des couleurs</legend>
-            <div class="btn-group" data-name="colorblind_status">
-                {% for c in config.profile.colorblind_options %}
+            <p class="field-help">Environ 8% des hommes ont une anomalie de perception des couleurs. C'est important pour nos resultats.</p>
+            <div class="btn-group">
                 <label class="chip">
-                    <input type="radio" name="colorblind_status" value="{{ c }}" {% if loop.first %}checked{% endif %}>
-                    <span>{{ c }}</span>
+                    <input type="radio" name="colorblind_status" value="Vision normale" checked>
+                    <span>👁️ Vision normale</span>
                 </label>
-                {% endfor %}
+                <label class="chip">
+                    <input type="radio" name="colorblind_status" value="Daltonien">
+                    <span>🔴🟢 Daltonien</span>
+                </label>
+                <label class="chip">
+                    <input type="radio" name="colorblind_status" value="Je ne sais pas">
+                    <span>❓ Je ne sais pas</span>
+                </label>
             </div>
         </fieldset>
 
         <fieldset>
-            <legend>Mode de reponse pour le rappel libre</legend>
-            <div class="btn-group" data-name="input_mode">
+            <legend>Mode de reponse</legend>
+            <p class="field-help">Comment preferez-vous repondre aux questions ouvertes ?</p>
+            <div class="btn-group">
                 <label class="chip">
                     <input type="radio" name="input_mode" value="text" checked>
-                    <span>Texte</span>
+                    <span>⌨️ Taper</span>
                 </label>
                 <label class="chip">
                     <input type="radio" name="input_mode" value="voice">
-                    <span>Voix</span>
+                    <span>🎤 Parler (Chrome/Edge)</span>
                 </label>
             </div>
         </fieldset>
 
-        <button type="submit" class="btn btn-primary">Continuer</button>
+        <button type="submit" class="btn btn-primary">C'est parti</button>
     </form>
 </div>
 {% endblock %}

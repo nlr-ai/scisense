@@ -9,7 +9,7 @@ timer:
 # not focused 5-second exposure with countdown priming (System 2 bias).
 flux:
   enabled: true
-  n_items: 6                # total items in feed (including target)
+  n_items: 8                # total items in feed (including target)
   item_duration_ms: 4000    # each item visible for 4s
   target_position: random   # "random" or fixed int (1-indexed)
   scroll_transition_ms: 300 # transition between items

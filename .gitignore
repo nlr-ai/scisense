@@ -1,2 +1,4 @@
 exports/
 s2b/data/
+__pycache__/
+*.pyc

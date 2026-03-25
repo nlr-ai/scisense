@@ -65,6 +65,11 @@ CREATE TABLE IF NOT EXISTS tests (
     q1_raw_transcript TEXT,
     stimulus_condition TEXT DEFAULT 'nude',
     stimulus_text TEXT,
+    screen_width INTEGER,
+    screen_height INTEGER,
+    device_pixel_ratio REAL,
+    user_agent TEXT,
+    stream_target_dwell_ms INTEGER,
     FOREIGN KEY (participant_id) REFERENCES participants(id),
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
     UNIQUE(participant_id, ga_image_id)

@@ -54,35 +54,38 @@ Stimulus = (frame, text, image)
 | `text` | Le texte accompagnant qui peut ancrer, spoiler, ou biaiser l'interprétation | Aucun / titre article / titre+auteurs / tweet 280 chars |
 | `image` | Le GA à la résolution de la plateforme simulée | 200px (TOC thumbnail) / 500px (social) / 550px (nude) |
 
-### Les 4 conditions d'exposition
+### Les conditions d'exposition
 
-| Condition | Frame | Texte | Image width | Ce qu'on isole |
-|-----------|-------|-------|-------------|----------------|
-| **Nude** | Aucun | Aucun | 550px | Performance pure du design — le GA seul, sans aide ni spoiler |
-| **Title-only** | Minimal | Titre de l'article | 550px | Effet du titre : spoile-t-il S9b ? Le titre porte-t-il l'info à la place du GA ? |
-| **TOC-sim** | Grille MDPI (6-8 thumbnails) | Titre + auteurs | 200px | Survie au downscale. Stress test P6 (mobile-first) et V7 (lisibilité 50%) |
-| **Social-sim** | Card Twitter/LinkedIn | Tweet/post complet | 500px | Effet d'ancrage textuel. Le tweet biaise-t-il l'interprétation ? |
+| Condition | Mode | Frame | Texte | Image width | Ce qu'on isole |
+|-----------|------|-------|-------|-------------|----------------|
+| **Nude** | Spotlight | Aucun | Aucun | 550px | Performance pure du design — le GA seul, sans aide ni spoiler |
+| **Title-only** | Spotlight | Minimal | Titre de l'article | 550px | Effet du titre : spoile-t-il S9b ? |
+| **Feed LinkedIn** | Stream | Card LinkedIn (avatar, boutons 👍💬↗🔖) | Titre + auteur + timestamp | 500px dans le feed | Condition écologique réseau social professionnel |
+| **Feed Twitter** | Stream | Card Twitter (handle, boutons ♡🔁💬) | Tweet + titre | 500px | Condition écologique dissémination rapide |
+| **TOC Journal** | Stream | Grille MDPI/Elsevier | Titre + auteurs | 200px thumbnail | Condition écologique la plus fréquente — le scan de TOC |
 
-**Pourquoi ces 4 conditions :**
+**Règle structurante : en mode stream, le titre est TOUJOURS présent.** Un feed sans titre ne simule rien. En mode spotlight, le titre est une variable contrôlée (nude = absent, title-only = présent).
 
-La condition **Nude** est le baseline. C'est le seul moyen d'isoler l'effet du *design du GA* de tout contexte. Si S9b(Nude) < 0.80, le design est cassé — pas besoin de tester les autres conditions. C'est le premier test, toujours.
+**Pourquoi ces conditions :**
 
-La condition **Title-only** est le test de spoiler. Si S9b(Title-only) >> S9b(Nude), le titre porte l'information — le GA est décoratif, pas informatif. C'est exactement le piège documenté par Bredbenner & Simon (2019) : les GA captent l'attention mais le *texte* transfère la compréhension. SciSense doit prouver que le GA encode l'information *indépendamment* du titre. Δ_spoiler = S9b(Title-only) - S9b(Nude) doit être faible (<0.10) pour un VEC réussi.
+La condition **Nude** (spotlight only) est le baseline scientifique. C'est le seul moyen d'isoler l'effet du *design du GA* de tout contexte. Si S9b(Nude) < 0.80, le design est cassé — pas besoin de tester les autres conditions.
 
-La condition **TOC-sim** est le vrai contexte écologique pour les journaux. Le GA est vu en thumbnail minuscule (200px) dans une grille de 6-8 articles. C'est là que P6 (mobile-first) et V7 (lisibilité 50%) sont réellement testés. Si S9b s'effondre à 200px, les micro-ancres (P22) et les labels (V3) sont illisibles — le design a échoué à l'échelle réelle.
+La condition **Title-only** (spotlight) est le test de spoiler. Si S9b(Title-only) >> S9b(Nude), le titre porte l'information — le GA est décoratif. Δ_spoiler = S9b(Title-only) - S9b(Nude) doit être faible (<0.10) pour un VEC réussi. C'est le piège documenté par Bredbenner & Simon (2019) : les GA captent l'attention mais le *texte* transfère la compréhension.
 
-La condition **Social-sim** est le contexte écologique pour la dissémination. C'est ce que Ibrahim (2017) mesurait. Le tweet peut dire "Breakthrough: OM-85 dominates evidence" — ce qui spoile Q2 complètement — ou "New review on immunomodulators for pediatric RTIs" — ce qui ne spoile rien. Le contenu du tweet est une variable contrôlable dans le protocole.
+Les conditions **Feed** (stream) sont les conditions écologiques réelles. Le GA est vu avec son titre, dans un chrome de plateforme, au milieu d'autres posts, en scroll automatique. Le titre est toujours là parce que le titre est *toujours* là en réalité. La question n'est pas "le GA fonctionne-t-il sans titre ?" (Nude répond) mais "le couple titre+GA fonctionne-t-il dans le bruit d'un feed ?" (Stream répond).
+
+La condition **TOC Journal** (stream) est le stress test ultime : le GA est un thumbnail de 200px dans une grille. C'est là que P6 (mobile-first) et V7 (lisibilité 50%) sont réellement mis à l'épreuve.
 
 **Justification (paper)** : La distinction nude/contextualisé suit la méthodologie de Hollands & Spence (1998, *Applied Cognitive Psychology*) qui montrent que la performance de lecture des graphiques varie significativement selon la présence ou l'absence de contexte textuel. La simulation de plateforme (TOC, social media) suit le paradigme de validité écologique recommandé par Munzner (2014, *Visualization Analysis and Design*) : un résultat en laboratoire (nude) n'est généralisable que s'il tient en condition naturelle (contextualisé). La séparation en 4 conditions permet d'isoler chaque source de variance : design seul (nude), effet du titre (title-only), effet de l'échelle (TOC-sim), effet du texte social (social-sim).
 
 ### Priorité d'implémentation
 
-| Phase | Condition | Justification |
-|-------|-----------|---------------|
-| MVP | Nude uniquement | Isole le design, zéro infrastructure additionnelle |
-| V2 | Nude + Title-only | Teste l'effet spoiler — une ligne de texte, trivial à implémenter |
-| V3 | + TOC-sim | Requiert un moteur de grille avec distracteurs (croise avec le mode Stream) |
-| V4 | + Social-sim | Requiert un générateur de tweets/posts — le plus complexe |
+| Phase | Mode + Condition | Ce qu'on apprend | Complexité |
+|-------|-----------------|------------------|------------|
+| MVP | Spotlight nude | Le design encode-t-il la hiérarchie seul ? | Trivial — ce qu'on a déjà |
+| V2 | Spotlight nude + title-only | Le titre spoile-t-il ? | +1 ligne de texte au-dessus du GA |
+| V3 | + Stream feed LinkedIn | Le GA survit-il au bruit d'un feed réel ? | Auto-scroll + chrome + distracteurs |
+| V4 | + Stream TOC Journal | Le GA survit-il en thumbnail 200px ? | Grille + downscale |
 
 ### Ce que les nouvelles variables capturent
 
@@ -553,59 +556,182 @@ C'est l'inverse du contexte écologique. Le pédiatre qui scrolle sa TOC MDPI à
 
 Un protocole spotlight surestime systématiquement les taux S9a/S9b car il élimine la compétition attentionnelle. Le VEC ne sera jamais vu en condition spotlight dans la vraie vie.
 
-### Le protocole Stream (v2)
+### Le protocole Stream (v2) — Simulation de Feed Réel
 
-Le GA cible est inséré dans un **flux d'éléments visuels** simulant un scroll de TOC.
+Le GA cible est inséré dans un **feed auto-scrollant qui ressemble à une vraie plateforme** — pas un diaporama d'images nues.
+
+#### Le stimulus en mode stream est un post complet
+
+Chaque élément du flux est un **post** avec la structure d'un vrai réseau social ou d'une vraie TOC :
 
 ```
-FLUX = [distracteur₁, distracteur₂, ..., GA_cible, ..., distracteur_n]
+┌──────────────────────────────────────────────────┐
+│  👤 Dr. Sarah Chen · Lancet Infectious Diseases  │
+│     il y a 3h                                     │
+│                                                    │
+│  "Immunomodulators for Recurrent Respiratory      │
+│   Tract Infections in Children: A Comparative     │
+│   Review"                                          │
+│                                                    │
+│  ┌──────────────────────────────────────────────┐ │
+│  │                                              │ │
+│  │              [  GRAPHICAL ABSTRACT  ]         │ │
+│  │                                              │ │
+│  └──────────────────────────────────────────────┘ │
+│                                                    │
+│  ♡ 47    💬 12    ↗ Share    🔖 Save              │
+│                                                    │
+└──────────────────────────────────────────────────┘
 ```
 
-**Structure du flux :**
+Les boutons like/comment/share/save sont **visuels mais non-fonctionnels**. Ils servent uniquement à mettre le cerveau en mode "je scrolle un feed", pas en mode "je passe un test". Le titre est **toujours présent** — c'est une composante indissociable du stimulus écologique.
+
+#### Pourquoi le titre est obligatoire en mode stream
+
+Sans titre, le mode stream ne simule rien. Dans la réalité :
+
+1. Le titre est lu **avant** le GA — souvent le seul élément lu. L'eye-tracking sur les feeds Twitter montre que le regard va titre → image → engagement buttons (Bakhshi et al., 2014, *CHI*).
+2. Le titre **ancre** l'interprétation. "A Comparative Review" dit au cerveau "il y a une comparaison" avant que l'image ne charge. C'est un primer cognitif.
+3. Le titre peut **spoiler** — et c'est exactement ce qu'on veut mesurer. Si le titre dit "OM-85 shows strongest evidence", S9b(stream) mesurera le couple titre+GA, pas le GA seul. C'est la condition écologique réelle. Le mode spotlight en condition nude mesure le GA seul.
+
+Les deux modes sont complémentaires, pas substitutifs :
+
+| Ce qu'on mesure | Mode | Condition |
+|-----------------|------|-----------|
+| Le GA encode-t-il la hiérarchie seul ? | Spotlight | Nude |
+| Le couple titre+GA fonctionne-t-il en contexte réel ? | Stream | Feed complet |
+| Le titre spoile-t-il ? | Comparaison | S9b(stream) vs S9b(spotlight nude) |
+
+#### Le scroll est automatique mais par à-coups (inertial flick)
+
+Personne ne scrolle à vitesse constante — un scroll linéaire à 60px/s est un signal immédiat de "ceci est une animation". Le vrai scroll mobile est un pattern physique : **flick rapide → décélération exponentielle → micro-pause → flick**. Le scroll par à-coups résout le dilemme : il *ressemble* à un vrai scroll (validité écologique) tout en *contrôlant* le dwell time (validité expérimentale).
+
+**Pourquoi auto-scroll plutôt que scroll libre :**
+
+Le scroll libre introduit un confound fatal : le dwell time devient une *décision* du participant, pas une *propriété* du GA. Un participant lent aura 8s et S9b=90%. Un pressé aura 2s et S9b=40%. On ne sait pas si le S9b est bas parce que le *design* est mauvais ou parce que le *participant* scrolle trop vite. Le dwell time et le S9b sont confondus.
+
+Avec scroll libre : N=60-120 requis + modèle mixte (dwell time comme covariable). Avec scroll par à-coups contrôlé : N=30 suffit pour le McNemar.
+
+**Le modèle physique — décélération exponentielle :**
+
+Chaque flick suit le modèle d'inertie implémenté dans iOS (UIScrollView) et Android (OverScroller) :
+
+```
+v(t) = v₀ · e^(-kt)
+
+v₀ = vitesse initiale du flick (350-800 px/s, variable par flick)
+k  = coefficient de friction (~3.0)
+Le scroll s'arrête quand v(t) < 5 px/s.
+Pause de 300-1200ms (variable) avant le prochain flick.
+```
+
+Le résultat : le feed accélère, décélère, s'arrête brièvement, repart. Certains posts passent vite (flick rapide), d'autres restent longtemps à l'écran (décélération lente). Le pattern est immédiatement reconnaissable comme "quelqu'un scrolle sur son téléphone".
+
+```javascript
+const FLICK_SEQUENCE = [
+    { v0: 600, pause_ms: 400 },   // rapide — les premiers posts passent vite
+    { v0: 450, pause_ms: 800 },   // ralentit
+    { v0: 350, pause_ms: 1100 },  // quasi-arrêt — le POST CIBLE tombe ici
+    { v0: 500, pause_ms: 500 },   // repart
+    { v0: 700, pause_ms: 300 },   // final rapide
+];
+// k=3.0 (friction iOS standard). Séquence seed-based, reproductible.
+```
+
+**Contrôle expérimental :** La séquence est pré-générée et identique pour tous les participants d'une session (seed-based). Le dwell time varie *entre posts* (certains passent vite, d'autres lentement — comme en vrai) mais pas *entre participants* (même film pour tous). Le post cible est positionné dans un flick lent (dwell time garanti ~4-6s).
+
+| | Scroll constant | Scroll par à-coups | Scroll libre |
+|---|---|---|---|
+| Perception | "Animation" → mode test | "Feed" → mode scan | "Feed" → mode scan |
+| Dwell time | Fixe (~6.7s) | Variable par post, fixe entre participants | Variable par tout |
+| Contrôle expérimental | Maximal mais artificiel | Fort et réaliste | Aucun (confound) |
+| N requis (puissance 80%) | 30 | 30 | 60-120 |
+
+**Variable dérivée :** Sur N sessions avec des seeds différents, le dwell time du post cible varie. `logit(S9b) = ... + β₈·stream_target_dwell_ms` quantifie le temps minimum dont le GA a besoin pour transférer la hiérarchie — une métrique de robustesse du design.
+
+**V4 — Scroll libre instrumenté :** Quand N>200, un troisième mode mesure le vrai comportement d'arrêt (vitesse instantanée via `scroll` events). La corrélation "ralentissement devant un post" × "sélection dans le recall" valide S10 comme proxy du scroll-stopping réel.
+
+**Justification (paper)** : La décélération exponentielle suit le modèle de friction visqueuse des frameworks natifs (Baglioni et al., 2011, *CHI*). La séquence de flicks pré-générée suit la recommandation de Risko & Kingstone (2015, *Trends in Cognitive Sciences*) : les stimuli doivent être représentatifs de la dynamique temporelle de la situation cible, pas seulement de son contenu. La variance contrôlée du dwell time (entre posts, pas entre participants) permet un test paramétrique sans modèle mixte (Gescheider, 1997). La reproductibilité seed-based est une condition nécessaire pour l'auditabilité des résultats.
+
+**Paramètres du feed :**
 
 | Paramètre | Valeur | Justification |
 |-----------|--------|---------------|
-| Nombre d'éléments | 5-8 par séquence | Simule une page de TOC MDPI (~6-10 articles) |
-| Position du GA cible | Aléatoire (position 2 à N-1) | Le participant ne peut pas prédire quand préparer son attention |
-| Durée par élément | 3-5s (variable) | La variance empêche le comptage. Durée moyenne calibrée sur les données d'eye-tracking de scroll mobile (Liu et al., 2020) |
-| Distracteurs | Vrais GAs/thumbnails d'autres articles | Écologiquement valides — pas des carrés gris |
-| Question testée | Élément aléatoire parmi les 3 derniers vus | Le participant doit encoder *tous* les éléments, pas juste le GA cible |
+| Pattern de scroll | Inertial flick (v₀·e^(-kt), k=3.0) | Geste du pouce sur mobile |
+| v₀ par flick | 350-800 px/s (variable) | Range calibré sur données iOS |
+| Pause entre flicks | 300-1200ms (variable) | Micro-décision "je flick encore ou je lis" |
+| Zone visible | 600px de hauteur | Mobile viewport |
+| Nombre de posts | 6-10 | Feed réaliste |
+| Position du post cible | Dans un flick lent | Dwell time garanti 4-6s |
+| Séquence | Seed-based, reproductible | Même film pour tous |
 
 **Le flux UX :**
 
 ```
-[Écran briefing simplifié]
-    "Vous allez voir défiler une série d'images scientifiques.
-     Après le défilement, nous vous poserons des questions 
-     sur l'une d'entre elles."
+[Brief simplifié]
+    "Vous allez voir un fil d'actualité scientifique défiler.
+     Laissez-le passer — ne cliquez sur rien.
+     Après le défilement, nous vous poserons des questions
+     sur un des articles."
     ☑ J'ai compris
 
-[Flux : éléments défilent, 3-5s chacun, transition fluide]
-    distracteur₁ (thumbnail d'un article, 4s)
-    distracteur₂ (GA réel d'un autre paper, 3s)
-    GA_CIBLE (le GA VEC à tester, 4s)
-    distracteur₃ (figure d'article, 5s)
-    distracteur₄ (GA industrie, 3s)
+[Feed auto-scroll — 40-60 secondes]
+    Post 1: [Titre réel + GA distracteur + boutons]    ← arrive, passe, sort
+    Post 2: [Titre réel + figure d'article + boutons]  ← arrive, passe, sort
+    Post 3: [Titre réel + GA distracteur + boutons]    ← arrive, passe, sort
+    Post 4: [TITRE CIBLE + GA CIBLE + boutons]         ← arrive, passe, sort
+    Post 5: [Titre réel + GA distracteur + boutons]    ← arrive, passe, sort
+    Post 6: [Titre réel + texte abstract seul + boutons] ← arrive, passe, sort
+
+[Le feed s'arrête — fondu noir]
 
 [Écran de sélection]
-    "Sur quelle image portent les questions ?"
-    → Affichage de 3 thumbnails miniatures (le GA cible + 2 distracteurs)
-    → Le participant clique sur celui qu'il pense reconnaître
-    → Ça peut être n'importe lequel des 3
-
-[Questions S2b sur l'image sélectionnée]
-    Q1, Q2, Q3 comme avant
+    "Sur quel article portent les questions ?"
+    → 3 thumbnails miniatures (titre + mini-GA) parmi les posts vus
+    → Le participant clique sur celui dont il se souvient le mieux
 ```
+
+#### Variantes de feed simulé
+
+Le chrome du feed est paramétrique. `ga_metadata.json` spécifie le `feed_style` :
+
+| Style | Layout | Quand l'utiliser |
+|-------|--------|-----------------|
+| `linkedin` | Carte blanche, avatar rond, titre en gras, boutons 👍💬↗🔖 | Audience chercheurs/cliniciens (la plupart partagent sur LinkedIn) |
+| `twitter` | Carte sombre, handle @journal, boutons ♡🔁💬 | Audience tech/data + dissémination rapide |
+| `toc_journal` | Grille sobre, titre + auteurs + thumbnail, pas de boutons sociaux | Simulation table des matières MDPI/Elsevier/PubMed |
+
+Le style est taggé dans `test_results` (`stimulus_frame`). Les résultats par style sont analysés séparément — le layout peut affecter S10 (saillance).
+
+#### Données additionnelles en mode stream
+
+En plus des données standard (S9a/S9b/S9c/RT), le mode stream enregistre :
+
+```
+stream_feed_style,          -- 'linkedin' | 'twitter' | 'toc_journal'
+stream_scroll_speed_px_s,   -- vitesse effective du scroll
+stream_post_count,          -- nombre de posts dans le feed
+stream_target_position,     -- position du post cible (1-indexed)
+stream_target_dwell_ms,     -- temps pendant lequel le post cible était dans le viewport
+stream_selected_id,         -- quel post le participant a sélectionné
+s10_hit,                    -- 1 si le post sélectionné est le post cible
+```
+
+`stream_target_dwell_ms` est critique : c'est le temps réel pendant lequel le GA cible était visible dans le viewport du participant. Mesuré par `IntersectionObserver API` — quand le post entre dans le viewport et quand il en sort. Si le participant a eu 3.2 secondes de dwell time et que S9b=1, le GA a encodé la hiérarchie en 3.2 secondes de scan passif. C'est la preuve écologique la plus forte.
+
+**Justification (paper)** : La simulation de feed avec auto-scroll et chrome de plateforme suit la méthodologie des études d'eye-tracking sur les réseaux sociaux (Bakhshi et al., 2014, *CHI* ; Pew Research Center, 2021). Le scroll automatique à vitesse fixe élimine la variance due au comportement de scroll individuel (certains scrollent vite, d'autres lentement) tout en maintenant la condition d'attention ambiante. L'`IntersectionObserver API` (W3C) fournit une mesure précise du dwell time sans recourir à un eye-tracker matériel. La présence du titre + chrome dans le stimulus suit le principe de validité écologique de Brunswik (1956) : omettre le contexte dans lequel le stimulus est naturellement rencontré invalide la généralisation des résultats au monde réel.
 
 ### Ce que le Stream ajoute au modèle
 
 **Nouvelle métrique : Saillance (S10)**
 
 ```
-S10(GA) = P(participant sélectionne le GA cible comme "l'image dont il se souvient")
+S10(GA) = P(participant sélectionne le post cible parmi 3 posts)
 ```
 
-Si le participant voit 5 images et qu'on lui en montre 3 dont le GA cible, S10 mesure la probabilité que le GA soit l'image *spontanément retenue*. Le taux de chance est 1/3 = 0.33.
+Le participant voit 6-10 posts défiler et on lui en montre 3 après le flux (titre + mini-GA). S10 mesure la probabilité que le post contenant le GA cible soit celui dont il se souvient le mieux. Le taux de chance est 1/3 = 0.33.
+
+Note : S10 mesure la saillance du *post complet* (titre + GA + chrome), pas du GA seul. C'est voulu — en condition écologique, le GA n'est jamais isolé. La comparaison S9b(spotlight nude) vs S9b(stream) isole la contribution du GA vs celle du titre.
 
 | S10 | Interprétation |
 |-----|---------------|
@@ -631,14 +757,17 @@ Le VEC doit maximiser le produit : `S10 × S9b`.
 
 ### Deux modes, une plateforme
 
-Le protocole S2b supporte les deux modes sur la même plateforme :
+| Mode | Stimulus | Titre | Chrome | Ce qu'il mesure | Validité |
+|------|----------|-------|--------|----------------|----------|
+| **Spotlight nude** | GA seul, 5s chrono | Non | Non | Performance pure du design (ceiling) | Interne — borne supérieure |
+| **Stream feed** | Post complet (titre + GA + boutons), auto-scroll | **Oui, toujours** | **Oui** (LinkedIn/Twitter/TOC) | Compréhension en attention ambiante (écologique) | Externe — généralisable |
 
-| Mode | Quand | Ce qu'il mesure | Validité |
-|------|-------|----------------|----------|
-| **Spotlight** | Quick test, crash test Nicolas, validation rapide | Compréhension en attention maximale (ceiling) | Interne — borne supérieure |
-| **Stream** | Protocole complet, données pour le paper | Compréhension en attention ambiante (écologique) | Externe — généralisable |
+Le mode est taggé dans `test_results` (`exposure_mode`). Les deux modes produisent des données comparables (mêmes S9a/S9b/S9c) mais ne doivent jamais être agrégés ensemble — ils mesurent des conditions cognitives fondamentalement différentes.
 
-Le mode est taggé dans `test_results` (`exposure_mode = 'spotlight' | 'stream'`). Les deux modes produisent des données comparables (mêmes S9a/S9b/S9c) mais ne doivent jamais être agrégés ensemble — ils mesurent des conditions cognitives différentes.
+**La comparaison entre les deux modes est elle-même informative :**
+- Si S9b(stream) ≈ S9b(spotlight) → le titre et le chrome ne changent rien, le GA porte seul
+- Si S9b(stream) >> S9b(spotlight) → le titre spoile, le GA seul ne suffit pas
+- Si S9b(stream) << S9b(spotlight) → le contexte distrait, le GA ne survit pas au bruit du feed
 
 **Implémentation** : Le mode spotlight reste pour le MVP localhost (rapide à coder, rapide à tester). Le mode stream est la V2 — il requiert une bibliothèque de distracteurs et un moteur de randomisation de position. Mais la DB et le scoring sont identiques.
 
@@ -724,6 +853,10 @@ ALTER TABLE test_results ADD COLUMN stream_position INTEGER;                    
 ALTER TABLE test_results ADD COLUMN stream_length INTEGER;                          -- nombre d'éléments total
 ALTER TABLE test_results ADD COLUMN stream_selected_id TEXT;                        -- GA choisi par le participant
 ALTER TABLE test_results ADD COLUMN s10_hit INTEGER;                                -- 1 si sélection correcte
+ALTER TABLE test_results ADD COLUMN stream_scroll_type TEXT DEFAULT 'inertial_flick'; -- 'constant' | 'inertial_flick' | 'free'
+ALTER TABLE test_results ADD COLUMN stream_flick_seed TEXT;                         -- seed de la séquence (reproductibilité)
+ALTER TABLE test_results ADD COLUMN stream_target_dwell_ms INTEGER;                 -- dwell time effectif du post cible (IntersectionObserver)
+ALTER TABLE test_results ADD COLUMN stream_feed_style TEXT;                         -- 'linkedin' | 'twitter' | 'toc_journal'
 
 -- Embedding (S9a sémantique)
 ALTER TABLE test_results ADD COLUMN s9a_raw REAL;                                   -- cos_sim brute ∈ [-1, 1]

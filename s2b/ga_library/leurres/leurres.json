@@ -79,6 +79,86 @@
       "journal": "Pediatrics",
       "likes": 44,
       "comments": 6
+    },
+    {
+      "filename": "leurre_personal_newjob.png",
+      "title": "Excited to announce I've joined CHU Necker as Head of Pediatric Research!",
+      "author": "Dr. Elena Vasquez",
+      "journal": "LinkedIn",
+      "likes": 287,
+      "comments": 34
+    },
+    {
+      "filename": "leurre_personal_conference.png",
+      "title": "Just presented our work on vaccine hesitancy at #ESPID2025",
+      "author": "Prof. Marco Rinaldi",
+      "journal": "LinkedIn",
+      "likes": 156,
+      "comments": 22
+    },
+    {
+      "filename": "leurre_personal_milestone.png",
+      "title": "500 citations on our 2019 meta-analysis!",
+      "author": "Dr. Fatima Al-Sayed",
+      "journal": "ResearchGate",
+      "likes": 89,
+      "comments": 15
+    },
+    {
+      "filename": "leurre_personal_opinion.png",
+      "title": "Hot take: we need to stop publishing graphical abstracts that look like abstract art",
+      "author": "Dr. James Whitfield",
+      "journal": "X/Twitter",
+      "likes": 234,
+      "comments": 41
+    },
+    {
+      "filename": "leurre_job_postdoc.png",
+      "title": "HIRING: Postdoctoral Fellow in Computational Immunology",
+      "author": "ETH Zurich",
+      "journal": "LinkedIn",
+      "likes": 67,
+      "comments": 12
+    },
+    {
+      "filename": "leurre_job_medwriter.png",
+      "title": "Looking for a Medical Science Liaison — Respiratory/Immunology",
+      "author": "Sarah Mitchell",
+      "journal": "LinkedIn",
+      "likes": 43,
+      "comments": 8
+    },
+    {
+      "filename": "leurre_news_who.png",
+      "title": "WHO releases updated guidelines on childhood vaccination schedules",
+      "author": "WHO",
+      "journal": "X/Twitter",
+      "likes": 412,
+      "comments": 38
+    },
+    {
+      "filename": "leurre_news_funding.png",
+      "title": "EU announces €2.1B Horizon Europe call for health research",
+      "author": "European Commission",
+      "journal": "LinkedIn",
+      "likes": 324,
+      "comments": 27
+    },
+    {
+      "filename": "leurre_event_webinar.png",
+      "title": "FREE WEBINAR: Evidence-Based Medicine in the Age of AI",
+      "author": "MedEd Global",
+      "journal": "LinkedIn",
+      "likes": 78,
+      "comments": 9
+    },
+    {
+      "filename": "leurre_event_congress.png",
+      "title": "Don't miss ECCMID 2026 in Vienna! Early bird closes April 15",
+      "author": "ESCMID",
+      "journal": "LinkedIn",
+      "likes": 198,
+      "comments": 14
     }
   ]
 }

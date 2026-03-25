@@ -19,36 +19,51 @@
         margin: 0.8rem auto;
         line-height: 1.6;
     }
-    .flux-feed-container {
-        position: relative;
-        width: 100%;
-        max-width: 580px;
+    /* Mobile simulation frame on desktop */
+    .flux-phone-frame {
+        max-width: 400px;
         margin: 0 auto;
-        overflow: hidden;
-        background: #111;
+        border: 3px solid #334155;
+        border-radius: 32px;
+        padding: 8px;
+        background: #000;
+        position: relative;
+    }
+    .flux-phone-notch {
+        width: 120px;
+        height: 6px;
+        background: #334155;
+        border-radius: 3px;
+        margin: 4px auto 6px;
+    }
+    @media (max-width: 480px) {
+        /* On actual mobile, no fake frame needed */
+        .flux-phone-frame {
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            background: transparent;
+            max-width: 100%;
+        }
+        .flux-phone-notch { display: none; }
+    }
+    .flux-feed-container {
+        width: 100%;
+        height: 65vh;
+        overflow-y: hidden;
+        background: var(--bg, #0f172a);
         border-radius: 8px;
-        /* Cards with chrome are taller than raw images. Min-height ensures visibility. */
-        min-height: 350px;
-        aspect-ratio: 1100 / 700;
+        scroll-behavior: smooth;
+    }
+    .flux-feed-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
     }
     .flux-feed-item {
-        position: absolute;
-        top: 0; left: 0;
         width: 100%;
-        opacity: 0;
-        transform: translateY(40px);
-        transition: opacity 0.3s ease, transform 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .flux-feed-item.active {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    .flux-feed-item.exiting {
-        opacity: 0;
-        transform: translateY(-40px);
+        flex-shrink: 0;
     }
     .flux-card {
         background: #1e293b;
@@ -195,7 +210,10 @@
 
     <!-- FEED -->
     <div class="state-panel hidden" id="panel-feed">
+        <div class="flux-phone-frame">
+        <div class="flux-phone-notch"></div>
         <div class="flux-feed-container" id="feed-container">
+          <div class="flux-feed-inner" id="feed-inner">
             {% for item in feed_items %}
             <div class="flux-feed-item" data-index="{{ loop.index0 }}" data-filename="{{ item.filename }}">
                 <div class="flux-card">
@@ -218,6 +236,8 @@
                 </div>
             </div>
             {% endfor %}
+          </div>
+        </div>
         </div>
         <div class="flux-progress" id="feed-progress">
             {% for item in feed_items %}
@@ -330,6 +350,11 @@
         <input type="hidden" name="stream_length" id="f-stream-length">
         <input type="hidden" name="stream_selected_id" id="f-stream-selected-id">
         <input type="hidden" name="target_filename" id="f-target-filename">
+        <input type="hidden" name="stream_target_dwell_ms" id="f-stream-dwell" value="0">
+        <input type="hidden" name="screen_width" id="f-screen-w" value="0">
+        <input type="hidden" name="screen_height" id="f-screen-h" value="0">
+        <input type="hidden" name="device_pixel_ratio" id="f-dpr" value="1">
+        <input type="hidden" name="user_agent" id="f-ua" value="">
         <input type="hidden" name="q1_input_mode" id="f-q1-input-mode" value="text">
         <input type="hidden" name="q1_raw_transcript" id="f-q1-raw-transcript" value="">
     </form>
@@ -397,12 +422,6 @@
 
     // Set container height based on first image aspect ratio (560/1100 ~= 0.509)
     const feedContainer = document.getElementById('feed-container');
-    function setContainerHeight() {
-        const w = feedContainer.offsetWidth;
-        feedContainer.style.height = Math.round(w * 560 / 1100) + 'px';
-    }
-    setContainerHeight();
-    window.addEventListener('resize', setContainerHeight);
 
     // ── Start button or auto-start ──
     const firstTest = {{ 'true' if first_test else 'false' }};
@@ -411,61 +430,118 @@
         startFeed();
     });
     if (!firstTest) {
-        // Skip briefing — auto-start feed
         showPanel('feed');
         startFeed();
     }
 
-    // ── Feed auto-scroll ──
+    // ── Feed inertial flick scroll + IntersectionObserver dwell tracking ──
+    // Simulates real mobile scroll: flick → decelerate → pause → flick
+    let scrollAnimId = null;
+    const dwellTimes = {}; // filename -> total visible ms
+    const dwellStarts = {}; // filename -> timestamp when entered viewport
+
     function startFeed() {
         feedStart = performance.now();
-        let currentIndex = 0;
 
-        function showItem(index) {
-            // Remove all states
-            feedItems.forEach(fi => {
-                fi.classList.remove('active', 'exiting');
+        // Track dwell time per item via IntersectionObserver
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const fname = entry.target.dataset.filename;
+                if (entry.isIntersecting) {
+                    dwellStarts[fname] = performance.now();
+                } else if (dwellStarts[fname]) {
+                    dwellTimes[fname] = (dwellTimes[fname] || 0) +
+                        (performance.now() - dwellStarts[fname]);
+                    delete dwellStarts[fname];
+                }
             });
-            feedDots.forEach(d => d.classList.remove('active'));
+        }, {
+            root: feedContainer,
+            threshold: 0.5
+        });
 
-            // Mark previous dots as seen
-            for (let i = 0; i < index; i++) {
-                feedDots[i].classList.add('seen');
-            }
+        feedItems.forEach(fi => observer.observe(fi));
 
-            // Show current
-            feedItems[index].classList.add('active');
-            feedDots[index].classList.add('active');
+        // Progress dots
+        function updateDots() {
+            const containerRect = feedContainer.getBoundingClientRect();
+            const centerY = containerRect.top + containerRect.height / 2;
+            let activeIdx = 0;
+            feedItems.forEach((fi, i) => {
+                const fiRect = fi.getBoundingClientRect();
+                if (fiRect.top < centerY) activeIdx = i;
+            });
+            feedDots.forEach((d, i) => {
+                d.classList.toggle('active', i === activeIdx);
+                d.classList.toggle('seen', i < activeIdx);
+            });
         }
 
-        function advanceFeed() {
-            if (currentIndex >= FEED_COUNT) {
-                // Feed complete — record total exposure
+        // Inertial scroll physics — calibrated to actual item heights
+        let velocity = 0;
+        const FRICTION = 0.96;   // Phenomenon: exponential decay models finger-lift inertia
+        const STOP_THRESHOLD = 8;
+        let paused = false;
+        let lastTime = performance.now();
+
+        // Calibrate flick velocity from actual rendered item heights
+        // Target: each item should be visible ~4s (ITEM_DURATION_MS from config)
+        // With friction 0.96 at 60fps, a flick of V px/s travels ~V*25 px before stopping
+        // So to scroll one item of height H in one flick: V ≈ H / 25
+        const avgItemHeight = feedContainer.scrollHeight / FEED_COUNT;
+        const calibratedFlickBase = avgItemHeight / 25;
+
+        function newFlick() {
+            // ±20% variance around calibrated base for natural feel
+            velocity = calibratedFlickBase * (0.8 + Math.random() * 0.4);
+            paused = false;
+        }
+
+        function scrollStep(now) {
+            const dt = Math.min(now - lastTime, 50); // cap dt to prevent jumps
+            lastTime = now;
+            const maxScroll = feedContainer.scrollHeight - feedContainer.clientHeight;
+
+            if (feedContainer.scrollTop >= maxScroll - 5) {
+                // Feed complete
+                observer.disconnect();
+                Object.keys(dwellStarts).forEach(fname => {
+                    dwellTimes[fname] = (dwellTimes[fname] || 0) +
+                        (performance.now() - dwellStarts[fname]);
+                });
                 responses.exposure_actual_ms = Math.round(performance.now() - feedStart);
-                // Mark last dot as seen
-                feedDots[FEED_COUNT - 1].classList.add('seen');
-                feedDots[FEED_COUNT - 1].classList.remove('active');
-                // Show selection panel (S10 saillance step)
+                responses.stream_target_dwell_ms = Math.round(dwellTimes[TARGET_FILENAME] || 0);
+                feedDots.forEach(d => { d.classList.remove('active'); d.classList.add('seen'); });
                 showPanel('selection');
                 return;
             }
 
-            showItem(currentIndex);
-            currentIndex++;
+            if (!paused) {
+                feedContainer.scrollTop += velocity * (dt / 1000);
+                velocity *= FRICTION;
+                updateDots();
 
-            setTimeout(() => {
-                // Exit animation
-                if (currentIndex <= FEED_COUNT) {
-                    const prevItem = feedItems[currentIndex - 1];
-                    prevItem.classList.remove('active');
-                    prevItem.classList.add('exiting');
+                if (velocity < STOP_THRESHOLD) {
+                    // Decelerated to stop — pause calibrated to target dwell time
+                    // Flick travel takes ~0.7s, so pause = target_dwell - 0.7s ± variance
+                    paused = true;
+                    const flickDurationMs = 700; // approximate deceleration time
+                    const targetPauseMs = Math.max(500, ITEM_DURATION_MS - flickDurationMs);
+                    const pauseMs = targetPauseMs * (0.7 + Math.random() * 0.6); // ±30% variance
+                    setTimeout(() => {
+                        newFlick();
+                        scrollAnimId = requestAnimationFrame(scrollStep);
+                    }, pauseMs);
+                    return;
                 }
-                // Short gap for transition animation, then show next
-                setTimeout(advanceFeed, SCROLL_TRANSITION_MS);
-            }, ITEM_DURATION_MS);
+            }
+
+            scrollAnimId = requestAnimationFrame(scrollStep);
         }
 
-        advanceFeed();
+        // First flick
+        newFlick();
+        scrollAnimId = requestAnimationFrame(scrollStep);
     }
 
     // ── Selection: thumbnail recognition (S10) ──
@@ -656,6 +732,11 @@
         document.getElementById('f-stream-length').value = FEED_COUNT;
         document.getElementById('f-stream-selected-id').value = responses.stream_selected_id;
         document.getElementById('f-target-filename').value = TARGET_FILENAME;
+        document.getElementById('f-stream-dwell').value = responses.stream_target_dwell_ms || 0;
+        document.getElementById('f-screen-w').value = window.innerWidth;
+        document.getElementById('f-screen-h').value = window.innerHeight;
+        document.getElementById('f-dpr').value = window.devicePixelRatio || 1;
+        document.getElementById('f-ua').value = navigator.userAgent;
         document.getElementById('submit-form').submit();
     }
 </script>
