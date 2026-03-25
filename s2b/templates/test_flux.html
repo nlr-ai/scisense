@@ -260,18 +260,31 @@
         display: block;
     }
     /* Progress bar for questions */
+    .q-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
     .q-progress {
-        width: 100%;
-        height: 4px;
-        background: #e5e7eb;
-        border-radius: 2px;
-        margin-bottom: 1.5rem;
+        flex: 1;
+        height: 8px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        overflow: hidden;
     }
     .q-progress-fill {
         height: 100%;
-        background: #3b82f6;
-        border-radius: 2px;
-        transition: width 0.3s ease;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+        box-shadow: 0 0 8px rgba(59,130,246,0.3);
+    }
+    .q-step {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 600;
+        white-space: nowrap;
     }
     /* Q2 product buttons — visual emphasis */
     .q2-product {
@@ -424,7 +437,10 @@
 
     <!-- Q1: Free recall -->
     <div class="state-panel hidden" id="panel-q1">
-        <div class="q-progress"><div class="q-progress-fill" style="width:25%"></div></div>
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:25%"></div></div>
+            <span class="q-step">1/4</span>
+        </div>
         <p class="question-text">{{ questions.q1 }}</p>
         {% if input_mode == 'voice' %}
         <div id="voice-panel">
@@ -457,7 +473,10 @@
 
     <!-- Q2: Product hierarchy -->
     <div class="state-panel hidden" id="panel-q2">
-        <div class="q-progress"><div class="q-progress-fill" style="width:50%"></div></div>
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:50%"></div></div>
+            <span class="q-step">2/4</span>
+        </div>
         <p class="question-text">{{ questions.q2 }}</p>
         <div class="product-choices" id="q2-choices">
             {% for p in products %}
@@ -471,7 +490,10 @@
 
     <!-- Q3: Actionability -->
     <div class="state-panel hidden" id="panel-q3">
-        <div class="q-progress"><div class="q-progress-fill" style="width:75%"></div></div>
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:75%"></div></div>
+            <span class="q-step">3/4</span>
+        </div>
         <p class="question-text">{{ questions.q3 }}</p>
         <div class="product-choices q3-actions" id="q3-choices">
             {% for c in questions.q3_choices %}
@@ -482,7 +504,10 @@
 
     <!-- Q4: Free comment -->
     <div class="state-panel hidden" id="panel-q4">
-        <div class="q-progress"><div class="q-progress-fill" style="width:100%"></div></div>
+        <div class="q-header">
+            <div class="q-progress"><div class="q-progress-fill" style="width:100%"></div></div>
+            <span class="q-step">4/4</span>
+        </div>
         <p class="question-text">Un commentaire ? (optionnel)</p>
         <textarea id="q4-input" rows="3" placeholder="Impressions, remarques..."></textarea>
         <button class="btn btn-primary" id="btn-q4">Terminer</button>
