@@ -22,10 +22,10 @@
     /* iPhone 14 emulation frame on desktop */
     .flux-phone-frame {
         max-width: 390px;        /* iPhone 14 CSS width */
-        aspect-ratio: 390 / 844; /* 19.5:9 */
+        height: min(844px, 80vh); /* iPhone 14 height, capped to viewport */
         margin: 0 auto;
-        border: 3px solid #1c1c1e; /* iPhone bezel color */
-        border-radius: 47px;     /* iPhone corner radius */
+        border: 3px solid #1c1c1e;
+        border-radius: 47px;
         padding: 12px;
         background: #000;
         position: relative;
@@ -109,8 +109,8 @@
         width: 100%;
         height: calc(100% - 90px); /* fill phone frame minus iOS chrome */
         overflow-y: scroll;
-        background: var(--bg, #0f172a);
-        border-radius: 35px;  /* inner radius = outer - padding */
+        background: #f3f2ef;  /* LinkedIn-style light gray feed bg */
+        border-radius: 35px;
         /* No scroll-behavior: smooth — it fights with rAF-driven scrollTop */
         scrollbar-width: none;          /* Firefox */
         -ms-overflow-style: none;       /* IE/Edge legacy */
@@ -129,22 +129,24 @@
         flex-shrink: 0;
     }
     .flux-card {
-        background: #1e293b;
-        border-radius: 8px;
+        background: #fff;
+        border-radius: 12px;
         overflow: hidden;
-        border: 1px solid #334155;
+        border: 1px solid #d1d5db;
+        margin-bottom: 4px;
+        text-align: left;
     }
     .flux-card-header {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.6rem 0.75rem;
+        gap: 0.6rem;
+        padding: 0.75rem 1rem;
     }
     .flux-avatar {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
-        background: #3b82f6;
+        background: #0a66c2;
         color: white;
         display: flex;
         align-items: center;
@@ -157,22 +159,23 @@
         min-width: 0;
     }
     .flux-author {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         font-weight: 600;
-        color: #e2e8f0;
+        color: #1a1a1a;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
     .flux-journal {
         font-size: 0.7rem;
-        color: #64748b;
+        color: #6b7280;
     }
     .flux-card-title {
-        padding: 0 0.75rem 0.5rem;
-        font-size: 0.82rem;
-        color: #94a3b8;
-        line-height: 1.3;
+        padding: 0 1rem 0.6rem;
+        font-size: 0.9rem;
+        color: #1a1a1a;
+        line-height: 1.4;
+        font-weight: 400;
     }
     .flux-feed-item img {
         width: 100%;
@@ -181,14 +184,18 @@
     }
     .flux-card-actions {
         display: flex;
-        gap: 1.5rem;
-        padding: 0.5rem 0.75rem;
-        border-top: 1px solid #334155;
+        justify-content: space-around;
+        padding: 0.6rem 0;
+        border-top: 1px solid #e5e7eb;
     }
     .flux-action {
-        font-size: 0.75rem;
-        color: #64748b;
+        flex: 1;
+        text-align: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #6b7280;
         cursor: default;
+        padding: 0.3rem 0;
     }
     .flux-progress {
         display: flex;
@@ -334,7 +341,8 @@
     <!-- SELECTION — S10 saillance: thumbnail recognition step -->
     <div class="state-panel hidden" id="panel-selection">
         <div class="flux-selection">
-            <p>Sur quelle image portent les questions ?</p>
+            <h2>Quelle image vous a marque ?</h2>
+            <p class="question-text">Cliquez sur celle dont vous vous souvenez le mieux.</p>
             <div class="selection-thumbnails" id="selection-thumbnails">
                 {% for thumb in selection_thumbs %}
                 <div class="selection-thumb" data-filename="{{ thumb.filename }}">
@@ -576,16 +584,30 @@
         let paused = false;
         let lastTime = performance.now();
 
-        // Calibrate flick velocity from actual rendered item heights
-        // Target: each item should be visible ~4s (ITEM_DURATION_MS from config)
-        // With friction 0.96 at 60fps, a flick of V px/s travels ~V*25 px before stopping
-        // So to scroll one item of height H in one flick: V ≈ H / 25
-        const avgItemHeight = feedContainer.scrollHeight / FEED_COUNT;
-        const calibratedFlickBase = avgItemHeight / 25;
+        // Calibrate flick velocity per-item (items have variable heights)
+        // With friction F=0.96 at 60fps, V₀ to travel distance H: V₀ = H × (1-F) × 60 / F = H × 2.5
+        const itemHeights = Array.from(feedItems).map(fi => fi.offsetHeight);
+        const avgItemHeight = itemHeights.reduce((a, b) => a + b, 0) / itemHeights.length;
+
+        // Track which item is currently at the top of the viewport
+        function getCurrentItemIndex() {
+            const scrollPos = feedContainer.scrollTop;
+            let cumHeight = 0;
+            for (let i = 0; i < itemHeights.length; i++) {
+                cumHeight += itemHeights[i] + 16; // 16px = gap (1rem)
+                if (cumHeight > scrollPos + 50) return i;
+            }
+            return itemHeights.length - 1;
+        }
+
+        console.log('[S2b scroll]', { itemHeights, avg: avgItemHeight });
 
         function newFlick() {
-            // ±20% variance around calibrated base for natural feel
-            velocity = calibratedFlickBase * (0.8 + Math.random() * 0.4);
+            // Use current item's height for velocity calibration
+            const currentIdx = getCurrentItemIndex();
+            const currentH = itemHeights[currentIdx] || avgItemHeight;
+            const flickBase = currentH * 2.5;
+            velocity = flickBase * (0.8 + Math.random() * 0.4);
             paused = false;
         }
 
@@ -690,6 +712,8 @@
                 rawTranscript = transcript;
                 transcriptText.textContent = transcript;
                 q1InputVoice.value = transcript;
+                // Show transcript div live as speech is recognized
+                voiceTranscript.classList.remove('hidden');
                 // Record first speech result as first "keystroke" equivalent
                 const elapsed = Math.round(performance.now() - q1Start);
                 if (!responses.q1_first_keystroke_ms) {

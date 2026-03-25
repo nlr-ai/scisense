@@ -260,6 +260,8 @@
                 rawTranscript = transcript;
                 transcriptText.textContent = transcript;
                 q1InputVoice.value = transcript;
+                // Show transcript div live as speech is recognized
+                voiceTranscript.classList.remove('hidden');
                 // Record first speech result as first "keystroke" equivalent
                 const elapsed = Math.round(performance.now() - q1Start);
                 if (!responses.q1_first_keystroke_ms) {
