@@ -121,22 +121,39 @@ def classify_rt2(median_rt2_ms: float) -> str:
 
 
 def score_test(q1_text, q2_choice, q3_choice, correct_product, keywords=None,
-               ga_metadata=None):
+               ga_metadata=None, q1_input_mode="text"):
     """Score all three S2b criteria.
 
     S9a is scored via semantic embedding when ga_metadata is provided (contains
     semantic_references). Falls back to the stub (always False) otherwise.
     The keywords parameter is ignored — kept only for backward compatibility.
 
-    Returns dict with boolean passes, graduated s9c, composite, and speed-accuracy.
+    When q1_input_mode is 'voice' and ga_metadata is available, sentence-level
+    semantic filtering is applied before scoring to remove meta-talk noise.
+
+    Returns dict with boolean passes, graduated s9c, composite, speed-accuracy,
+    and voice filter outputs (q1_filtered_text, q1_filter_ratio) when applicable.
     """
     # S9a — semantic scoring if available, otherwise stub (False)
     s9a = False
     s9a_score = 0.0
+    q1_filtered_text = None
+    q1_filter_ratio = None
+
     if ga_metadata:
         try:
-            from semantic import score_s9a_semantic
-            s9a_score, s9a = score_s9a_semantic(q1_text, ga_metadata)
+            from semantic import score_s9a_semantic, filter_voice_transcript
+            filter_voice = (q1_input_mode == "voice")
+
+            # Pre-filter voice transcripts and store the results
+            if filter_voice:
+                q1_filtered_text, q1_filter_ratio = filter_voice_transcript(
+                    q1_text, ga_metadata
+                )
+
+            s9a_score, s9a = score_s9a_semantic(
+                q1_text, ga_metadata, filter_voice=filter_voice
+            )
         except (ImportError, Exception):
             # semantic.py not available or model not loaded — degrade gracefully
             pass
@@ -152,4 +169,6 @@ def score_test(q1_text, q2_choice, q3_choice, correct_product, keywords=None,
         "s9c": s9c_pass,
         "s9c_score": s9c_score,
         "s2b_score": s2b,
+        "q1_filtered_text": q1_filtered_text,
+        "q1_filter_ratio": q1_filter_ratio,
     }

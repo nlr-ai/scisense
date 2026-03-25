@@ -84,6 +84,49 @@ Secondary hypotheses:
 - Voice participants will produce longer `q1_text` (more words)
 - Edit distance between `q1_raw_transcript` and `q1_text` quantifies participant trust in STT
 
+## Semantic filtering (Solution B)
+
+### Problem
+
+Voice transcripts contain ~80% meta-talk ("est-ce que ca marche", "trop bien", "ah oui") and ~20% actual recall content ("comparaison matricielle de melanome"). When the full transcript is embedded as a single vector, the noise dilutes the embedding, producing artificially low S9a cosine similarity scores.
+
+### Solution
+
+Sentence-level semantic filtering applied server-side before S9a scoring:
+
+1. **Split**: Raw transcript is split by sentence boundaries (`.!?\n`), keeping only segments > 3 characters.
+2. **Score each sentence**: Each sentence is embedded and compared (cosine similarity) against the GA's semantic reference embeddings (L1/L2/L3).
+3. **Filter**: Sentences with similarity below `noise_threshold` (default 0.15) are discarded. The threshold is deliberately low -- it removes obvious meta-talk (sim ~0.02-0.08) while keeping even tangentially relevant recall.
+4. **Fallback**: If no sentences pass the threshold, the raw transcript is used as-is (no data loss).
+5. **Score**: S9a scoring runs on the filtered text instead of the raw transcript.
+
+### Implementation
+
+| Function | File | Role |
+|----------|------|------|
+| `filter_voice_transcript()` | `semantic.py` | Splits, scores, filters sentences. Returns `(filtered_text, filter_ratio)` |
+| `score_s9a_semantic(filter_voice=True)` | `semantic.py` | Applies filter before embedding comparison |
+| `score_test(q1_input_mode=)` | `scoring.py` | Routes voice tests through filter pipeline |
+
+### Data stored
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `q1_filtered_text` | TEXT | The filtered transcript (meta-talk removed) |
+| `q1_filter_ratio` | REAL | Ratio of kept/total sentences (cognitive style metric) |
+
+`q1_filter_ratio` is a cognitive style metric: low ratio means lots of meta-talk (participant narrating the process), high ratio means focused recall (participant directly reporting content).
+
+### Reveal page
+
+For voice tests, the reveal page shows both raw word count and filtered word count with the filter ratio percentage, giving participants feedback on recall signal density.
+
+### Hypothesis
+
+**H6: S9a_filtered > S9a_raw for voice transcripts**
+
+Filtering meta-talk before embedding will produce higher S9a scores that better reflect actual recall, because the embedding vector is no longer diluted by noise sentences with near-zero similarity to the GA references.
+
 ## V2 roadmap
 
 - **Whisper with keyword hints**: Use OpenAI Whisper API for higher accuracy, with domain-specific keyword prompting (e.g., medical terminology from GA metadata). Requires API key and server-side processing.
@@ -95,10 +138,12 @@ Secondary hypotheses:
 
 | File | Change |
 |------|--------|
-| `db.py` | Added `input_mode` to participants, `q1_input_mode` and `q1_raw_transcript` to tests |
-| `app.py` | Onboard accepts `input_mode`, test routes pass it to templates, submit accepts new fields |
+| `db.py` | Added `input_mode` to participants, `q1_input_mode`, `q1_raw_transcript`, `q1_filtered_text`, `q1_filter_ratio` to tests |
+| `app.py` | Onboard accepts `input_mode`, test routes pass it to templates, submit passes `q1_input_mode` to scorer and stores filter results |
+| `semantic.py` | Added `filter_voice_transcript()` and `filter_voice` param to `score_s9a_semantic()` |
+| `scoring.py` | `score_test()` accepts `q1_input_mode`, routes voice through filter pipeline, returns filter data |
 | `templates/onboard.html` | Input mode fieldset (voice/text radio buttons) |
 | `templates/test.html` | Conditional voice/text Q1 panel, hidden form fields, voice JS |
 | `templates/test_flux.html` | Same voice UI changes as test.html |
-| `templates/reveal.html` | Shows "voix" tag on Q1 recall when voice was used |
+| `templates/reveal.html` | Shows "voix" tag on Q1 recall, raw vs filtered word counts for voice |
 | `static/style.css` | Voice pulse animation, transcript display, input mode tag styles |

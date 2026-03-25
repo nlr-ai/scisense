@@ -512,7 +512,7 @@ Régression logistique :
 ```
 logit(S9b) = β₀ + β₁·clinical_domain + β₂·data_literacy + β₃·grade_familiar 
            + β₄·color_vision + β₅·ga_version + β₆·log(q1_first_keystroke_ms)
-           + β₇·q1_input_mode
+           + β₇·q1_input_mode + β₈·stream_target_dwell_ms + β₉·screen_dpr
 ```
 
 β₅ est le coefficient du VEC : son effet net sur la compréhension, contrôlé pour toutes les covariables du profil.
@@ -520,6 +520,10 @@ logit(S9b) = β₀ + β₁·clinical_domain + β₂·data_literacy + β₃·grad
 β₆ teste si la latence d'accès mémoire (Q1) prédit indépendamment le succès sur Q2. Si β₆ est significatif et négatif (accès rapide → meilleure hiérarchie), cela confirme que l'ancrage PH1 et le décodage P32 sont couplés : un bon choc cognitif en Zone 1 prédit une bonne lecture de la Zone 3.
 
 β₇ teste si la modalité de production (voice vs texte) affecte S9b. Si non significatif → les deux modes sont interchangeables. Si significatif et positif → la richesse du rappel vocal prédit un meilleur décodage hiérarchique — ce qui suggère que Q1 et Q2 mesurent des facettes couplées du même encodage mnésique.
+
+β₈ teste si le dwell time du post cible (stream only) prédit S9b. Si significatif et positif → le GA a besoin de temps pour transférer la hiérarchie. Le seuil de dwell_ms où S9b atteint 80% quantifie le "temps minimum de compréhension" — une métrique de robustesse du design.
+
+β₉ teste si la résolution d'écran affecte S9b. Si significatif et positif → les écrans haute résolution améliorent S9b, ce qui signifie que le design dépend de détails fins qui disparaissent en basse résolution. Un VEC robuste devrait avoir un β₉ non significatif.
 
 **Justification du choix (paper)** : La régression logistique est le modèle standard pour les variables dépendantes binaires en recherche clinique (Hosmer & Lemeshow, 2013, *Applied Logistic Regression*). La log-transformation de la latence Q1 (`log(q1_first_keystroke_ms)`) est nécessaire car les temps de réaction sont log-normalement distribués (Luce, 1986) — inclure la valeur brute violerait l'hypothèse de linéarité du logit. L'inclusion simultanée des covariables de profil et de la version du GA dans un modèle unique permet de tester l'effet du VEC *contrôlé pour* les différences individuelles — c'est l'équivalent statistique de la question "le design fait-il la différence, à profil constant ?". Si β₅ est significatif après contrôle, l'effet est attribuable au design, pas à la composition de l'échantillon. L'ajout de β₆ teste une hypothèse mécaniste (le couplage ancrage-décodage) qui, si confirmée, fournit une explication causale de l'efficacité du VEC, pas seulement une corrélation.
 
@@ -659,25 +663,44 @@ const pauseBase = targetDwell - 700;  // 700ms = temps de décélération moyen 
 
 ### Simulation mobile sur desktop (phone frame)
 
-Sur desktop, le feed est affiché dans un **cadre de téléphone CSS** (375×812px, ratio iPhone standard) centré à l'écran. Sur mobile natif, le cadre est masqué — le viewport EST le téléphone.
+Sur desktop, le feed est affiché dans un **cadre de téléphone CSS** centré à l'écran. Sur mobile natif, le cadre est masqué — le viewport EST le téléphone.
+
+**Device émulé : iPhone 14 — 390×844 CSS, DPR 3, aspect ratio 19.5:9**
+
+Le choix est data-driven. StatCounter février 2026 montre que les largeurs CSS mobiles se concentrent dans la bande 360-414px (80%+ du marché). Les 3 résolutions dominantes :
+
+| Résolution CSS | Part mondiale | Device | Note |
+|---|---|---|---|
+| 414×896 | 11.8% | iPhone 11/XR | Device de 2019, en déclin |
+| 360×800 | 9.9% | Samsung mid-range | Surreprésenté marchés émergents |
+| **390×844** | **6.9%** | **iPhone 13/14** | **Tendance montante, dominant chez les professionnels EU** |
+| 393×873 | 4.6% | iPhone 15/16 | Nouveau standard, encore en montée |
+
+**Pourquoi 390×844 :**
+
+Notre audience (chercheurs/cliniciens en Europe) est biaisée iPhone — les professionnels de santé en France ont un taux d'iPhone supérieur à la moyenne. La résolution 390×844 est le milieu de la bande de fragmentation (ni la plus large à 414, ni la plus étroite à 360). C'est le cas *typique*, pas le cas optimiste. Si le design fonctionne à 390px de large, il fonctionne pour ~85% des devices mobiles.
 
 ```
-Desktop:  ┌─── écran 1920×1080 ───────────────────────────────┐
+Desktop:  ┌─── écran desktop ────────────────────────────────┐
           │                                                     │
-          │         ┌──── phone frame 375×812 ────┐            │
-          │         │                              │            │
-          │         │   [feed auto-scroll ici]     │            │
-          │         │                              │            │
-          │         └──────────────────────────────┘            │
-          │                                                     │
+          │         ┌──── 390×844 CSS ────────┐                │
+          │         │  ╭────────────────────╮  │                │
+          │         │  │                    │  │                │
+          │         │  │ [feed auto-scroll] │  │                │
+          │         │  │                    │  │                │
+          │         │  ╰────────────────────╯  │                │
+          │         └──────────────────────────┘                │
+          │              corner-radius: 47px                    │
           └─────────────────────────────────────────────────────┘
 
 Mobile:   Le feed occupe 100% du viewport. Pas de frame.
 ```
 
-**Pourquoi :** Le GA est vu principalement sur mobile (P6). Si on laisse le feed occuper 1920px de large sur desktop, le participant voit le GA dans des conditions que personne ne rencontre dans la réalité. Le phone frame force la condition mobile quel que soit le device du participant. Le cadre est un indice contextuel supplémentaire qui dit au cerveau "tu es sur un téléphone" → mode scan.
-
 **Détection auto :** `window.innerWidth > 768 ? showPhoneFrame() : hidePhoneFrame()`.
+
+Le corner radius (47px) et la notch simulée (barre de statut noire en haut) sont des indices contextuels qui disent au cerveau "tu es sur un téléphone" → activation du mode scan. Ce n'est pas décoratif — c'est un primer cognitif qui contribue à la validité écologique.
+
+**Stress test multi-résolution (V3) :** Quand N est suffisant, les tests peuvent être rejoués en 360×800 (Samsung, pire cas) et 414×896 (iPhone 11, meilleur cas). La comparaison S9b(360px) vs S9b(390px) vs S9b(414px) mesure la robustesse du design au downscale.
 
 ### Résolution d'écran — variable stockée
 

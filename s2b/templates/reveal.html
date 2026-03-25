@@ -97,7 +97,20 @@
                     <span class="input-mode-tag input-mode-voice">voix</span>
                     {% endif %}
                 </td>
-                <td>{{ test.q1_text or '(vide)' }}</td>
+                <td>
+                    {{ test.q1_text or '(vide)' }}
+                    {% if test.q1_input_mode == 'voice' and test.q1_text %}
+                    <div class="voice-filter-info" style="margin-top:0.4rem; font-size:0.82rem; color:#666;">
+                        {% set raw_words = test.q1_text.split()|length %}
+                        Mots bruts : <strong>{{ raw_words }}</strong>
+                        {% if test.q1_filtered_text %}
+                        {% set filtered_words = test.q1_filtered_text.split()|length %}
+                        &rarr; Apres filtre : <strong>{{ filtered_words }}</strong>
+                        ({{ (test.q1_filter_ratio * 100) | round(0) }}% conserve)
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </td>
                 <td class="time">{{ (test.q1_time_ms / 1000) | round(1) }}s</td>
             </tr>
             <tr>

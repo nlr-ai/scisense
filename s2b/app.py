@@ -306,7 +306,7 @@ def submit_test(
             ga_metadata.update(sidecar)
 
     scores = score_test(q1_text, q2_choice, q3_choice, image["correct_product"],
-                        ga_metadata=ga_metadata)
+                        ga_metadata=ga_metadata, q1_input_mode=q1_input_mode)
     speed_acc = classify_speed_accuracy(scores["s9b"], q2_time_ms)
 
     # Compute s10_hit: did the participant select the target GA in the thumbnail step?
@@ -340,6 +340,8 @@ def submit_test(
         device_pixel_ratio=device_pixel_ratio or None,
         user_agent=user_agent or None,
         stream_target_dwell_ms=stream_target_dwell_ms or None,
+        q1_filtered_text=scores.get("q1_filtered_text"),
+        q1_filter_ratio=scores.get("q1_filter_ratio"),
     )
     return RedirectResponse(url=f"/reveal/{test_id}", status_code=303)
 

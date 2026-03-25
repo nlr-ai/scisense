@@ -70,6 +70,8 @@ CREATE TABLE IF NOT EXISTS tests (
     device_pixel_ratio REAL,
     user_agent TEXT,
     stream_target_dwell_ms INTEGER,
+    q1_filtered_text TEXT,
+    q1_filter_ratio REAL,
     FOREIGN KEY (participant_id) REFERENCES participants(id),
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
     UNIQUE(participant_id, ga_image_id)
@@ -160,7 +162,8 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
               q1_input_mode="text", q1_raw_transcript=None,
               screen_width=None, screen_height=None,
               device_pixel_ratio=None, user_agent=None,
-              stream_target_dwell_ms=None):
+              stream_target_dwell_ms=None,
+              q1_filtered_text=None, q1_filter_ratio=None):
     db = get_db()
     cursor = db.execute(
         """INSERT INTO tests
@@ -174,8 +177,9 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
             stream_selected_id, s10_hit,
             q1_input_mode, q1_raw_transcript,
             screen_width, screen_height, device_pixel_ratio,
-            user_agent, stream_target_dwell_ms)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            user_agent, stream_target_dwell_ms,
+            q1_filtered_text, q1_filter_ratio)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (participant_id, ga_image_id, q1_text, q1_time_ms,
          q2_choice, q2_time_ms, q3_choice, q3_time_ms,
          int(s9a_pass), float(s9a_score), int(s9b_pass), int(s9c_pass),
@@ -186,7 +190,8 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
          stream_selected_id, s10_hit,
          q1_input_mode, q1_raw_transcript,
          screen_width, screen_height, device_pixel_ratio,
-         user_agent, stream_target_dwell_ms),
+         user_agent, stream_target_dwell_ms,
+         q1_filtered_text, q1_filter_ratio),
     )
     test_id = cursor.lastrowid
     db.commit()

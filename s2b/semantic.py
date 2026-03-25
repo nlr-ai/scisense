@@ -191,10 +191,71 @@ def score_semantic(user_text: str, references: list[str]) -> float:
     return float(np.max(similarities))
 
 
+def filter_voice_transcript(raw_transcript: str, ga_metadata: dict,
+                            noise_threshold: float = 0.15) -> tuple[str, float]:
+    """Filter meta-talk from voice transcript, keep only recall-relevant sentences.
+
+    Voice transcripts contain ~80% meta-talk ("est-ce que ça marche", "trop bien")
+    and ~20% actual recall ("comparaison matricielle de mélanome"). The embedding
+    of the full transcript is diluted by noise, producing artificially low S9a scores.
+
+    This function splits the transcript into sentences, computes cosine similarity
+    of each against the GA's semantic references, and keeps only sentences above
+    the noise threshold.
+
+    Args:
+        raw_transcript: Raw speech-to-text output.
+        ga_metadata: GA image metadata containing semantic_references.
+        noise_threshold: Minimum cosine similarity for a sentence to be kept.
+            Default 0.15 is deliberately low — it filters obvious meta-talk
+            (sim ~0.02-0.08) while keeping even tangentially relevant recall.
+
+    Returns:
+        Tuple of (filtered_text, filter_ratio):
+            filtered_text: Space-joined kept sentences. Falls back to raw
+                transcript if nothing passes the threshold.
+            filter_ratio: len(kept) / len(total_sentences). A cognitive style
+                metric — low ratio = lots of meta-talk, high ratio = focused recall.
+    """
+    if not raw_transcript or not raw_transcript.strip():
+        return "", 0.0
+
+    # Split by sentence boundaries (periods, question marks, commas for speech)
+    import re
+    sentences = re.split(r'[.!?\n]+', raw_transcript)
+    sentences = [s.strip() for s in sentences if s.strip() and len(s.strip()) > 3]
+
+    if not sentences:
+        return raw_transcript, 1.0
+
+    # Get reference embeddings
+    ref_embs = _get_ref_embeddings(ga_metadata)
+    if ref_embs.shape[0] == 0:
+        return raw_transcript, 1.0
+
+    # Score each sentence against references
+    kept = []
+    for sentence in sentences:
+        sent_emb = embed(sentence)
+        sim = float(np.max(ref_embs @ sent_emb))
+        if sim >= noise_threshold:
+            kept.append(sentence)
+
+    filtered = " ".join(kept) if kept else raw_transcript  # fallback to raw if nothing passes
+    ratio = len(kept) / len(sentences)
+
+    logger.info(
+        "Voice filter: %d/%d sentences kept (ratio=%.2f, threshold=%.2f)",
+        len(kept), len(sentences), ratio, noise_threshold,
+    )
+    return filtered, ratio
+
+
 def score_s9a_semantic(
     user_text: str,
     ga_metadata: dict,
     threshold: float = S9A_PASS_THRESHOLD,
+    filter_voice: bool = False,
 ) -> tuple[float, bool]:
     """Score S9a (subject identification) using semantic similarity.
 
@@ -207,6 +268,9 @@ def score_s9a_semantic(
         ga_metadata: The GA image's full JSON metadata dict, expected to
             contain a 'semantic_references' field with L1/L2/L3 texts.
         threshold: Cosine similarity threshold for PASS. Default 0.40.
+        filter_voice: When True, apply filter_voice_transcript() before
+            scoring. Use this for voice transcripts to remove meta-talk
+            that dilutes the embedding.
 
     Returns:
         Tuple of (score, passed):
@@ -216,12 +280,18 @@ def score_s9a_semantic(
     if not user_text or not user_text.strip():
         return 0.0, False
 
+    scoring_text = user_text
+    if filter_voice:
+        filtered, _ratio = filter_voice_transcript(user_text, ga_metadata)
+        if filtered and filtered.strip():
+            scoring_text = filtered
+
     ref_embs = _get_ref_embeddings(ga_metadata)
     if ref_embs.shape[0] == 0:
         logger.error("No reference embeddings available. Cannot score.")
         return 0.0, False
 
-    user_emb = embed(user_text)  # shape: (dim,)
+    user_emb = embed(scoring_text)  # shape: (dim,)
 
     # Cosine similarity (both sides L2-normalized, so dot product = cosine)
     similarities = ref_embs @ user_emb  # shape: (N_refs,)
@@ -229,8 +299,8 @@ def score_s9a_semantic(
     passed = score >= threshold
 
     logger.debug(
-        "S9a semantic: text=%r score=%.3f threshold=%.2f pass=%s",
-        user_text[:80], score, threshold, passed,
+        "S9a semantic: text=%r score=%.3f threshold=%.2f pass=%s filter_voice=%s",
+        scoring_text[:80], score, threshold, passed, filter_voice,
     )
     return score, passed
 
