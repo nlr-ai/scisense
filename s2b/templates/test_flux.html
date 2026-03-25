@@ -5,19 +5,39 @@
 <style>
     .flux-briefing {
         text-align: center;
-        padding: 3rem 1rem;
+        padding: 4rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 50vh;
+    }
+    .briefing-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        animation: pulse 2s ease-in-out infinite;
     }
     .flux-briefing h1 {
-        font-size: 1.6rem;
-        margin-bottom: 1.5rem;
-        color: #333;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.75rem;
     }
     .flux-briefing p {
-        font-size: 1.05rem;
-        color: #555;
-        max-width: 520px;
-        margin: 0.8rem auto;
-        line-height: 1.6;
+        font-size: 1.1rem;
+        color: #94a3b8;
+        line-height: 1.5;
+        margin-bottom: 2rem;
+        max-width: 300px;
+    }
+    .btn-large {
+        padding: 1rem 3rem;
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
     }
     /* iPhone 14 emulation frame on desktop */
     .flux-phone-frame {
@@ -347,8 +367,9 @@
     <!-- BRIEFING — only shown on first test, then auto-skipped -->
     <div class="state-panel {% if not first_test %}hidden{% endif %}" id="panel-briefing">
         <div class="flux-briefing">
-            <h1>Un feed va defiler</h1>
-            <p>Regardez-le comme vous scrolleriez votre fil LinkedIn. On vous posera des questions apres.</p>
+            <div class="briefing-icon">👁️</div>
+            <h1>Pret ?</h1>
+            <p>Un feed va defiler.<br>Regardez-le naturellement.</p>
             <button class="btn btn-primary btn-large" id="btn-start">C'est parti</button>
         </div>
     </div>
