@@ -23,6 +23,7 @@ from db import get_all_tests, get_image_count, get_all_images, add_ga_image
 from db import get_image_by_id, get_image_by_slug, get_tests_for_image, get_tests_for_participant, get_landing_stats, get_example_ga
 from db import get_referral_count, get_top_referrers, save_analysis_lead
 from db import get_latest_graph, get_reading_sims, save_graph
+from db import create_auth_token, verify_auth_token, get_user_gas, add_designer
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
     compute_aggregate_stats,
@@ -302,12 +303,123 @@ def terms(request: Request):
     })
 
 
+# ── Auth (magic link) ─────────────────────────────────────────────────
+
+
+def _get_glance_user(request: Request) -> str | None:
+    """Return the logged-in user's email from cookie, or None."""
+    return request.cookies.get("glance_user")
+
+
+@app.get("/auth/login", response_class=HTMLResponse)
+def auth_login(request: Request):
+    lang = _lang(request)
+    sent = request.query_params.get("sent", "")
+    error = request.query_params.get("error", "")
+    return templates.TemplateResponse("auth_login.html", {
+        "request": request,
+        "lang": lang,
+        "glance_user": _get_glance_user(request),
+        "sent": sent,
+        "error": error,
+        "og_title": "Connexion — GLANCE",
+        "og_description": "Connectez-vous a GLANCE pour retrouver vos Graphical Abstracts.",
+    })
+
+
+@app.post("/auth/send-link")
+async def auth_send_link(request: Request, email: str = Form(...)):
+    """Generate a magic link token and send it via Telegram + console."""
+    email = email.strip().lower()
+    if not email or "@" not in email:
+        return RedirectResponse(url="/auth/login?error=email", status_code=303)
+
+    token = create_auth_token(email)
+    base_url = os.environ.get("GLANCE_BASE_URL", "https://glance.scisense.fr")
+    magic_link = f"{base_url}/auth/verify?token={token}"
+
+    # Always log to console
+    logger = logging.getLogger("auth")
+    logger.info(f"[AUTH] Magic link for {email}: {magic_link}")
+
+    # Send via Telegram if bot token is available
+    tg_bot_token = os.environ.get("TG_BOT_TOKEN", "")
+    tg_chat_id = os.environ.get("TG_ADMIN_CHAT_ID", "")
+    if tg_bot_token and tg_chat_id:
+        try:
+            import urllib.request
+            tg_payload = json.dumps({
+                "chat_id": tg_chat_id,
+                "text": f"GLANCE login link for {email}:\n{magic_link}",
+                "parse_mode": "HTML",
+            }).encode("utf-8")
+            tg_req = urllib.request.Request(
+                f"https://api.telegram.org/bot{tg_bot_token}/sendMessage",
+                data=tg_payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urllib.request.urlopen(tg_req, timeout=10)
+        except Exception as e:
+            logger.warning(f"TG magic link send failed: {e}")
+
+    return RedirectResponse(url="/auth/login?sent=1", status_code=303)
+
+
+@app.get("/auth/verify")
+def auth_verify(request: Request, token: str = ""):
+    """Verify magic link token, set session cookie, redirect to profile."""
+    if not token:
+        return RedirectResponse(url="/auth/login?error=missing", status_code=303)
+
+    email = verify_auth_token(token)
+    if not email:
+        return RedirectResponse(url="/auth/login?error=expired", status_code=303)
+
+    response = RedirectResponse(url="/profile", status_code=303)
+    response.set_cookie(
+        "glance_user",
+        email,
+        max_age=86400 * 30,  # 30 days
+        httponly=True,
+        samesite="lax",
+    )
+    return response
+
+
+@app.get("/profile", response_class=HTMLResponse)
+def profile_page(request: Request):
+    lang = _lang(request)
+    glance_user = _get_glance_user(request)
+    if not glance_user:
+        return RedirectResponse(url="/auth/login", status_code=303)
+
+    user_gas = get_user_gas(glance_user)
+
+    return templates.TemplateResponse("profile.html", {
+        "request": request,
+        "lang": lang,
+        "glance_user": glance_user,
+        "user_gas": user_gas,
+        "og_title": "Mon profil — GLANCE",
+        "og_description": "Retrouvez vos Graphical Abstracts analyses sur GLANCE.",
+    })
+
+
+@app.get("/auth/logout")
+def auth_logout(request: Request):
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie("glance_user")
+    return response
+
+
 @app.get("/pricing", response_class=HTMLResponse)
 def pricing(request: Request):
     lang = _lang(request)
     return templates.TemplateResponse("pricing.html", {
         "request": request,
         "lang": lang,
+        "glance_user": _get_glance_user(request),
         "og_title": "Offres GLANCE — SciSense",
         "og_description": "Du test gratuit à l'audit complet — choisissez votre niveau d'analyse GLANCE.",
     })
@@ -919,21 +1031,37 @@ def leaderboard(request: Request):
     lang = _lang(request)
     domain_config = CONFIG.get("domains", {})
     data = get_leaderboard_data(domain_config)
+    # Filter out user_upload and domains with 0 GAs
     domains = sorted(
-        data.items(),
-        key=lambda kv: (kv[1]["avg_score"] is not None, kv[1]["avg_score"] or 0),
+        [(k, v) for k, v in data.items() if k != "user_upload" and v["n_gas"] > 0],
+        key=lambda kv: kv[1]["n_gas"],
         reverse=True,
     )
-    # Build domain pills for inter-domain navigation
+    # Build domain pills for inter-domain navigation (also filtered)
     all_domains = [
-        {"key": k, "label": v["label"], "n_gas": v["n_gas"]}
+        {"key": k, "label": v["label"], "n_gas": v["n_gas"],
+         "emoji": v.get("emoji", ""), "color": v.get("color", "#71717a")}
         for k, v in domains
     ]
+    # Global stats for hero section
+    total_gas = sum(v["n_gas"] for _, v in domains)
+    total_domains = len(domains)
+    all_display_scores = []
+    for _, v in domains:
+        if v.get("avg_display_score") is not None:
+            all_display_scores.append(v["avg_display_score"])
+        elif v.get("avg_score") is not None:
+            all_display_scores.append(v["avg_score"])
+    avg_score_global = round(sum(all_display_scores) / len(all_display_scores) * 100) if all_display_scores else None
+
     return templates.TemplateResponse("leaderboard.html", {
         "request": request,
         "lang": lang,
         "domains": domains,
         "all_domains": all_domains,
+        "total_gas": total_gas,
+        "total_domains": total_domains,
+        "avg_score_global": avg_score_global,
         "og_title": "GLANCE Leaderboard — Classement des Graphical Abstracts",
         "og_description": "Découvrez quels GAs scientifiques communiquent le mieux, classés par domaine.",
     })
@@ -1004,11 +1132,12 @@ def leaderboard_domain(request: Request, domain: str):
     all_lb_data = get_leaderboard_data(domain_config)
     all_domains_sorted = sorted(
         all_lb_data.items(),
-        key=lambda kv: (kv[1]["avg_score"] is not None, kv[1]["avg_score"] or 0),
+        key=lambda kv: kv[1]["n_gas"],
         reverse=True,
     )
     all_domains = [
-        {"key": k, "label": v["label"], "n_gas": v["n_gas"]}
+        {"key": k, "label": v["label"], "n_gas": v["n_gas"],
+         "emoji": v.get("emoji", ""), "color": v.get("color", "#71717a")}
         for k, v in all_domains_sorted
     ]
 
@@ -1406,14 +1535,15 @@ def ga_detail(request: Request, ga_id: str):
     ga_abstract = _generate_ga_abstract(sidecar, image)
     executive_summary = _generate_executive_summary(sidecar, image, detail, recommendations)
 
-    # Email gate: lock user_upload GAs unless unlock cookie or admin pwd
+    # Email gate: DISABLED — user_upload GAs are never locked
     is_user_upload = (image.get("domain") == "user_upload")
     is_locked = False
-    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
     is_admin = (request.query_params.get("pwd", "") == admin_pwd)
-    if is_user_upload and not is_admin:
-        unlock_cookie = request.cookies.get(f"glance_unlock_{ga_id}")
-        is_locked = not bool(unlock_cookie)
+    # if is_user_upload and not is_admin:
+    #     unlock_cookie = request.cookies.get(f"glance_unlock_{ga_id}")
+    #     is_locked = not bool(unlock_cookie)
 
     # Stripe availability (graceful degradation: hide payment option if not configured)
     from payments import is_stripe_configured
@@ -1434,6 +1564,34 @@ def ga_detail(request: Request, ga_id: str):
     # Canonical share slug (prefer slug, fallback to numeric id)
     share_slug = image.get("slug") or str(ga_id)
 
+    # Dynamic share text — use sim data when available
+    share_text_dynamic = None
+    try:
+        _lg = get_latest_graph(ga_id)
+        if _lg:
+            _sims = get_reading_sims(graph_id=_lg["id"])
+            _s1 = next((s for s in _sims if s["mode"] == "system1"), None)
+            if _s1:
+                _visited = _s1.get("nodes_visited", 0) or 0
+                _total = _s1.get("nodes_total", 0) or 0
+                _coverage = _s1.get("narrative_coverage", 0) or 0
+                _verdict = _s1.get("complexity_verdict", "")
+                _skipped = _s1.get("nodes_skipped", 0) or 0
+                _dead = _s1.get("dead_space_count", 0) or 0
+                _pct_read = round(_visited / max(_total, 1) * 100)
+                _narr_pct = round(_coverage * 100)
+
+                # Build share text — narrative coverage is the headline
+                share_text_dynamic = (
+                    f"Que voient vos lecteurs en 5 secondes sur votre Graphical Abstract ?\n\n"
+                    f"{_narr_pct}% des messages scientifiques transmis.\n\n"
+                    f"Testez le vôtre →")
+    except Exception:
+        pass
+
+    if share_text_dynamic:
+        og_desc = share_text_dynamic
+
     # Expose drift / warp / spin for the perceptual profile report card
     if detail.get("n_tests", 0) > 0:
         perceptual_drift = drift_val
@@ -1443,6 +1601,44 @@ def ga_detail(request: Request, ga_id: str):
         perceptual_drift = None
         perceptual_warp = None
         perceptual_spin = None
+
+    # ── Graphs history for evolution chart ──
+    graphs_history = []
+    try:
+        db_hist = get_db()
+        rows = db_hist.execute("""
+            SELECT g.id, g.graph_type, g.created_at, g.node_count, g.link_count,
+                   g.avg_effectiveness, g.anti_pattern_count,
+                   rs.narrative_coverage, rs.budget_pressure, rs.complexity_verdict,
+                   rs.nodes_visited, rs.nodes_total
+            FROM ga_graphs g
+            LEFT JOIN reading_simulations rs ON rs.graph_id = g.id AND rs.mode = 'system1'
+            WHERE g.ga_image_id = ?
+            ORDER BY g.id ASC
+        """, (ga_id,)).fetchall()
+        db_hist.close()
+        graphs_history = [dict(r) for r in rows]
+    except Exception:
+        pass
+
+    # ── Graph overlay SVG + scanpath data ──
+    overlay_svg = None
+    scanpath_json = "null"
+    try:
+        latest_graph = get_latest_graph(ga_id)
+        if latest_graph:
+            sims = get_reading_sims(graph_id=latest_graph["id"])
+            sim_s1 = next((s for s in sims if s["mode"] == "system1"), None)
+            if sim_s1:
+                from graph_renderer import render_overlay_svg
+                from reader_sim import simulate_reading
+                # Re-run sim from stored graph to get full result (DB only stores stats)
+                graph_dict = latest_graph["graph"]
+                sim_full = simulate_reading(graph_dict, total_ticks=50, mode="system1")
+                overlay_svg = render_overlay_svg(graph_dict, sim_full, 900, 600)
+                scanpath_json = json.dumps(sim_full.get("scanpath", []))
+    except Exception as e:
+        logger.warning(f"Overlay SVG failed for ga {ga_id}: {e}")
 
     return templates.TemplateResponse("ga_detail.html", {
         "request": request,
@@ -1473,6 +1669,10 @@ def ga_detail(request: Request, ga_id: str):
         "share_slug": share_slug,
         "ga_id": ga_id,
         "is_admin": is_admin,
+        "overlay_svg": overlay_svg,
+        "scanpath_json": scanpath_json,
+        "graphs_history": graphs_history,
+        "graphs_history_json": json.dumps(graphs_history),
     })
 
 
@@ -1482,19 +1682,92 @@ logger = logging.getLogger(__name__)
 
 
 @app.get("/analyze", response_class=HTMLResponse)
-def analyze_page(request: Request):
-    """Show the GA upload/analysis page."""
+def analyze_page(request: Request, ga: str = ""):
+    """Show the GA upload/analysis page.
+
+    If ?ga=<slug> is provided, show the GA image + tool panel instead of the
+    upload dropzone. This lets users continue working on an already-uploaded GA.
+    """
     lang = _lang(request)
+    active_ga = None
+    overlay_svg = None
+    scanpath_json = "null"
+    if ga:
+        active_ga = get_image_by_slug(ga)
+        if active_ga:
+            try:
+                _lg = get_latest_graph(active_ga["id"])
+                if _lg:
+                    _sims = get_reading_sims(graph_id=_lg["id"])
+                    _s1 = next((s for s in _sims if s["mode"] == "system1"), None)
+                    if _s1:
+                        from graph_renderer import render_overlay_svg
+                        from reader_sim import simulate_reading
+                        graph_dict = _lg["graph"]
+                        sim_full = simulate_reading(graph_dict, total_ticks=50, mode="system1")
+                        overlay_svg = render_overlay_svg(graph_dict, sim_full, 900, 600)
+                        scanpath_json = json.dumps(sim_full.get("scanpath", []))
+            except Exception as e:
+                logger.warning(f"Analyze overlay failed: {e}")
+
+    graphs_history = []
+    if active_ga:
+        try:
+            db_hist = get_db()
+            rows = db_hist.execute("""
+                SELECT g.id, g.graph_type, g.created_at, g.node_count, g.link_count,
+                       g.avg_effectiveness, g.anti_pattern_count,
+                       rs.narrative_coverage, rs.budget_pressure, rs.complexity_verdict,
+                       rs.nodes_visited, rs.nodes_total
+                FROM ga_graphs g
+                LEFT JOIN reading_simulations rs ON rs.graph_id = g.id AND rs.mode = 'system1'
+                WHERE g.ga_image_id = ?
+                ORDER BY g.id ASC
+            """, (active_ga["id"],)).fetchall()
+            db_hist.close()
+            graphs_history = [dict(r) for r in rows]
+        except Exception:
+            pass
+
+    sim_stats = None
+    narrative_text = None
+    if active_ga:
+        try:
+            _lg2 = get_latest_graph(active_ga["id"])
+            if _lg2:
+                _sims2 = get_reading_sims(graph_id=_lg2["id"])
+                _s1_2 = next((s for s in _sims2 if s["mode"] == "system1"), None)
+                if _s1_2:
+                    sim_stats = {
+                        "narrative_coverage": _s1_2.get("narrative_coverage"),
+                        "nodes_visited": _s1_2.get("nodes_visited"),
+                        "nodes_total": _s1_2.get("nodes_total"),
+                        "nodes_skipped": _s1_2.get("nodes_skipped"),
+                        "complexity_verdict": _s1_2.get("complexity_verdict"),
+                        "dead_space_count": _s1_2.get("dead_space_count"),
+                        "budget_pressure": _s1_2.get("budget_pressure"),
+                    }
+                    narrative_text = _s1_2.get("narrative_text", "")
+        except Exception:
+            pass
+
     return templates.TemplateResponse("analyze.html", {
         "request": request,
         "lang": lang,
+        "active_ga": active_ga,
+        "overlay_svg": overlay_svg,
+        "scanpath_json": scanpath_json,
+        "sim_stats": sim_stats,
+        "narrative_text": narrative_text,
+        "graphs_history": graphs_history,
+        "graphs_history_json": json.dumps(graphs_history),
         "og_title": "Analyse ton Graphical Abstract — GLANCE",
         "og_description": "Depose ton Graphical Abstract et recois une analyse IA en 30 secondes : score, archetype, forces, faiblesses, recommandations.",
     })
 
 
 @app.post("/analyze/submit")
-async def analyze_submit(request: Request, file: UploadFile = File(...)):
+async def analyze_submit(request: Request, file: UploadFile = File(...), public: str = Form("")):
     """Process uploaded GA image through the vision pipeline.
 
     1. Save uploaded image to ga_library/user_uploads/
@@ -1504,6 +1777,8 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     5. Create a ga_images entry in DB
     6. Redirect to /ga-detail/{new_id}
     """
+    is_public = 1 if public else 0
+
     # Validate file type
     if not file.filename:
         raise HTTPException(status_code=400, detail="No file uploaded")
@@ -1518,8 +1793,24 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
 
     # Read file bytes
     image_bytes = await file.read()
-    if len(image_bytes) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 10 Mo)")
+    if len(image_bytes) > 20 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 20 Mo)")
+
+    # Auto-resize large images to max 2000px (reduces Gemini latency + cost)
+    if ext in ("png", "jpg", "jpeg", "webp") and len(image_bytes) > 2 * 1024 * 1024:
+        try:
+            from PIL import Image as PILImage
+            import io
+            img = PILImage.open(io.BytesIO(image_bytes))
+            if img.width > 2000:
+                ratio = 2000 / img.width
+                img = img.resize((2000, int(img.height * ratio)), PILImage.LANCZOS)
+                buf = io.BytesIO()
+                img.save(buf, format="PNG", optimize=True)
+                image_bytes = buf.getvalue()
+                logger.info(f"Resized to 2000px ({len(image_bytes)//1024}KB)")
+        except Exception as e:
+            logger.warning(f"Auto-resize failed: {e}")
 
     # Handle PDF: extract largest image
     if ext == "pdf":
@@ -1533,12 +1824,52 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
         image_bytes = extracted
         ext = "png"  # extracted image is raw, treat as PNG
 
+    # ── Dedup: check if this image was already uploaded ──
+    import hashlib
+    img_hash = hashlib.sha256(image_bytes).hexdigest()
+    db_dup = get_db()
+    existing = db_dup.execute(
+        "SELECT id, slug FROM ga_images WHERE image_hash = ?", (img_hash,)
+    ).fetchone()
+    db_dup.close()
+    if existing:
+        # Same image already analyzed — add this user as designer
+        glance_user = _get_glance_user(request)
+        designer_id = glance_user or request.cookies.get("glance_session", str(int(time.time())))
+        add_designer(existing["id"], designer_id)
+        # Restore image file if missing (lost during deploy)
+        ex_db = get_db()
+        ex_row = ex_db.execute("SELECT filename FROM ga_images WHERE id = ?", (existing["id"],)).fetchone()
+        ex_db.close()
+        if ex_row:
+            ex_path = os.path.join(BASE, "ga_library", ex_row[0])
+            if not os.path.exists(ex_path):
+                os.makedirs(os.path.dirname(ex_path), exist_ok=True)
+                with open(ex_path, "wb") as f:
+                    f.write(image_bytes)
+                logger.info(f"Restored missing image: {ex_path}")
+                # Also persist to /var/data/
+                persist_dir = os.path.join(os.environ.get("GLANCE_DATA_DIR", os.path.join(BASE, "ga_library")), "user_uploads")
+                os.makedirs(persist_dir, exist_ok=True)
+                with open(os.path.join(persist_dir, os.path.basename(ex_row[0])), "wb") as f:
+                    f.write(image_bytes)
+        redirect_key = existing["slug"] or str(existing["id"])
+        return RedirectResponse(url=f"/analyze?ga={redirect_key}", status_code=303)
+
     # Save uploaded image to ga_library/user_uploads/
     timestamp = int(time.time())
     safe_name = re.sub(r'[^\w\-.]', '_', file.filename)
     upload_filename = f"user_uploads/{timestamp}_{safe_name}"
-    upload_dir = os.path.join(BASE, "ga_library", "user_uploads")
-    os.makedirs(upload_dir, exist_ok=True)
+    # Store on persistent disk (/var/data/) AND local ga_library/ for serving
+    persist_dir = os.path.join(os.environ.get("GLANCE_DATA_DIR", os.path.join(BASE, "ga_library")), "user_uploads")
+    local_dir = os.path.join(BASE, "ga_library", "user_uploads")
+    os.makedirs(persist_dir, exist_ok=True)
+    os.makedirs(local_dir, exist_ok=True)
+    # Save to persistent disk
+    persist_path = os.path.join(persist_dir, f"{timestamp}_{safe_name}")
+    with open(persist_path, "wb") as f:
+        f.write(image_bytes)
+    # Also save to local ga_library for immediate serving
     upload_path = os.path.join(BASE, "ga_library", upload_filename)
     with open(upload_path, "wb") as f:
         f.write(image_bytes)
@@ -1581,8 +1912,8 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
         slug = _generate_unique_slug(db, upload_filename)
         db.execute(
             """INSERT INTO ga_images
-               (filename, domain, version, is_control, correct_product, products, title, description, slug)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               (filename, domain, version, is_control, correct_product, products, title, description, slug, image_hash, public)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 upload_filename,
                 "user_upload",
@@ -1593,15 +1924,96 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
                 title,
                 description,
                 slug,
+                img_hash,
+                is_public,  # from checkbox — 0=private, 1=public
             ),
         )
         db.commit()
         ga_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
         ga_slug = slug
+
+        # Build and store abstract from analysis metadata
+        abstract_parts = []
+        if title:
+            abstract_parts.append(f"Title: {title}")
+        if main_finding:
+            abstract_parts.append(f"Finding: {main_finding}")
+        if executive_summary:
+            abstract_parts.append(f"Summary: {executive_summary}")
+        if abstract_parts:
+            abstract_text = "\n".join(abstract_parts)
+            db.execute("UPDATE ga_images SET abstract = ? WHERE id = ?", (abstract_text, ga_id))
+            db.commit()
+
         db.close()
     except Exception as e:
         logger.error(f"DB insert failed: {e}")
         raise HTTPException(status_code=500, detail="Erreur base de donnees")
+
+    # Add logged-in user as designer of this new GA
+    glance_user = _get_glance_user(request)
+    if glance_user and ga_id:
+        add_designer(ga_id, glance_user)
+
+    # Persist graph in DB → triggers async reader sim S1+S2 + health + overlay
+    try:
+        graph_id = save_graph(graph, ga_image_id=ga_id, graph_type="vision",
+                              source="analyze_upload", yaml_path=graph_path)
+        logger.info(f"Graph saved for GA {ga_id} (graph {graph_id}) — async sim launched")
+    except Exception as e:
+        logger.warning(f"save_graph failed (non-blocking): {e}")
+        graph_id = None
+
+    # Launch auto-improve loop in background (channels + advise)
+    import threading
+    def _auto_improve_bg(ga_img_id, img_path, g_path):
+        """Background: run channel analysis + 1 improve turn after upload."""
+        try:
+            # Step 1: Channel analysis (enriches the graph)
+            time.sleep(5)  # wait for initial sim to complete
+            from channel_analyzer import analyze_ga_channels
+            enriched = analyze_ga_channels(img_path, g_path, prior_graph=True)
+            if enriched:
+                save_graph(enriched, ga_image_id=ga_img_id,
+                           graph_type="enriched", source="auto_post_upload")
+                logger.info(f"Auto-enriched GA {ga_img_id}")
+
+            # Step 2: One improve turn (advise based on sim + channels)
+            time.sleep(4)
+            from db import get_latest_graph as _glg, get_reading_sims as _grs
+            latest = _glg(ga_img_id)
+            if latest:
+                sims = _grs(graph_id=latest["id"])
+                s1 = next((s for s in sims if s["mode"] == "system1"), None)
+                intent = ""
+                if s1 and s1.get("narrative_text"):
+                    intent = s1["narrative_text"]
+                    prompts = json.loads(s1.get("prompts_json", "[]"))
+                    if prompts:
+                        intent += "\n\n" + "\n".join(f"- {p}" for p in prompts[:3])
+                if not intent:
+                    intent = "Proposer des ameliorations de clarte visuelle."
+
+                _tmp = os.path.join(BASE, "data", f"autoimp_{ga_img_id}_{int(time.time())}.yaml")
+                os.makedirs(os.path.dirname(_tmp), exist_ok=True)
+                with open(_tmp, "w", encoding="utf-8") as f:
+                    yaml.dump(latest["graph"], f, default_flow_style=False, allow_unicode=True)
+                try:
+                    from ga_advisor import advise
+                    advised = advise(img_path, _tmp, intent, prior_graph=True)
+                    if advised:
+                        save_graph(advised, ga_image_id=ga_img_id,
+                                   graph_type="advised", source="auto_post_upload")
+                        logger.info(f"Auto-advised GA {ga_img_id}")
+                finally:
+                    try: os.remove(_tmp)
+                    except: pass
+        except Exception as e:
+            logger.warning(f"Auto-improve bg failed for GA {ga_img_id}: {e}")
+
+    t = threading.Thread(target=_auto_improve_bg,
+                         args=(ga_id, upload_path, graph_path), daemon=True)
+    t.start()
 
     # Save sidecar JSON with analysis metadata (for ga_detail page)
     sidecar_path = os.path.join(
@@ -1644,17 +2056,70 @@ async def analyze_submit(request: Request, file: UploadFile = File(...)):
     except Exception as e:
         logger.warning(f"Graph YAML copy failed: {e}")
 
-    # Redirect to the ga-detail page (prefer slug)
+    # Redirect back to /analyze with the GA active (tools ready)
     redirect_key = ga_slug or ga_id
-    return RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
+    return RedirectResponse(url=f"/analyze?ga={redirect_key}", status_code=303)
+
+
+@app.post("/analyze/improve/{ga_slug}")
+async def analyze_poll_state(ga_slug: str):
+    """Poll the current analysis state for a GA. Used by frontend to update without refresh."""
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        return JSONResponse({"status": "not_found"}, status_code=404)
+
+    ga_id = image["id"]
+    latest = get_latest_graph(ga_id)
+    if not latest:
+        return JSONResponse({"status": "pending", "message": "Analyse en cours..."})
+
+    sims = get_reading_sims(graph_id=latest["id"])
+    s1 = next((s for s in sims if s["mode"] == "system1"), None)
+
+    state = {
+        "status": "ready",
+        "graph_id": latest["id"],
+        "graph_type": latest.get("graph_type", "vision"),
+        "node_count": latest.get("node_count"),
+        "link_count": latest.get("link_count"),
+    }
+
+    if s1:
+        state["sim"] = {
+            "verdict": s1.get("complexity_verdict"),
+            "pressure": s1.get("budget_pressure"),
+            "visited": s1.get("nodes_visited"),
+            "total": s1.get("nodes_total"),
+            "coverage": s1.get("narrative_coverage"),
+            "dead_spaces": s1.get("dead_space_count"),
+            "narrative_text": s1.get("narrative_text", ""),
+        }
+        # Overlay SVG
+        try:
+            from graph_renderer import render_overlay_svg
+            from reader_sim import simulate_reading
+            graph_dict = latest["graph"]
+            sim_full = simulate_reading(graph_dict, total_ticks=50, mode="system1")
+            state["overlay_svg"] = render_overlay_svg(graph_dict, sim_full, 900, 600)
+            state["scanpath"] = sim_full.get("scanpath", [])
+        except Exception:
+            pass
+
+    return JSONResponse(state)
+
+
+@app.get("/analyze/poll/{ga_slug}")
+async def analyze_poll_get(ga_slug: str):
+    """GET alias for poll."""
+    return await analyze_poll_state(ga_slug)
 
 
 @app.post("/analyze/improve/{ga_slug}")
 async def analyze_improve(ga_slug: str, pwd: str = ""):
     """Run one improvement turn on a GA. Returns JSON with turn results."""
-    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
-    if pwd != admin_pwd:
-        raise HTTPException(status_code=403, detail="Admin password required")
+    # admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+    # if pwd != admin_pwd:
+    #     raise HTTPException(status_code=403, detail="Admin password required")
 
     # 1. Look up GA
     image = get_image_by_slug(ga_slug)
@@ -1696,7 +2161,9 @@ async def analyze_improve(ga_slug: str, pwd: str = ""):
     # 3. Build intent from latest sim + graph data
     graph = latest["graph"]
     graph_id = latest["id"]
-    graph_path_tmp = os.path.join(BASE, "data", f"improve_{ga_slug}_{int(time.time())}.yaml")
+    _tmp_dir = os.path.join(BASE, "data")
+    os.makedirs(_tmp_dir, exist_ok=True)
+    graph_path_tmp = os.path.join(_tmp_dir, f"improve_{ga_slug}_{int(time.time())}.yaml")
 
     # Save graph to temp file for advisor
     with open(graph_path_tmp, "w", encoding="utf-8") as f:
@@ -1808,10 +2275,13 @@ async def analyze_improve(ga_slug: str, pwd: str = ""):
 
 @app.post("/analyze/tool/{tool_name}/{ga_slug}")
 async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str = ""):
-    """Run a specific analysis tool on a GA. Returns JSON."""
-    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
-    if pwd != admin_pwd:
-        raise HTTPException(status_code=403, detail="Admin password required")
+    """Run a specific analysis tool on a GA. Returns JSON.
+
+    Freemium: 3 free tool calls per GA. After that, payment or email required.
+    Free tools (no Gemini cost): health, reader_sim — always free.
+    """
+    FREE_TOOLS = {"health", "reader_sim", "reader_sim_s2"}  # pure math, no API cost
+    FREE_CALLS_PER_GA = 6
 
     image = get_image_by_slug(ga_slug)
     if not image:
@@ -1820,6 +2290,24 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
     ga_id = image["id"]
     filename = image["filename"]
     image_path = os.path.join(BASE, "ga_library", filename)
+
+    # ── Freemium gate: 3 free Gemini calls per GA, unlimited for free tools ──
+    if tool_name not in FREE_TOOLS:
+        cookie_key = f"glance_calls_{ga_id}"
+        calls_used = int(request.cookies.get(cookie_key, "0"))
+        # Admin bypass
+        admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+        is_admin = (pwd == admin_pwd)
+        # Unlock cookie (paid users)
+        is_unlocked = bool(request.cookies.get(f"glance_unlock_{ga_id}"))
+
+        if calls_used >= FREE_CALLS_PER_GA and not is_admin and not is_unlocked:
+            return JSONResponse({
+                "error": "free_limit",
+                "message": f"Vous avez utilisé vos {FREE_CALLS_PER_GA} analyses gratuites pour ce GA.",
+                "calls_used": calls_used,
+                "limit": FREE_CALLS_PER_GA,
+            }, status_code=402)
 
     # Get optional text input from request body
     body = {}
@@ -1837,7 +2325,9 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
     # Save graph to temp file if needed
     graph_path_tmp = None
     if graph:
-        graph_path_tmp = os.path.join(BASE, "data", f"tool_{ga_slug}_{int(time.time())}.yaml")
+        _tmp_dir = os.path.join(BASE, "data")
+        os.makedirs(_tmp_dir, exist_ok=True)
+        graph_path_tmp = os.path.join(_tmp_dir, f"tool_{ga_slug}_{int(time.time())}.yaml")
         with open(graph_path_tmp, "w", encoding="utf-8") as f:
             yaml.dump(graph, f, default_flow_style=False, allow_unicode=True)
 
@@ -1955,6 +2445,44 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
                 "recommendations": sim.get("recommendations", []),
             })
 
+        elif tool_name == "reader_sim_s2":
+            if not graph:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            from reader_sim import simulate_reading, generate_reading_narrative
+            sim = simulate_reading(graph, total_ticks=900, mode="system2")
+            narrative = generate_reading_narrative(sim, graph)
+            return JSONResponse({
+                "tool": "reader_sim_s2",
+                "verdict": sim["stats"]["complexity_verdict"],
+                "pressure": sim["stats"]["budget_pressure"],
+                "visited": sim["stats"]["unique_nodes_visited"],
+                "total": sim["stats"]["total_things"],
+                "skipped": sim["stats"]["nodes_skipped"],
+                "narrative_coverage": sim["stats"]["narrative_coverage"],
+                "dead_spaces": sim["stats"]["dead_space_count"],
+                "orphan_narratives": sim["stats"]["orphan_narrative_count"],
+                "narrative_text": narrative,
+                "recommendations": sim.get("recommendations", []),
+            })
+
+        elif tool_name == "deepen":
+            if not graph:
+                raise HTTPException(status_code=400, detail="No graph yet — run vision first")
+            from deepen import deepen as run_deepen
+            max_depth = body.get("max_depth", 1)
+            stats = run_deepen(ga_image_id=ga_id, max_depth=max_depth,
+                               image_path=image_path)
+            return JSONResponse({
+                "tool": "deepen",
+                "graph_id": stats["graph_id"],
+                "depth": stats["depth"],
+                "root_nodes": stats["root_nodes"],
+                "total_nodes": stats["total_nodes"],
+                "total_links": stats["total_links"],
+                "spaces_deepened": stats["spaces_deepened"],
+                "resolution": stats["resolution"],
+            })
+
         else:
             raise HTTPException(status_code=400, detail=f"Unknown tool: {tool_name}")
 
@@ -1969,6 +2497,156 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
                 os.remove(graph_path_tmp)
             except OSError:
                 pass
+
+    # Should not reach here — all branches return above.
+    # But if we do reach here somehow, return a generic success.
+    return JSONResponse({"tool": tool_name, "status": "ok"})
+
+
+@app.post("/analyze/deepen/{ga_slug}")
+async def analyze_deepen(ga_slug: str, pwd: str = "", max_depth: int = 1):
+    """Deepen the analysis of a GA by analyzing each space at higher resolution.
+
+    Each space with a bbox is cropped and re-analyzed by Gemini Vision.
+    The child nodes are merged into the parent graph with containment links.
+
+    Args:
+        ga_slug: GA slug or numeric ID
+        pwd: admin password (required — deepen uses multiple Gemini calls)
+        max_depth: how many levels to recurse (1 = analyze each space once)
+    """
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    image, ga_id = _resolve_ga(ga_slug)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    max_depth = min(max_depth, 3)  # cap recursion
+
+    image_path = os.path.join(BASE, "ga_library", image["filename"])
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="GA image file not found")
+
+    try:
+        from deepen import deepen as run_deepen
+        stats = run_deepen(ga_image_id=ga_id, max_depth=max_depth,
+                           image_path=image_path)
+        return JSONResponse({
+            "status": "ok",
+            "ga_slug": ga_slug,
+            **stats,
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Deepen failed: {str(e)}")
+
+
+@app.post("/admin/batch-analyze")
+async def admin_batch_analyze(pwd: str = "", batch_size: int = 5):
+    """Launch background batch analysis on GAs without graphs.
+
+    Fires a background thread that processes `batch_size` GAs at a time
+    (default 5). Returns immediately with the list of GAs queued.
+    Check /admin for progress (graphs table).
+    """
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    batch_size = min(batch_size, 20)  # cap at 20 per call
+
+    db = get_db()
+    images = db.execute("""
+        SELECT i.id, i.filename, i.slug, i.title
+        FROM ga_images i
+        LEFT JOIN ga_graphs g ON g.ga_image_id = i.id
+        WHERE g.id IS NULL
+        ORDER BY i.id
+        LIMIT ?
+    """, (batch_size,)).fetchall()
+    total_remaining = db.execute("""
+        SELECT COUNT(*) FROM ga_images i
+        LEFT JOIN ga_graphs g ON g.ga_image_id = i.id
+        WHERE g.id IS NULL
+    """).fetchone()[0]
+    db.close()
+
+    if not images:
+        return JSONResponse({"status": "done", "message": "All GAs already have graphs.", "remaining": 0})
+
+    queued = [{"ga_id": img["id"], "slug": img["slug"], "title": img["title"]} for img in images]
+
+    # Fire and forget — background thread
+    import threading
+
+    def _batch_worker(image_list):
+        from vision_scorer import analyze_ga_image
+        _log = logging.getLogger("batch")
+        for img in image_list:
+            ga_id = img["id"]
+            filename = img["filename"]
+            image_path = os.path.join(BASE, "ga_library", filename)
+            if not os.path.exists(image_path):
+                _log.warning(f"Batch: {filename} not found, skipping")
+                continue
+            try:
+                with open(image_path, "rb") as f:
+                    image_bytes = f.read()
+                result = analyze_ga_image(image_bytes, filename=filename)
+                graph_id = save_graph(result["graph"], ga_image_id=ga_id,
+                                     graph_type="vision", source="batch_analyze")
+                _log.info(f"Batch: GA {ga_id} ({img['slug']}) → graph {graph_id}")
+            except Exception as e:
+                _log.warning(f"Batch: GA {ga_id} failed: {e}")
+            time.sleep(6)  # gentle rate limit
+
+    t = threading.Thread(target=_batch_worker, args=([dict(img) for img in images],), daemon=True)
+    t.start()
+
+    return JSONResponse({
+        "status": "started",
+        "queued": len(queued),
+        "remaining_after": total_remaining - len(queued),
+        "batch": queued,
+        "message": f"Batch de {len(queued)} GAs lancé en background. Check /admin pour voir les résultats.",
+    })
+
+
+@app.post("/admin/ingest-reddit")
+async def admin_ingest_reddit(pwd: str = "", subreddit: str = "dataisugly", limit: int = 10):
+    """Trigger Reddit ingestion for a subreddit. Runs in background.
+
+    Polls the subreddit for image posts, deduplicates via SHA-256,
+    saves new GAs to ga_library/reddit/, creates DB entries,
+    runs vision scoring, and sends Telegram alerts.
+    """
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    limit = min(limit, 50)  # cap at 50 per call
+
+    import threading
+    from ingestion.run_ingest import ingest_subreddit
+
+    def _ingest_worker(sub, n):
+        _log = logging.getLogger("ingest.admin")
+        try:
+            stats = ingest_subreddit(sub, limit=n)
+            _log.info(f"Reddit ingest done: {stats}")
+        except Exception as e:
+            _log.error(f"Reddit ingest failed for r/{sub}: {e}")
+
+    t = threading.Thread(target=_ingest_worker, args=(subreddit, limit), daemon=True)
+    t.start()
+
+    return JSONResponse({
+        "status": "started",
+        "subreddit": subreddit,
+        "limit": limit,
+        "message": f"Reddit ingestion for r/{subreddit} (limit={limit}) launched in background.",
+    })
 
 
 @app.post("/analyze/unlock/{ga_id}")
@@ -2060,7 +2738,7 @@ async def checkout_success(request: Request, session_id: str, ga_id: int):
 @app.get("/admin", response_class=HTMLResponse)
 def admin_dashboard(request: Request, pwd: str = ""):
     """Admin analytics dashboard — password-protected."""
-    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "gL4NC3")
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
     if pwd != admin_pwd:
         return HTMLResponse(
             content='<html><body style="background:#0f172a;color:#fff;display:flex;align-items:center;'
@@ -2165,10 +2843,52 @@ BLOG_VERSIONS = [
 ]
 
 
+@app.get("/search", response_class=HTMLResponse)
+def search_page(request: Request, q: str = ""):
+    """Search GAs by title, domain, or description."""
+    lang = _lang(request)
+    results = []
+    if q and len(q) >= 2:
+        db = get_db()
+        rows = db.execute(
+            """SELECT id, filename, slug, title, domain, description
+               FROM ga_images
+               WHERE public = 1
+                 AND (title LIKE ? OR domain LIKE ? OR description LIKE ? OR filename LIKE ?)
+               ORDER BY id DESC LIMIT 30""",
+            (f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%")
+        ).fetchall()
+        db.close()
+        results = [dict(r) for r in rows]
+    return JSONResponse({
+        "query": q,
+        "count": len(results),
+        "results": [
+            {
+                "id": r["id"],
+                "slug": r.get("slug", str(r["id"])),
+                "title": r.get("title", r.get("filename", "")),
+                "domain": r.get("domain", ""),
+                "url": f"/ga-detail/{r.get('slug', r['id'])}",
+            }
+            for r in results
+        ],
+    })
+
+
 @app.get("/blog", response_class=HTMLResponse)
 def blog(request: Request):
     lang = _lang(request)
     return templates.TemplateResponse("blog.html", {
+        "request": request,
+        "lang": lang,
+    })
+
+
+@app.get("/blog/ga-tests-itself", response_class=HTMLResponse)
+def blog_ga_tests_itself(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("blog_ga_tests_itself.html", {
         "request": request,
         "lang": lang,
         "versions": BLOG_VERSIONS,
@@ -2208,3 +2928,123 @@ def og_ga_image(ga_id: int):
     _ga_og_cache[ga_id] = (png_bytes, n_tests)
     return Response(content=png_bytes, media_type="image/png",
                     headers={"Cache-Control": "public, max-age=3600"})
+
+
+# ── Scanpath video (animated GIF) ────────────────────────────────────
+
+_gif_cache: dict[str, bytes] = {}
+
+
+@app.get("/video/ga/{ga_slug}.gif")
+def ga_video(ga_slug: str):
+    """Generate or serve cached animated GIF of the scanpath simulation."""
+    # Check cache
+    if ga_slug in _gif_cache:
+        return Response(content=_gif_cache[ga_slug], media_type="image/gif",
+                        headers={"Cache-Control": "public, max-age=3600"})
+
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        return Response(status_code=404, content=b"GA not found")
+
+    ga_id = image["id"]
+    ga_path = os.path.join(BASE, "ga_library", image.get("filename", ""))
+    if not os.path.exists(ga_path):
+        return Response(status_code=404, content=b"GA image not found")
+
+    # Get latest graph and sim
+    latest = get_latest_graph(ga_id)
+    if not latest:
+        return Response(status_code=404, content=b"No graph available")
+
+    graph_dict = latest.get("graph") or {}
+    sims = get_reading_sims(graph_id=latest["id"])
+    sim_s1 = next((s for s in sims if s.get("mode") == "system1"), None)
+    if not sim_s1:
+        return Response(status_code=404, content=b"No simulation available")
+
+    sim_full = sim_s1.get("full_result") or {}
+
+    try:
+        from video_generator import generate_scanpath_gif
+        gif_bytes = generate_scanpath_gif(graph_dict, sim_full, ga_path)
+    except Exception as e:
+        logger.error(f"Video generation failed: {e}")
+        return Response(status_code=500, content=b"Video generation failed")
+
+    if not gif_bytes:
+        return Response(status_code=404, content=b"Could not generate video")
+
+    _gif_cache[ga_slug] = gif_bytes
+    return Response(content=gif_bytes, media_type="image/gif",
+                    headers={"Cache-Control": "public, max-age=3600"})
+
+
+# ── SEO: sitemap.xml + robots.txt ──────────────────────────────────────
+
+@app.get("/sitemap.xml")
+def sitemap():
+    """Dynamic sitemap for Google indexing."""
+    db = get_db()
+
+    # All public GA pages
+    gas = db.execute(
+        "SELECT slug, created_at FROM ga_images WHERE public = 1 AND slug IS NOT NULL ORDER BY id DESC"
+    ).fetchall()
+
+    # All domain leaderboard pages
+    domains = db.execute(
+        "SELECT DISTINCT domain FROM ga_images WHERE public = 1"
+    ).fetchall()
+    db.close()
+
+    base = "https://glance.scisense.fr"
+
+    urls = []
+    # Static pages
+    for path, priority, freq in [
+        ("/", "1.0", "daily"),
+        ("/analyze", "0.9", "daily"),
+        ("/leaderboard", "0.8", "daily"),
+        ("/blog", "0.7", "weekly"),
+        ("/pricing", "0.6", "monthly"),
+        ("/blog/ga-tests-itself", "0.6", "monthly"),
+        ("/auth/login", "0.5", "monthly"),
+    ]:
+        urls.append(
+            f"<url><loc>{base}{path}</loc><priority>{priority}</priority>"
+            f"<changefreq>{freq}</changefreq></url>"
+        )
+
+    # Domain pages
+    for d in domains:
+        domain = d["domain"]
+        if domain != "user_upload":
+            urls.append(
+                f"<url><loc>{base}/leaderboard/{domain}</loc>"
+                f"<priority>0.7</priority><changefreq>weekly</changefreq></url>"
+            )
+
+    # GA detail pages
+    for ga in gas:
+        slug = ga["slug"]
+        urls.append(
+            f"<url><loc>{base}/ga-detail/{slug}</loc>"
+            f"<priority>0.6</priority><changefreq>weekly</changefreq></url>"
+        )
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    xml += "\n".join(urls)
+    xml += "\n</urlset>"
+
+    return Response(content=xml, media_type="application/xml")
+
+
+@app.get("/robots.txt")
+def robots():
+    """Robots.txt with sitemap reference."""
+    return Response(
+        content="User-agent: *\nAllow: /\nSitemap: https://glance.scisense.fr/sitemap.xml\n",
+        media_type="text/plain",
+    )
