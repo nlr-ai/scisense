@@ -589,10 +589,26 @@
         q1_input_mode: 'text', q1_raw_transcript: '',
     };
 
-    // Tab switch detection during feed
+    // ── Tab defocus: pause scroll, discard test on return ──
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden && currentState === 'feed') {
-            responses.tab_switched = true;
+        if (document.hidden) {
+            // Pause scroll animation immediately
+            if (scrollAnimId) {
+                cancelAnimationFrame(scrollAnimId);
+                scrollAnimId = null;
+            }
+            // Stop voice recognition if active
+            if (window._s2bRecognition && window._s2bIsRecording) {
+                try { window._s2bRecognition.stop(); } catch(e) {}
+            }
+        } else {
+            // User returned — check if we were in an active test state
+            const activeStates = ['feed', 'selection', 'q1', 'q2', 'q3', 'q4'];
+            if (activeStates.includes(currentState)) {
+                // Test is contaminated — mark and discard silently
+                responses.tab_switched = true;
+                window.location.href = '/test';
+            }
         }
     });
 
