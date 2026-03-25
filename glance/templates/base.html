@@ -1,16 +1,300 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang | default('fr') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GLANCE — SciSense{% endblock %}</title>
+    <meta name="description" content="{{ og_description | default('GLANCE — Benchmark de compréhension des Graphical Abstracts scientifiques.') }}">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="canonical" href="{{ request.url }}">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GLANCE — SciSense">
+    <meta property="og:title" content="{{ og_title | default('GLANCE — Testez votre oeil scientifique') }}">
+    <meta property="og:description" content="{{ og_description | default('Le premier benchmark de compréhension des Graphical Abstracts scientifiques. Gratuit, 2 minutes.') }}">
+    <meta property="og:url" content="{{ og_url | default(request.url) }}">
+    <meta property="og:image" content="{{ og_image | default('https://glance.scisense.fr/static/og-default.png') }}">
+    <meta property="og:locale" content="{{ 'en_US' if lang == 'en' else 'fr_FR' }}">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ og_title | default('GLANCE — Testez votre oeil scientifique') }}">
+    <meta name="twitter:description" content="{{ og_description | default('Benchmark de compréhension des Graphical Abstracts scientifiques.') }}">
+    <meta name="twitter:image" content="{{ og_image | default('https://glance.scisense.fr/static/og-default.png') }}">
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+    /* ── Navbar ── */
+    .glance-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+        padding: 0 1.25rem;
+        background: rgba(15, 23, 42, 0.85);
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: background 0.3s ease;
+    }
+    .glance-nav.scrolled {
+        background: rgba(15, 23, 42, 0.97);
+    }
+    .glance-nav-brand {
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        color: #14b8a6;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+    .glance-nav-brand:hover {
+        color: #2dd4bf;
+    }
+    .glance-nav-links {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    .glance-nav-links a {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        border-radius: 6px;
+        transition: color 0.15s, background 0.15s;
+        white-space: nowrap;
+    }
+    .glance-nav-links a:hover {
+        color: #e2e8f0;
+        background: rgba(255, 255, 255, 0.06);
+    }
+    .glance-nav-links a.nav-active {
+        color: #14b8a6;
+        border-bottom: 2px solid #14b8a6;
+        border-radius: 6px 6px 0 0;
+    }
+    /* Language switcher inside nav */
+    .nav-lang {
+        display: flex;
+        gap: 0;
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        margin-left: 0.75rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        flex-shrink: 0;
+    }
+    .nav-lang a {
+        padding: 4px 8px !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border-bottom: none !important;
+        font-size: 0.7rem !important;
+    }
+    .nav-lang a.active {
+        background: rgba(13, 148, 136, 0.25) !important;
+        color: #14b8a6 !important;
+    }
+    /* Hamburger */
+    .glance-nav-hamburger {
+        display: none;
+        background: none;
+        border: none;
+        color: #e2e8f0;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        line-height: 1;
+    }
+    /* Nav wrapper (sticky container for nav + mobile dropdown) */
+    .glance-nav-wrap {
+        position: sticky;
+        top: 0;
+        z-index: 999;
+    }
+    /* Mobile menu */
+    .glance-nav-mobile {
+        display: none;
+        background: rgba(15, 23, 42, 0.97);
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 0.5rem 0;
+    }
+    .glance-nav-mobile.open {
+        display: block;
+    }
+    .glance-nav-mobile a {
+        display: block;
+        padding: 0.75rem 1.25rem;
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: color 0.15s, background 0.15s;
+    }
+    .glance-nav-mobile a:hover {
+        color: #e2e8f0;
+        background: rgba(255, 255, 255, 0.06);
+    }
+    .glance-nav-mobile a.nav-active {
+        color: #14b8a6;
+        border-left: 3px solid #14b8a6;
+        padding-left: calc(1.25rem - 3px);
+    }
+    .glance-nav-mobile .nav-lang-mobile {
+        display: flex;
+        gap: 0;
+        margin: 0.5rem 1.25rem;
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        width: fit-content;
+    }
+    .glance-nav-mobile .nav-lang-mobile a {
+        padding: 5px 12px;
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-left: none;
+    }
+    .glance-nav-mobile .nav-lang-mobile a.active {
+        background: rgba(13, 148, 136, 0.25);
+        color: #14b8a6;
+    }
+    @media (max-width: 768px) {
+        .glance-nav-links {
+            display: none;
+        }
+        .glance-nav-hamburger {
+            display: block;
+        }
+    }
+    /* Legacy standalone lang-switcher (kept for pages that hide nav) */
+    .lang-switcher {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 9999;
+        display: flex;
+        gap: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(15,23,42,0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+    }
+    .lang-switcher a {
+        padding: 5px 10px;
+        color: #94a3b8;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+    }
+    .lang-switcher a:hover {
+        color: #e2e8f0;
+        background: rgba(255,255,255,0.08);
+    }
+    .lang-switcher a.active {
+        background: rgba(13,148,136,0.25);
+        color: #14b8a6;
+    }
+    </style>
     {% block head %}{% endblock %}
 </head>
 <body>
+    {% block nav %}
+    {% if not hide_nav %}
+    {# ── Navigation bar ── #}
+    {% set path = request.url.path %}
+    <div class="glance-nav-wrap">
+    <nav class="glance-nav" id="glanceNav">
+        <a href="/" class="glance-nav-brand">GLANCE</a>
+        <div class="glance-nav-links">
+            <a href="/onboard" class="{{ 'nav-active' if path == '/onboard' else '' }}">Commencer</a>
+            <a href="/leaderboard" class="{{ 'nav-active' if path.startswith('/leaderboard') else '' }}">Leaderboard</a>
+            <a href="/analyze" class="{{ 'nav-active' if path == '/analyze' else '' }}">Analysez votre GA</a>
+            <a href="/participants" class="{{ 'nav-active' if path == '/participants' else '' }}">Participants</a>
+            <a href="/dashboard" class="{{ 'nav-active' if path == '/dashboard' else '' }}">Dashboard</a>
+            <div class="nav-lang">
+                <a href="?lang=fr" class="{{ 'active' if lang != 'en' else '' }}">FR</a>
+                <a href="?lang=en" class="{{ 'active' if lang == 'en' else '' }}">EN</a>
+            </div>
+        </div>
+        <button class="glance-nav-hamburger" id="navHamburger" aria-label="Menu">&#9776;</button>
+    </nav>
+    <div class="glance-nav-mobile" id="navMobile">
+        <a href="/onboard" class="{{ 'nav-active' if path == '/onboard' else '' }}">Commencer</a>
+        <a href="/leaderboard" class="{{ 'nav-active' if path.startswith('/leaderboard') else '' }}">Leaderboard</a>
+        <a href="/analyze" class="{{ 'nav-active' if path == '/analyze' else '' }}">Analysez votre GA</a>
+        <a href="/participants" class="{{ 'nav-active' if path == '/participants' else '' }}">Participants</a>
+        <a href="/dashboard" class="{{ 'nav-active' if path == '/dashboard' else '' }}">Dashboard</a>
+        <div class="nav-lang-mobile">
+            <a href="?lang=fr" class="{{ 'active' if lang != 'en' else '' }}">FR</a>
+            <a href="?lang=en" class="{{ 'active' if lang == 'en' else '' }}">EN</a>
+        </div>
+    </div>
+    </div>
+    {% else %}
+    {# Fallback language switcher when nav is hidden #}
+    {% if not hide_lang_switcher %}
+    <div class="lang-switcher">
+        <a href="?lang=fr" class="{{ 'active' if lang != 'en' else '' }}">FR</a>
+        <a href="?lang=en" class="{{ 'active' if lang == 'en' else '' }}">EN</a>
+    </div>
+    {% endif %}
+    {% endif %}
+    {% endblock %}
     <div class="container">
         {% block content %}{% endblock %}
     </div>
+    {% block footer %}
+    <div style="text-align: center; padding: 1.5rem 1rem 2rem; font-size: 0.8125rem; color: #64748b;">
+        <a href="/privacy" style="color: #64748b; text-decoration: none;">Confidentialité</a>
+        <span style="margin: 0 0.5rem;">|</span>
+        <a href="/terms" style="color: #64748b; text-decoration: none;">Conditions d'utilisation</a>
+    </div>
+    {% endblock %}
     {% block scripts %}{% endblock %}
+    {% if not hide_nav %}
+    <script>
+    (function() {
+        var nav = document.getElementById('glanceNav');
+        var hamburger = document.getElementById('navHamburger');
+        var mobile = document.getElementById('navMobile');
+        if (!nav) return;
+        /* Scroll: add .scrolled class */
+        window.addEventListener('scroll', function() {
+            nav.classList.toggle('scrolled', window.scrollY > 10);
+        }, {passive: true});
+        /* Hamburger toggle */
+        hamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            mobile.classList.toggle('open');
+        });
+        /* Close on outside click */
+        document.addEventListener('click', function(e) {
+            if (!mobile.contains(e.target) && e.target !== hamburger) {
+                mobile.classList.remove('open');
+            }
+        });
+        /* Close on link click */
+        mobile.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                mobile.classList.remove('open');
+            });
+        });
+    })();
+    </script>
+    {% endif %}
 </body>
 </html>
