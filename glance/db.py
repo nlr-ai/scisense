@@ -3,8 +3,23 @@
 import sqlite3
 import os
 import json
+import re
 
 DB_PATH = os.environ.get("GLANCE_DB_PATH", os.path.join(os.path.dirname(__file__), "data", "glance.db"))
+
+
+def slugify(text: str) -> str:
+    """Generate a URL-friendly slug from a filename or text.
+
+    Strips image extensions, lowercases, replaces underscores/spaces with hyphens,
+    removes non-alphanumeric characters (except hyphens), and collapses runs.
+    """
+    text = text.lower().strip()
+    text = re.sub(r'\.(png|jpg|jpeg|webp)$', '', text)
+    text = re.sub(r'[_\s]+', '-', text)
+    text = re.sub(r'[^a-z0-9-]', '', text)
+    text = re.sub(r'-+', '-', text).strip('-')
+    return text
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS participants (
@@ -16,7 +31,9 @@ CREATE TABLE IF NOT EXISTS participants (
     data_literacy TEXT NOT NULL,
     grade_familiar INTEGER DEFAULT 0,
     colorblind_status TEXT DEFAULT 'unknown',
-    input_mode TEXT DEFAULT 'text'
+    input_mode TEXT DEFAULT 'text',
+    referred_by TEXT,
+    handle TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ga_images (
@@ -28,7 +45,105 @@ CREATE TABLE IF NOT EXISTS ga_images (
     correct_product TEXT,
     products TEXT,
     title TEXT,
-    description TEXT
+    description TEXT,
+    slug TEXT UNIQUE,
+    bloc TEXT,
+    source_url TEXT,
+    doi TEXT,
+    journal TEXT,
+    predicted_score REAL,
+    archetype TEXT,
+    shadow INTEGER DEFAULT 0,
+    has_redesign INTEGER DEFAULT 0,
+    redesign_image_id INTEGER,
+    ingestion_source TEXT DEFAULT 'manual',
+    reddit_post_id TEXT,
+    image_hash TEXT
+);
+
+CREATE TABLE IF NOT EXISTS ga_graphs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ga_image_id INTEGER NOT NULL,
+    graph_type TEXT NOT NULL DEFAULT 'vision',
+    graph_yaml TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    source TEXT DEFAULT 'gemini_vision',
+    version TEXT,
+    node_count INTEGER,
+    link_count INTEGER,
+    avg_effectiveness REAL,
+    anti_pattern_count INTEGER,
+    FOREIGN KEY (ga_image_id) REFERENCES ga_images(id)
+);
+
+CREATE TABLE IF NOT EXISTS improvement_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ga_image_id INTEGER,
+    turn INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    archetype TEXT,
+    archetype_confidence REAL,
+    s9b REAL,
+    s10 REAL,
+    composite_score REAL,
+    word_count INTEGER,
+    channels_used INTEGER,
+    avg_effectiveness REAL,
+    anti_pattern_count INTEGER,
+    hierarchy_clear INTEGER,
+    delta REAL,
+    intent TEXT,
+    changes_made INTEGER,
+    graph_id INTEGER,
+    node_count INTEGER,
+    link_count INTEGER,
+    resolved_nodes INTEGER,
+    high_energy_nodes INTEGER,
+    avg_node_weight REAL,
+    avg_node_energy REAL,
+    dominant_encoding TEXT,
+    color_count INTEGER,
+    executive_summary TEXT,
+    fragile_count INTEGER,
+    incongruent_count INTEGER,
+    inverse_count INTEGER,
+    missing_category_count INTEGER,
+    FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
+    FOREIGN KEY (graph_id) REFERENCES ga_graphs(id)
+);
+
+CREATE TABLE IF NOT EXISTS reading_simulations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ga_image_id INTEGER,
+    graph_id INTEGER,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    mode TEXT NOT NULL DEFAULT 'system1',
+    total_ticks INTEGER NOT NULL,
+    ticks_used INTEGER,
+    budget_pressure REAL,
+    complexity_verdict TEXT,
+    nodes_visited INTEGER,
+    nodes_total INTEGER,
+    nodes_skipped INTEGER,
+    narrative_coverage REAL,
+    avg_narrative_attention REAL,
+    dead_space_count INTEGER,
+    orphan_narrative_count INTEGER,
+    narrative_text TEXT,
+    stats_json TEXT,
+    prompts_json TEXT,
+    plan_vs_actual_json TEXT,
+    FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
+    FOREIGN KEY (graph_id) REFERENCES ga_graphs(id)
+);
+
+CREATE TABLE IF NOT EXISTS analysis_leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    email TEXT NOT NULL,
+    ga_image_id INTEGER,
+    source TEXT DEFAULT 'analyze',
+    paid INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS tests (
@@ -101,6 +216,7 @@ CREATE TABLE IF NOT EXISTS tests (
     s2_duration_ms INTEGER,
     s2_chunks TEXT,
     s2_node_coverage TEXT,
+    code_version TEXT,
     FOREIGN KEY (participant_id) REFERENCES participants(id),
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
     UNIQUE(participant_id, ga_image_id)
@@ -128,6 +244,56 @@ def init_db():
         ("s2_chunks", "TEXT"),
         ("s2_node_coverage", "TEXT"),
     ])
+    # Migrate: add code_version column if missing (for existing DBs)
+    _migrate_add_columns(conn, "tests", [
+        ("code_version", "TEXT"),
+    ])
+    # Migrate: add referral column if missing (for existing DBs)
+    _migrate_add_columns(conn, "participants", [
+        ("referred_by", "TEXT"),
+    ])
+    # Migrate: add paid column to analysis_leads if missing
+    _migrate_add_columns(conn, "analysis_leads", [
+        ("paid", "INTEGER DEFAULT 0"),
+    ])
+    # Migrate: add handle column for pseudonymous display names
+    _migrate_add_columns(conn, "participants", [
+        ("handle", "TEXT"),
+    ])
+    # Migrate: add slug column to ga_images
+    _migrate_add_columns(conn, "ga_images", [
+        ("slug", "TEXT"),
+    ])
+    # Ensure slug UNIQUE index exists (safe if already there)
+    try:
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_ga_images_slug ON ga_images(slug)")
+        conn.commit()
+    except Exception:
+        pass
+    # Migrate: add new ga_images columns for pipeline/redesign
+    _migrate_add_columns(conn, "ga_images", [
+        ("bloc", "TEXT"),
+        ("source_url", "TEXT"),
+        ("doi", "TEXT"),
+        ("journal", "TEXT"),
+        ("predicted_score", "REAL"),
+        ("archetype", "TEXT"),
+        ("shadow", "INTEGER DEFAULT 0"),
+        ("has_redesign", "INTEGER DEFAULT 0"),
+        ("redesign_image_id", "INTEGER"),
+        ("ingestion_source", "TEXT DEFAULT 'manual'"),
+        ("reddit_post_id", "TEXT"),
+        ("image_hash", "TEXT"),
+    ])
+    # Migrate: add reading_simulations table columns for existing DBs
+    _migrate_add_columns(conn, "reading_simulations", [
+        ("narrative_text", "TEXT"),
+        ("stats_json", "TEXT"),
+        ("prompts_json", "TEXT"),
+        ("plan_vs_actual_json", "TEXT"),
+    ])
+    # Generate slugs for any images that don't have one yet
+    _backfill_slugs(conn)
     conn.close()
 
 
@@ -140,13 +306,92 @@ def _migrate_add_columns(conn, table: str, columns: list[tuple[str, str]]):
     conn.commit()
 
 
-def create_participant(token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode="text"):
+def _backfill_slugs(conn):
+    """Generate slugs for any ga_images rows that don't have one yet."""
+    rows = conn.execute("SELECT id, filename FROM ga_images WHERE slug IS NULL").fetchall()
+    if not rows:
+        return
+    # Collect existing slugs to handle collisions
+    existing = {r[0] for r in conn.execute("SELECT slug FROM ga_images WHERE slug IS NOT NULL").fetchall()}
+    for row in rows:
+        base_slug = slugify(row[1])  # row[1] = filename
+        slug = base_slug
+        counter = 2
+        while slug in existing:
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        existing.add(slug)
+        conn.execute("UPDATE ga_images SET slug = ? WHERE id = ?", (slug, row[0]))
+    conn.commit()
+
+
+def _generate_unique_slug(conn, filename: str) -> str:
+    """Generate a unique slug for a new ga_images entry."""
+    base_slug = slugify(filename)
+    slug = base_slug
+    counter = 2
+    while True:
+        existing = conn.execute(
+            "SELECT 1 FROM ga_images WHERE slug = ?", (slug,)
+        ).fetchone()
+        if not existing:
+            return slug
+        slug = f"{base_slug}-{counter}"
+        counter += 1
+
+
+def save_reading_simulation(result, narrative_text, ga_image_id=None, graph_id=None, mode="system1"):
+    """Save a reader simulation result to the database."""
+    stats = result.get("stats", {})
+    db = get_db()
+    db.execute("""
+        INSERT INTO reading_simulations
+        (ga_image_id, graph_id, mode, total_ticks, ticks_used,
+         budget_pressure, complexity_verdict,
+         nodes_visited, nodes_total, nodes_skipped,
+         narrative_coverage, avg_narrative_attention,
+         dead_space_count, orphan_narrative_count,
+         narrative_text, stats_json, prompts_json, plan_vs_actual_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        ga_image_id, graph_id, mode,
+        stats.get("total_ticks", 0) + stats.get("nodes_skipped", 0),  # planned ticks
+        stats.get("total_ticks", 0),
+        stats.get("budget_pressure"),
+        stats.get("complexity_verdict"),
+        stats.get("unique_nodes_visited"),
+        stats.get("total_things"),
+        stats.get("nodes_skipped"),
+        stats.get("narrative_coverage"),
+        stats.get("avg_narrative_attention"),
+        stats.get("dead_space_count"),
+        stats.get("orphan_narrative_count"),
+        narrative_text,
+        json.dumps(stats),
+        json.dumps(result.get("prompts", [])),
+        json.dumps(result.get("plan_vs_actual", [])),
+    ))
+    sim_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+    db.commit()
+    db.close()
+    return sim_id
+
+
+def get_image_by_slug(slug: str):
+    """Return a single GA image row by slug."""
+    db = get_db()
+    row = db.execute("SELECT * FROM ga_images WHERE slug = ?", (slug,)).fetchone()
+    db.close()
+    return dict(row) if row else None
+
+
+def create_participant(token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode="text", referred_by=None):
     db = get_db()
     db.execute(
         """INSERT INTO participants
-           (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode)
-           VALUES (?, ?, ?, ?, ?, ?, ?)""",
-        (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode),
+           (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode, referred_by)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode, referred_by),
     )
     db.commit()
     pid = db.execute("SELECT id FROM participants WHERE token = ?", (token,)).fetchone()["id"]
@@ -164,11 +409,12 @@ def get_participant_by_token(token):
 def add_ga_image(filename, domain="med", version=None, is_control=False,
                  correct_product=None, products=None, title=None, description=None):
     db = get_db()
+    slug = _generate_unique_slug(db, filename)
     db.execute(
-        """INSERT INTO ga_images (filename, domain, version, is_control, correct_product, products, title, description)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        """INSERT INTO ga_images (filename, domain, version, is_control, correct_product, products, title, description, slug)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (filename, domain, version, int(is_control), correct_product,
-         json.dumps(products) if products else None, title, description),
+         json.dumps(products) if products else None, title, description, slug),
     )
     db.commit()
     db.close()
@@ -223,7 +469,8 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
               q4_response=None, q4_rt=None,
               q5_dimension_id=None, q5_pattern=None,
               q5_response=None, q5_rt=None,
-              stream_show_title=1):
+              stream_show_title=1,
+              code_version=None):
     db = get_db()
     cursor = db.execute(
         """INSERT INTO tests
@@ -249,8 +496,8 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
             s9a_raw,
             q4_dimension_id, q4_pattern, q4_response, q4_rt,
             q5_dimension_id, q5_pattern, q5_response, q5_rt,
-            stream_show_title)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            stream_show_title, code_version)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (participant_id, ga_image_id, q1_text, q1_time_ms,
          q2_choice, q2_time_ms, q3_choice, q3_time_ms,
          int(s9a_pass), float(s9a_score), int(s9b_pass), int(s9c_pass),
@@ -273,7 +520,7 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
          s9a_raw,
          q4_dimension_id, q4_pattern, q4_response, q4_rt,
          q5_dimension_id, q5_pattern, q5_response, q5_rt,
-         int(stream_show_title)),
+         int(stream_show_title), code_version),
     )
     test_id = cursor.lastrowid
     db.commit()
@@ -358,6 +605,7 @@ def get_all_tests():
                   t.s9a_raw,
                   t.q4_dimension_id, t.q4_pattern, t.q4_response, t.q4_rt,
                   t.q5_dimension_id, t.q5_pattern, t.q5_response, t.q5_rt,
+                  t.code_version,
                   p.clinical_domain, p.data_literacy,
                   g.title, g.domain, g.version, g.correct_product, g.is_control
            FROM tests t
@@ -397,3 +645,192 @@ def get_tests_by_quadrant(quadrant_fn):
         q = quadrant_fn(t.get("clinical_domain", ""), t.get("data_literacy", ""))
         buckets.setdefault(q, []).append(t)
     return buckets
+
+
+def get_tests_for_participant(participant_id: int):
+    """Return all tests for a specific participant, with image data joined."""
+    db = get_db()
+    rows = db.execute(
+        """SELECT t.id, t.created_at, t.glance_score,
+                  t.q1_text, t.q2_choice, t.q3_choice,
+                  t.s9a_pass, t.s9b_pass, t.s9c_pass,
+                  t.q2_time_ms, t.speed_accuracy,
+                  t.exposure_mode, t.tab_switched,
+                  g.id AS ga_image_id, g.filename, g.title,
+                  g.domain, g.correct_product, g.is_control
+           FROM tests t
+           JOIN ga_images g ON t.ga_image_id = g.id
+           WHERE t.participant_id = ?
+           ORDER BY t.created_at DESC""",
+        (participant_id,),
+    ).fetchall()
+    db.close()
+    return [dict(r) for r in rows]
+
+
+def get_tests_for_image(ga_image_id: int):
+    """Return all tests for a specific GA image, with participant and image data."""
+    db = get_db()
+    rows = db.execute(
+        """SELECT t.*, p.clinical_domain, p.data_literacy,
+                  g.title, g.domain, g.version, g.correct_product, g.is_control
+           FROM tests t
+           JOIN participants p ON t.participant_id = p.id
+           JOIN ga_images g ON t.ga_image_id = g.id
+           WHERE t.ga_image_id = ?
+           ORDER BY t.created_at DESC""",
+        (ga_image_id,),
+    ).fetchall()
+    db.close()
+    return [dict(r) for r in rows]
+
+
+def get_image_by_id(ga_image_id: int):
+    """Return a single GA image row by id."""
+    db = get_db()
+    row = db.execute("SELECT * FROM ga_images WHERE id = ?", (ga_image_id,)).fetchone()
+    db.close()
+    return dict(row) if row else None
+
+
+def get_landing_stats() -> dict:
+    """Return stats needed for the landing page.
+
+    Returns:
+        {
+            "total_participants": int,
+            "total_tests": int,
+            "total_gas": int,
+            "total_domains": int,
+            "avg_glance": float or None,
+            "top_gas": list of dicts (top 5 by avg glance_score),
+            "domain_counts": dict mapping domain -> n_gas,
+            "best_ga": dict or None,
+        }
+    """
+    db = get_db()
+
+    total_participants = db.execute("SELECT COUNT(*) as c FROM participants").fetchone()["c"]
+    total_tests = db.execute("SELECT COUNT(*) as c FROM tests").fetchone()["c"]
+    total_gas = db.execute("SELECT COUNT(*) as c FROM ga_images").fetchone()["c"]
+    total_domains = db.execute("SELECT COUNT(DISTINCT domain) as c FROM ga_images").fetchone()["c"]
+
+    avg_row = db.execute("SELECT AVG(glance_score) as avg_g FROM tests WHERE glance_score IS NOT NULL").fetchone()
+    avg_glance = round(avg_row["avg_g"], 4) if avg_row["avg_g"] is not None else None
+
+    top_rows = db.execute(
+        """SELECT g.id, g.filename, g.domain, g.title, g.slug,
+                  AVG(t.glance_score) as avg_glance,
+                  COUNT(t.id) as n_tests
+           FROM ga_images g
+           JOIN tests t ON t.ga_image_id = g.id
+           WHERE t.glance_score IS NOT NULL
+           GROUP BY g.id
+           ORDER BY avg_glance DESC
+           LIMIT 5"""
+    ).fetchall()
+    top_gas = [dict(r) for r in top_rows]
+
+    domain_rows = db.execute(
+        "SELECT domain, COUNT(*) as n_gas FROM ga_images GROUP BY domain ORDER BY n_gas DESC"
+    ).fetchall()
+    domain_counts = {r["domain"]: r["n_gas"] for r in domain_rows}
+
+    best_ga = top_gas[0] if top_gas else None
+
+    db.close()
+
+    return {
+        "total_participants": total_participants,
+        "total_tests": total_tests,
+        "total_gas": total_gas,
+        "total_domains": total_domains,
+        "avg_glance": avg_glance,
+        "top_gas": top_gas,
+        "domain_counts": domain_counts,
+        "best_ga": best_ga,
+    }
+
+
+def get_example_ga() -> dict | None:
+    """Return the GA with the most tests, or None if no tests exist.
+
+    Returns dict with id, filename, domain, title, n_tests.
+    """
+    db = get_db()
+    row = db.execute(
+        """SELECT g.id, g.filename, g.domain, g.title, g.slug,
+                  COUNT(t.id) as n_tests
+           FROM ga_images g
+           JOIN tests t ON t.ga_image_id = g.id
+           GROUP BY g.id
+           ORDER BY n_tests DESC
+           LIMIT 1"""
+    ).fetchone()
+    db.close()
+    return dict(row) if row else None
+
+
+def get_referral_count(referral_code: str) -> int:
+    """Count how many participants were referred by a given referral code."""
+    db = get_db()
+    row = db.execute(
+        "SELECT COUNT(*) as c FROM participants WHERE referred_by = ?",
+        (referral_code,),
+    ).fetchone()
+    db.close()
+    return row["c"] if row else 0
+
+
+def get_top_referrers(limit: int = 20) -> list[dict]:
+    """Return top referrers ranked by number of successful referrals.
+
+    Each entry: {referral_code, n_referrals, referrer_domain, referrer_handle}.
+    """
+    db = get_db()
+    rows = db.execute(
+        """SELECT p.referred_by AS referral_code,
+                  COUNT(*) AS n_referrals,
+                  (SELECT pp.clinical_domain FROM participants pp
+                   WHERE SUBSTR(pp.token, 1, 8) = p.referred_by
+                   LIMIT 1) AS referrer_domain,
+                  (SELECT pp.id FROM participants pp
+                   WHERE SUBSTR(pp.token, 1, 8) = p.referred_by
+                   LIMIT 1) AS referrer_id
+           FROM participants p
+           WHERE p.referred_by IS NOT NULL AND p.referred_by != ''
+           GROUP BY p.referred_by
+           ORDER BY n_referrals DESC
+           LIMIT ?""",
+        (limit,),
+    ).fetchall()
+    db.close()
+
+    result = [dict(r) for r in rows]
+
+    # Attach handles for referrers
+    referrer_ids = [r["referrer_id"] for r in result if r.get("referrer_id")]
+    if referrer_ids:
+        from handles import get_handle_map
+        handle_map = get_handle_map(referrer_ids)
+        for r in result:
+            rid = r.get("referrer_id")
+            r["referrer_handle"] = handle_map.get(rid, None) if rid else None
+    else:
+        for r in result:
+            r["referrer_handle"] = None
+
+    return result
+
+
+def save_analysis_lead(email: str, ga_image_id: int | None = None, source: str = "analyze", paid: int = 0) -> int:
+    """Save an email lead from the analyze flow. Returns the lead id."""
+    db = get_db()
+    cursor = db.execute(
+        "INSERT INTO analysis_leads (email, ga_image_id, source, paid) VALUES (?, ?, ?, ?)",
+        (email, ga_image_id, source, paid),
+    )
+    lead_id = cursor.lastrowid
+    db.commit()
+    db.close()
+    return lead_id
