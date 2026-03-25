@@ -1,0 +1,805 @@
+meta:
+  generated: '2026-03-25T05:54:04.131593'
+  n_scored: 47
+  n_errors: 0
+results:
+- ga_key: immunomod_v10_wireframe
+  domain: med
+  title: Immunomodulateurs RTIs — VEC V10 wireframe
+  paper: Immunomodulateurs RTIs pÃ©diatriques (MDPI Children, Inchauspe 2026)
+  type: vec
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: OM-85
+  score: 0.61725
+  node_count: 30
+  link_count: 49
+  n_recommendations: 0
+  n_strengths: 18
+  recommendations: []
+  source: hand-crafted
+- ga_key: immunomod_v2a4_infographic
+  domain: med
+  title: Immunomodulateurs RTIs — Infographie IA V2A.4
+  paper: Immunomodulateurs RTIs pÃ©diatriques (MDPI Children, Inchauspe 2026)
+  type: calibration_reference
+  is_control: false
+  encoding: mixed
+  beta: null
+  n_products: 4
+  correct_product: OM-85
+  score: 0.61725
+  node_count: 30
+  link_count: 49
+  n_recommendations: 0
+  n_strengths: 18
+  recommendations: []
+  source: hand-crafted
+- ga_key: attention_transformer_2017
+  domain: tech
+  title: Machine Translation — Transformer vs RNN/CNN (2017)
+  paper: Attention Is All You Need (Vaswani et al., 2017)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Transformer (Big)
+  score: 0.7440625
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 7
+  recommendations: []
+  source: hand-crafted
+- ga_key: immunomod_v10_area_control
+  domain: med
+  title: Immunomodulateurs RTIs — Encodage par aire (contrôle)
+  paper: Immunomodulateurs RTIs pÃ©diatriques (MDPI Children, Inchauspe 2026)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: OM-85
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: attention_transformer_2017_pie_control
+  domain: tech
+  title: Machine Translation — Pie chart (contrôle)
+  paper: Attention Is All You Need (Vaswani et al., 2017)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Transformer (Big)
+  score: 0.5596875
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: hand-crafted
+- ga_key: oregon_health_experiment_2012
+  domain: policy
+  title: Oregon Health Insurance Experiment — Medicaid Coverage Effects
+  paper: The Oregon Health Insurance Experiment (Finkelstein et al., QJE 2012)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Depression screening
+  score: 0.7314285714285714
+  node_count: 7
+  link_count: 11
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: hand-crafted
+- ga_key: oregon_health_experiment_2012_pie_control
+  domain: policy
+  title: Oregon Health Insurance Experiment — Pie chart (contrôle)
+  paper: The Oregon Health Insurance Experiment (Finkelstein et al., QJE 2012)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Depression screening
+  score: 0.5175
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: hattie_visible_learning_2009
+  domain: education
+  title: Visible Learning — Educational Interventions by Effect Size
+  paper: Visible Learning meta-analysis (Hattie, 2009)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Feedback
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: hattie_visible_learning_2009_bubble_control
+  domain: education
+  title: Visible Learning — Bubble chart (contrôle)
+  paper: Visible Learning meta-analysis (Hattie, 2009)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Feedback
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: drawdown_climate_2017
+  domain: climate
+  title: Project Drawdown — Top Climate Solutions by CO₂ Reduction
+  paper: 'Drawdown: top climate solutions (Hawken, 2017)'
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Reduced food waste
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: drawdown_climate_2017_pie_control
+  domain: climate
+  title: Project Drawdown — Pie chart (contrôle)
+  paper: 'Drawdown: top climate solutions (Hawken, 2017)'
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Reduced food waste
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: obedience_milgram_1963
+  domain: psychology
+  title: Obedience to Authority — Milgram Experiment (1963)
+  paper: Behavioral Study of Obedience (Milgram, JASP 1963)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Baseline
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: obedience_milgram_1963_control
+  domain: psychology
+  title: Obedience to Authority — Pie chart (contrôle)
+  paper: Behavioral Study of Obedience (Milgram, JASP 1963)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Baseline
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: marshmallow_watts_2018
+  domain: psychology
+  title: Marshmallow Test Replication — Effect Sizes (Watts et al., 2018)
+  paper: Revisiting the Marshmallow Test (Watts et al., Psych Science 2018)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Academic achievement
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: marshmallow_watts_2018_control
+  domain: psychology
+  title: Marshmallow Test Replication — Pie chart (contrôle)
+  paper: Revisiting the Marshmallow Test (Watts et al., Psych Science 2018)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Academic achievement
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: cbt_depression_cuijpers_2020
+  domain: psychology
+  title: CBT vs Medications for Depression — Meta-analysis (Cuijpers et al., 2020)
+  paper: Meta-analysis of CBT for depression (Cuijpers et al., 2020)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Combined therapy
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: cbt_depression_cuijpers_2020_control
+  domain: psychology
+  title: CBT vs Medications for Depression — Pie chart (contrôle)
+  paper: Meta-analysis of CBT for depression (Cuijpers et al., 2020)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Combined therapy
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: minimum_wage_card_krueger_1994
+  domain: economics
+  title: Minimum Wage and Employment — Card & Krueger (1994)
+  paper: Minimum Wages and Employment (Card & Krueger, AER 1994)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: NJ fast food
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: minimum_wage_card_krueger_1994_control
+  domain: economics
+  title: Minimum Wage and Employment — Pie chart (contrôle)
+  paper: Minimum Wages and Employment (Card & Krueger, AER 1994)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: NJ fast food
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: microfinance_banerjee_2015
+  domain: economics
+  title: Microfinance Impact on Business Profits — 6-Country RCT (Banerjee et al., 2015)
+  paper: Six Randomized Evaluations of Microcredit (Banerjee et al., AEJ:Applied 2015)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: India
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: microfinance_banerjee_2015_control
+  domain: economics
+  title: Microfinance Impact on Business Profits — Pie chart (contrôle)
+  paper: Six Randomized Evaluations of Microcredit (Banerjee et al., AEJ:Applied 2015)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: India
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: sleep_memory_walker_2009
+  domain: neuroscience
+  title: Sleep Stages and Memory Consolidation (Walker, 2009)
+  paper: The Role of Sleep in Cognition and Emotion (Walker, ANYAS 2009)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Full night sleep
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: sleep_memory_walker_2009_control
+  domain: neuroscience
+  title: Sleep Stages and Memory Consolidation (Walker, 2009) — Pie chart (contrôle)
+  paper: The Role of Sleep in Cognition and Emotion (Walker, ANYAS 2009)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Full night sleep
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: exercise_neuroplasticity_erickson_2011
+  domain: neuroscience
+  title: Exercise and Hippocampal Volume Change (Erickson et al., 2011)
+  paper: Exercise training increases hippocampal volume (Erickson et al., PNAS 2011)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Aerobic exercise
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: exercise_neuroplasticity_erickson_2011_control
+  domain: neuroscience
+  title: Exercise and Hippocampal Volume Change (Erickson et al., 2011) — Pie chart (contrôle)
+  paper: Exercise training increases hippocampal volume (Erickson et al., PNAS 2011)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Aerobic exercise
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: predimed_estruch_2018
+  domain: nutrition
+  title: Mediterranean Diet and Cardiovascular Risk — PREDIMED (Estruch et al., 2018)
+  paper: Primary Prevention of CVD with Mediterranean Diet (Estruch et al., NEJM 2018)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Med + EVOO
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: predimed_estruch_2018_control
+  domain: nutrition
+  title: Mediterranean Diet and Cardiovascular Risk — Pie chart (contrôle)
+  paper: Primary Prevention of CVD with Mediterranean Diet (Estruch et al., NEJM 2018)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Med + EVOO
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: sugar_tax_teng_2019
+  domain: nutrition
+  title: Sugar Tax Effects on Consumption — Meta-analysis (Teng et al., 2019)
+  paper: Impact of sugar-sweetened beverage taxes (Teng et al., BMJ 2019)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Philadelphia
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: sugar_tax_teng_2019_control
+  domain: nutrition
+  title: Sugar Tax Effects on Consumption — Pie chart (contrôle)
+  paper: Impact of sugar-sweetened beverage taxes (Teng et al., BMJ 2019)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Philadelphia
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: battery_energy_density_2023
+  domain: energy
+  title: Battery Technologies — Energy Density Comparison (2023)
+  paper: Battery Technologies Energy Density Comparison (DOE/industry benchmarks 2023)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Solid-state
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: battery_energy_density_2023_control
+  domain: energy
+  title: Battery Technologies — Pie chart (contrôle)
+  paper: Battery Technologies Energy Density Comparison (DOE/industry benchmarks 2023)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Solid-state
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: renewable_lcoe_lazard_2023
+  domain: energy
+  title: Renewable Energy LCOE Comparison (Lazard, 2023)
+  paper: Lazard's Levelized Cost of Energy Analysis v16.0 (2023)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Solar utility
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: renewable_lcoe_lazard_2023_control
+  domain: energy
+  title: Renewable Energy LCOE Comparison (Lazard, 2023) — Pie chart (contrôle)
+  paper: Lazard's Levelized Cost of Energy Analysis v16.0 (2023)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Solar utility
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: covid_vaccine_polack_2020
+  domain: epidemiology
+  title: COVID-19 Vaccine Efficacy by Subgroup (Polack et al., 2020)
+  paper: Safety and Efficacy of BNT162b2 (Polack et al., NEJM 2020)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: 16-55 years
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: covid_vaccine_polack_2020_control
+  domain: epidemiology
+  title: COVID-19 Vaccine Efficacy by Subgroup (Polack et al., 2020) — Pie chart (contrôle)
+  paper: Safety and Efficacy of BNT162b2 (Polack et al., NEJM 2020)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: 16-55 years
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: handwashing_aiello_2008
+  domain: epidemiology
+  title: Handwashing and Respiratory Infections — Meta-analysis (Aiello et al., 2008)
+  paper: Effect of hand hygiene on infectious disease (Aiello et al., AJPH 2008)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Soap and water
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: handwashing_aiello_2008_control
+  domain: epidemiology
+  title: Handwashing and Respiratory Infections — Pie chart (contrôle)
+  paper: Effect of hand hygiene on infectious disease (Aiello et al., AJPH 2008)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Soap and water
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: pollinator_decline_potts_2010
+  domain: ecology
+  title: Pollinator Decline Drivers — Relative Impact (Potts et al., 2010)
+  paper: Global pollinator declines (Potts et al., Trends in Ecology & Evolution 2010)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Habitat loss
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: pollinator_decline_potts_2010_control
+  domain: ecology
+  title: Pollinator Decline Drivers — Pie chart (contrôle)
+  paper: Global pollinator declines (Potts et al., Trends in Ecology & Evolution 2010)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Habitat loss
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: coral_recovery_interventions_2020
+  domain: ecology
+  title: Coral Reef Recovery Interventions — Cover Increase (%)
+  paper: Coral reef recovery interventions (BostrÃ¶m-Einarsson et al. 2020 & UNEP)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Coral gardening
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: coral_recovery_interventions_2020_control
+  domain: ecology
+  title: Coral Reef Recovery Interventions — Pie chart (contrôle)
+  paper: Coral reef recovery interventions (BostrÃ¶m-Einarsson et al. 2020 & UNEP)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Coral gardening
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: modal_emissions_itf_2021
+  domain: transport
+  title: CO₂ Emissions per Passenger-km by Transport Mode (ITF, 2021)
+  paper: Transport COâ‚‚ and the Paris Agreement (ITF, 2021)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Bicycle
+  score: 0.6803125
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 7
+  recommendations: []
+  source: auto-generated
+- ga_key: modal_emissions_itf_2021_control
+  domain: transport
+  title: CO₂ Emissions per Passenger-km by Transport Mode (ITF, 2021) — Pie chart (contrôle)
+  paper: Transport COâ‚‚ and the Paris Agreement (ITF, 2021)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Bicycle
+  score: 0.525
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: crop_yield_ponisio_2015
+  domain: agriculture
+  title: Crop Yield by Farming Method — Meta-analysis (Ponisio et al., 2015)
+  paper: Diversification practices reduce the yield gap (Ponisio et al., Proc. R. Soc. B 2015)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Precision farming
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: crop_yield_ponisio_2015_control
+  domain: agriculture
+  title: Crop Yield by Farming Method — Pie chart (contrôle)
+  paper: Diversification practices reduce the yield gap (Ponisio et al., Proc. R. Soc. B 2015)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Precision farming
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+- ga_key: concrete_co2_alternatives_2023
+  domain: materials
+  title: Concrete Alternatives — CO₂ Reduction vs Portland Cement (2023)
+  paper: Concrete alternatives COâ‚‚ reduction (IEA Cement Roadmap & lit. 2023)
+  type: chart
+  is_control: false
+  encoding: length
+  beta: 1.0
+  n_products: 4
+  correct_product: Geopolymer
+  score: 0.664375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 6
+  recommendations: []
+  source: auto-generated
+- ga_key: concrete_co2_alternatives_2023_control
+  domain: materials
+  title: Concrete Alternatives — Pie chart (contrôle)
+  paper: Concrete alternatives COâ‚‚ reduction (IEA Cement Roadmap & lit. 2023)
+  type: control_ab
+  is_control: true
+  encoding: area
+  beta: 0.7
+  n_products: 4
+  correct_product: Geopolymer
+  score: 0.51375
+  node_count: 8
+  link_count: 13
+  n_recommendations: 0
+  n_strengths: 1
+  recommendations: []
+  source: auto-generated
+errors: []
