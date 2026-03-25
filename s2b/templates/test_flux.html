@@ -138,6 +138,26 @@
     .flux-feed-container::-webkit-scrollbar {
         display: none;                  /* Chrome/Safari/Edge */
     }
+    .flux-feed-container.paused {
+        filter: blur(20px);
+        transition: filter 0.3s ease;
+    }
+    .feed-pause-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        cursor: pointer;
+        border-radius: 35px;
+    }
+    .feed-pause-overlay.hidden { display: none; }
+    .feed-pause-content { text-align: center; color: #fff; }
+    .feed-pause-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+    .feed-pause-content p { font-size: 1rem; margin: 0.25rem 0; }
+    .feed-pause-hint { font-size: 0.8rem; color: #94a3b8; }
     .flux-feed-inner {
         display: flex;
         flex-direction: column;
@@ -429,6 +449,13 @@
             {% endfor %}
           </div>
         </div>
+        <div class="feed-pause-overlay hidden" id="feed-pause-overlay">
+            <div class="feed-pause-content">
+                <div class="feed-pause-icon">⏸</div>
+                <p>Session en pause</p>
+                <p class="feed-pause-hint">Cliquez pour reprendre</p>
+            </div>
+        </div>
         <div class="flux-phone-home"></div>
         </div>
         <div class="flux-progress" id="feed-progress">
@@ -567,6 +594,7 @@
         <input type="hidden" name="user_agent" id="f-ua" value="">
         <input type="hidden" name="q1_input_mode" id="f-q1-input-mode" value="text">
         <input type="hidden" name="q1_raw_transcript" id="f-q1-raw-transcript" value="">
+        <input type="hidden" name="total_pause_ms" id="f-total-pause" value="0">
     </form>
 </div>
 {% endblock %}
@@ -608,7 +636,13 @@
         q1_first_keystroke_ms: 0, q1_last_keystroke_ms: 0,
         stream_selected_id: '',
         q1_input_mode: 'text', q1_raw_transcript: '',
+        total_pause_ms: 0,
     };
+
+    // ── Pause state ──
+    let isPaused = false;
+    let pauseStartTime = 0;
+    const pauseOverlay = document.getElementById('feed-pause-overlay');
 
     // ── Tab defocus: pause scroll, discard test on return ──
     let feedHasStarted = false;  // guard: don't discard before feed actually starts
@@ -633,7 +667,7 @@
                 // Gone >2s during active test — contaminated, discard
                 responses.tab_switched = true;
                 window.location.href = '/test';
-            } else if (currentState === 'feed' && scrollAnimId === null && feedHasStarted) {
+            } else if (currentState === 'feed' && scrollAnimId === null && feedHasStarted && !isPaused) {
                 // Short defocus during feed — resume scroll
                 newFlick();
                 scrollAnimId = requestAnimationFrame(scrollStep);
@@ -756,6 +790,7 @@
         }
 
         function scrollStep(now) {
+            if (isPaused) return;
             const dt = Math.min(now - lastTime, 50); // cap dt to prevent jumps
             lastTime = now;
             const maxScroll = feedContainer.scrollHeight - feedContainer.clientHeight;
@@ -795,10 +830,49 @@
             scrollAnimId = requestAnimationFrame(scrollStep);
         }
 
+        // Resume handler — called from outside the closure via custom event
+        feedContainer.addEventListener('s2b-resume', () => {
+            newFlick();
+            lastTime = performance.now();
+            scrollAnimId = requestAnimationFrame(scrollStep);
+        });
+
         // First flick
         newFlick();
         scrollAnimId = requestAnimationFrame(scrollStep);
     }
+
+    // ── Click on feed = pause ──
+    feedContainer.addEventListener('click', (e) => {
+        if (currentState !== 'feed' || isPaused) return;
+        e.preventDefault();
+        isPaused = true;
+        pauseStartTime = performance.now();
+        // Stop scroll
+        if (scrollAnimId) {
+            cancelAnimationFrame(scrollAnimId);
+            scrollAnimId = null;
+        }
+        // Blur + overlay
+        feedContainer.classList.add('paused');
+        pauseOverlay.classList.remove('hidden');
+    });
+
+    // ── Click on overlay = resume ──
+    pauseOverlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isPaused = false;
+        // Track pause duration
+        if (pauseStartTime) {
+            responses.total_pause_ms += Math.round(performance.now() - pauseStartTime);
+            pauseStartTime = 0;
+        }
+        feedContainer.classList.remove('paused');
+        pauseOverlay.classList.add('hidden');
+        // Resume with new flick — startFeed's newFlick is in closure,
+        // but we dispatch a custom event to trigger resume from inside startFeed.
+        feedContainer.dispatchEvent(new CustomEvent('s2b-resume'));
+    });
 
     // ── Selection: thumbnail recognition (S10) ──
     document.querySelectorAll('.selection-thumb').forEach(thumb => {
@@ -1018,6 +1092,7 @@
         document.getElementById('f-stream-selected-id').value = responses.stream_selected_id;
         document.getElementById('f-target-filename').value = TARGET_FILENAME;
         document.getElementById('f-stream-dwell').value = responses.stream_target_dwell_ms || 0;
+        document.getElementById('f-total-pause').value = responses.total_pause_ms || 0;
         document.getElementById('f-screen-w').value = window.innerWidth;
         document.getElementById('f-screen-h').value = window.innerHeight;
         document.getElementById('f-dpr').value = window.devicePixelRatio || 1;
