@@ -42,7 +42,7 @@ Le GA declenche la sequence perceptive complete (scan → identification → com
 | ID | Signal | Checks | Automation |
 |----|--------|--------|------------|
 | DS-S2a | Gate 1 — scan 1s | Transition chromatique rouge→vert perceptible en 1 seconde sur PNG 50% | Manuel — verification visuelle |
-| DS-S2b | Gate 2 — identification 2s | ≥ 3 elements reconnus (virus, voie respiratoire, enfant, "Wheezing/Asthma") en 2 secondes | Manuel — verification visuelle |
+| DS-GLANCE | Gate 2 — identification 2s | ≥ 3 elements reconnus (virus, voie respiratoire, enfant, "Wheezing/Asthma") en 2 secondes | Manuel — verification visuelle |
 | DS-S2c | Gate 3 — comprehension 3s | 4 agents colores + convergence + gradient de preuves compris en 3 secondes | Manuel — verification visuelle |
 
 **Checker:** Protocole DS-A2 (test d'impact cognitif PH1). Execute par Silas a chaque iteration. Valide par Aurore pour le sign-off final (H2).

@@ -233,9 +233,9 @@ Test spécifique : la masse visuelle relative des 4 produits correspond-elle à 
 
 ### 4.4 Protocole de validation par compréhension
 
-**S2b — Test "Premier Regard" (Naive Comprehension Test)**
+**GLANCE — Test "Premier Regard" (Naive Comprehension Test)**
 *Intégré dans : `08_HEALTH.md` comme H9. Cross-ref : PH1, B1, B3, B4, V5.*
-*Graph : `narrative:vec:S2b` → links vers `moment:study:jambor_2024` (rule #10), `moment:study:bredbenner_simon_2019`, `moment:study:garcia_retamero_cokely_2017`*
+*Graph : `narrative:vec:GLANCE` → links vers `moment:study:jambor_2024` (rule #10), `moment:study:bredbenner_simon_2019`, `moment:study:garcia_retamero_cokely_2017`*
 
 La littérature (Jambor & Bornhäuser 2024, rule #10 ; feedback structuré) recommande un protocole de test formel :
 
@@ -276,11 +276,11 @@ Le Visual Evidence Compiler (VEC) est le premier système qui :
 - **Utilise des fréquences naturelles** ("18 essais") au lieu de catégories abstraites ("Niveau A"), conformément aux recommandations de Gigerenzer sur la transparence des risques.
 - **Intègre l'encodage dans un format narratif visuel** (flux gauche→droite, compression métaphorique) au lieu de le confiner à un tableau.
 - **Paramétrise le design** (YAML-driven, générateurs) pour que chaque itération soit traçable à ses justifications perceptives et scientifiques.
-- **Valide par compréhension directe** (protocole S2b) au lieu de se contenter de métriques d'engagement.
+- **Valide par compréhension directe** (protocole GLANCE) au lieu de se contenter de métriques d'engagement.
 
 ### 5.3 Ce que ça signifie
 
-Si SciSense démontre qu'un GA produit par le VEC améliore la *compréhension clinique* (pas juste l'engagement), c'est une contribution originale au champ. Aucune étude existante n'a fait cette démonstration pour un graphical abstract. Le protocole S2b, aussi modeste soit-il (3-5 pédiatres), produirait les premières données de compréhension clinique pour un GA paramétrique.
+Si SciSense démontre qu'un GA produit par le VEC améliore la *compréhension clinique* (pas juste l'engagement), c'est une contribution originale au champ. Aucune étude existante n'a fait cette démonstration pour un graphical abstract. Le protocole GLANCE, aussi modeste soit-il (3-5 pédiatres), produirait les premières données de compréhension clinique pour un GA paramétrique.
 
 ---
 
@@ -373,6 +373,6 @@ La traçabilité vit dans le graph, pas dans un fichier séparé :
 
 ---
 
-*Document généré le 2026-03-24, mis à jour le 2026-03-24 (renumérotation P32-P34, ajout V14/V15/S2b, section traçabilité graph)*
+*Document généré le 2026-03-24, mis à jour le 2026-03-24 (renumérotation P32-P34, ajout V14/V15/GLANCE, section traçabilité graph)*
 *SciSense × Mind Protocol — Visual Evidence Compiler, Vague 1*
 *Prochaine étape : Vague 2 (Axe 1 : perception cognitive + Axe 5 : métriques de validation)*

@@ -135,7 +135,7 @@ SORTIE: session NLM propre, contexte frais, prete a auditer
 
 ---
 
-## A-AUD4: Protocole S2b "Premier Regard" — Test de Compréhension Clinique
+## A-AUD4: Protocole GLANCE "Premier Regard" — Test de Compréhension Clinique
 
 Deux modes d'exécution : MANUEL (pour la mission courante) et WEB (infrastructure scalable future).
 
@@ -174,7 +174,7 @@ SORTIE: scores S9a-S9c + verbatims + décision GO/NO-GO
 ### Mode WEB (infrastructure scisense.fr — post-MDPI, scalable)
 
 **Décision architecturale (24 mars 2026, proposition NotebookLM validée NLR) :**
-Le test S2b sera déployé sur scisense.fr comme plateforme de validation cognitive permanente.
+Le test GLANCE sera déployé sur scisense.fr comme plateforme de validation cognitive permanente.
 
 ```
 SPÉCIFICATIONS (à implémenter post-soumission MDPI) :
@@ -189,7 +189,7 @@ SPÉCIFICATIONS (à implémenter post-soumission MDPI) :
    - Aucun bouton retour, aucun téléchargement, aucun screenshot possible
    - Simulation biologique du scroll MDPI table des matières
 
-3. ENTONNOIR S2b (3 questions canoniques)
+3. ENTONNOIR GLANCE (3 questions canoniques)
    - Q1 rappel libre (champ texte)
    - Q2 hiérarchie évidence (choix parmi les 4 produits)
    - Q3 changement de pratique (échelle Likert 1-5)
