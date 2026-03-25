@@ -2,169 +2,135 @@
 {% block title %}Résultat — Premier Regard{% endblock %}
 
 {% block content %}
-<div class="reveal">
-    <h1>Votre résultat</h1>
+{# Dark overlay #}
+<div class="reveal-overlay" id="revealOverlay">
+    <div class="reveal-card" id="revealCard">
 
-    <div class="score-hero">
-        <div class="score-hero-value {{ 'pass' if s2b_score >= 0.70 else 'fail' }}">
-            {{ (s2b_score * 100) | round(0) }}%
-        </div>
-        <div class="score-hero-label">
-            Score S2b — {{ s2b_label }}
-        </div>
-        <div class="score-hero-meta">
-            Speed-Accuracy : <strong>{{ speed_accuracy }}</strong>
-        </div>
-    </div>
+        {# Auto-dismiss countdown in top-right corner #}
+        <div class="reveal-countdown" id="revealCountdown">5</div>
 
-    {% if test.exposure_mode == 'stream' %}
-    <div class="card" style="background:#e3f2fd; border-left:4px solid #1565C0; padding:0.8rem 1rem; margin-bottom:1rem;">
-        <strong>Mode Stream (attention ambiante)</strong>
-        — Position cible : {{ test.stream_position or '?' }}/{{ test.stream_length or '?' }}
-        {% if test.s10_hit is not none %}
-        | S10 : {{ 'Hit' if test.s10_hit else 'Miss' }}
-        {% endif %}
-    </div>
-    {% else %}
-    <div class="card" style="background:#fff3e0; border-left:4px solid #fb8c00; padding:0.8rem 1rem; margin-bottom:1rem;">
-        <strong>Mode Spotlight (attention dirigee)</strong>
-        — Exposition : 5s avec decompte
-    </div>
-    {% endif %}
+        {% if s10_hit == false %}
+        {# ── MODE A: S10 Miss — user didn't notice the target ── #}
+        <div class="reveal-body reveal-miss">
+            <p class="reveal-headline">Cette image était dans le feed</p>
 
-    <div class="score-grid">
-        <div class="score-card {{ 'pass' if test.s9a_pass else 'fail' }}">
-            <div class="score-label">Identification du sujet</div>
-            <div class="score-icon">{{ '&#10003;' if test.s9a_pass else '&#10007;' }}</div>
-            {% if s9a_score is defined and s9a_score > 0 %}
-            <div class="score-detail">
-                Similarite semantique : {{ (s9a_score * 100) | round(0) }}%
+            <div class="reveal-thumb-wrap">
+                <img src="/ga/{{ test.filename }}" alt="GA" class="reveal-thumb">
             </div>
+            {% if test.title %}
+            <p class="reveal-image-title">{{ test.title }}</p>
             {% endif %}
+
+            <p class="reveal-miss-text">
+                Vous ne l'avez pas remarquée.<br>
+                C'est normal — c'est ce qu'on mesure.
+            </p>
         </div>
-        <div class="score-card {{ 'pass' if test.s9b_pass else 'fail' }}">
-            <div class="score-label">Hiérarchie des preuves</div>
-            <div class="score-icon">{{ '&#10003;' if test.s9b_pass else '&#10007;' }}</div>
-        </div>
-        <div class="score-card {{ 'pass' if test.s9c_pass else 'fail' }}">
-            <div class="score-label">Impact sur la pratique</div>
-            <div class="score-icon">{{ '&#10003;' if test.s9c_pass else '&#10007;' }}</div>
-        </div>
-    </div>
 
-    {% if test.tab_switched %}
-    <div class="card card-invalid">
-        <strong class="invalid-title">Test invalide (changement d'onglet)</strong>
-        <div class="invalid-detail">
-            Exposition reelle : {{ (test.exposure_actual_ms / 1000) | round(1) if test.exposure_actual_ms else '?' }}s / 5.0s
-        </div>
-    </div>
-    {% endif %}
-
-    {% if test.q1_first_keystroke_ms %}
-    <div class="card">
-        <h2>Dynamique du rappel (Q1)</h2>
-        <table class="result-table">
-            <tr>
-                <td class="label">Latence d'acces</td>
-                <td>
-                    <span class="mono-value">{{ test.q1_first_keystroke_ms }}ms</span>
-                    {% if test.q1_first_keystroke_ms < 1500 %}
-                    <span class="latency-tag latency-fast">(ancrage immediat)</span>
-                    {% elif test.q1_first_keystroke_ms <= 4000 %}
-                    <span class="latency-tag latency-normal">(recuperation standard)</span>
-                    {% else %}
-                    <span class="latency-tag latency-slow">(reconstruction)</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% if test.q1_last_keystroke_ms %}
-            <tr>
-                <td class="label">Duree de production</td>
-                <td><span class="mono-value">{{ test.q1_last_keystroke_ms - test.q1_first_keystroke_ms }}ms</span></td>
-            </tr>
-            {% endif %}
-        </table>
-    </div>
-    {% endif %}
-
-    <div class="card">
-        <h2>Vos réponses</h2>
-        <table class="result-table">
-            <tr>
-                <td class="label">Rappel libre
-                    {% if test.q1_input_mode == 'voice' %}
-                    <span class="input-mode-tag input-mode-voice">voix</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {{ test.q1_text or '(vide)' }}
-                    {% if test.q1_input_mode == 'voice' and test.q1_text %}
-                    <div class="voice-filter-info" style="margin-top:0.4rem; font-size:0.82rem; color:#666;">
-                        {% set raw_words = test.q1_text.split()|length %}
-                        Mots bruts : <strong>{{ raw_words }}</strong>
-                        {% if test.q1_filtered_text %}
-                        {% set filtered_words = test.q1_filtered_text.split()|length %}
-                        &rarr; Apres filtre : <strong>{{ filtered_words }}</strong>
-                        ({{ (test.q1_filter_ratio * 100) | round(0) }}% conserve)
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                </td>
-                <td class="time">{{ (test.q1_time_ms / 1000) | round(1) }}s</td>
-            </tr>
-            <tr>
-                <td class="label">Produit choisi</td>
-                <td>{{ test.q2_choice or '(vide)' }}
-                    {% if test.correct_product %}
-                    <span class="correct-answer">(réponse : {{ test.correct_product }})</span>
-                    {% endif %}
-                </td>
-                <td class="time">{{ (test.q2_time_ms / 1000) | round(1) }}s</td>
-            </tr>
-            <tr>
-                <td class="label">Actionnabilité</td>
-                <td>{{ test.q3_choice or '(vide)' }}</td>
-                <td class="time">{{ (test.q3_time_ms / 1000) | round(1) }}s</td>
-            </tr>
-        </table>
-    </div>
-
-    {% if stats and stats.total and stats.total > 1 %}
-    <div class="card">
-        <h2>Comparaison ({{ stats.total }} tests sur cette image)</h2>
-        <table class="result-table">
-            <tr>
-                <td>Identification du sujet</td>
-                <td>{{ stats.pct_s9a | round(0) }}% de réussite</td>
-            </tr>
-            <tr>
-                <td>Hiérarchie des preuves</td>
-                <td>{{ stats.pct_s9b | round(0) }}% de réussite</td>
-            </tr>
-            <tr>
-                <td>Temps moyen Q2</td>
-                <td>{{ (stats.avg_q2_time / 1000) | round(1) }}s</td>
-            </tr>
-        </table>
-    </div>
-    {% endif %}
-
-    <div class="reveal-image">
-        <h2>L'image que vous avez vue</h2>
-        <img src="/ga/{{ test.filename }}" alt="GA">
-        {% if test.title %}
-        <p class="image-title">{{ test.title }}</p>
-        {% endif %}
-    </div>
-
-    <div class="actions">
-        {% if has_more %}
-        <a href="/test" class="btn btn-primary">Image suivante</a>
         {% else %}
-        <p>Vous avez vu toutes les images disponibles.</p>
+        {# ── MODE B: S10 Hit (or spotlight mode) — show compact score ── #}
+        <div class="reveal-body reveal-hit">
+            <p class="reveal-headline">Votre score</p>
+
+            {# Single horizontal score bar #}
+            <div class="reveal-score-bar-wrap">
+                <div class="reveal-score-bar">
+                    <div class="reveal-score-fill {{ 'pass' if s2b_score >= 0.70 else 'fail' }}"
+                         style="width: {{ (s2b_score * 100) | round(0) }}%"></div>
+                </div>
+                <span class="reveal-score-pct {{ 'pass' if s2b_score >= 0.70 else 'fail' }}">
+                    {{ (s2b_score * 100) | round(0) }}%
+                </span>
+            </div>
+
+            {# Compact score checklist #}
+            <ul class="reveal-checklist">
+                <li class="{{ 'pass' if test.s9a_pass else 'fail' }}">
+                    <span class="reveal-check-icon">{{ '&#10003;' if test.s9a_pass else '&#10007;' }}</span>
+                    Sujet identifié
+                </li>
+                <li class="{{ 'pass' if test.s9b_pass else 'fail' }}">
+                    <span class="reveal-check-icon">{{ '&#10003;' if test.s9b_pass else '&#10007;' }}</span>
+                    Hiérarchie des preuves
+                </li>
+                <li class="{{ 'pass' if test.s9c_pass else 'fail' }}">
+                    <span class="reveal-check-icon">{{ '&#10003;' if test.s9c_pass else '&#10007;' }}</span>
+                    Impact sur la pratique
+                </li>
+            </ul>
+
+            {# Small thumbnail + correct answer #}
+            <div class="reveal-thumb-wrap">
+                <img src="/ga/{{ test.filename }}" alt="GA" class="reveal-thumb">
+            </div>
+            {% if test.correct_product %}
+            <p class="reveal-correct-answer">Réponse correcte : {{ test.correct_product }}</p>
+            {% endif %}
+        </div>
         {% endif %}
-        <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+
+        {# CTA #}
+        <div class="reveal-cta">
+            {% if has_more %}
+            <a href="/test" class="btn btn-primary reveal-btn-continue">Continuer à explorer</a>
+            {% else %}
+            <p class="reveal-all-done">Vous avez tout vu !</p>
+            <a href="/dashboard" class="btn btn-primary reveal-btn-continue">Voir le dashboard</a>
+            {% endif %}
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    const overlay = document.getElementById('revealOverlay');
+    const card = document.getElementById('revealCard');
+    const countdownEl = document.getElementById('revealCountdown');
+    const hasMore = {{ 'true' if has_more else 'false' }};
+    let seconds = 5;
+    let timer;
+
+    function autoContinue() {
+        if (hasMore) {
+            window.location.href = '/test';
+        }
+        // If no more images, don't auto-navigate — let them click
+    }
+
+    // Countdown timer
+    timer = setInterval(function() {
+        seconds--;
+        if (seconds <= 0) {
+            clearInterval(timer);
+            countdownEl.textContent = '';
+            autoContinue();
+        } else {
+            countdownEl.textContent = seconds;
+        }
+    }, 1000);
+
+    // Click overlay (outside card) to continue
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            clearInterval(timer);
+            autoContinue();
+        }
+    });
+
+    // Any click on card stops the countdown (user is reading)
+    card.addEventListener('click', function(e) {
+        // Don't stop countdown if they clicked the CTA link
+        if (e.target.closest('.reveal-btn-continue')) return;
+        clearInterval(timer);
+        countdownEl.textContent = '';
+    });
+
+    // Trigger slide-up animation
+    requestAnimationFrame(function() {
+        card.classList.add('reveal-card-visible');
+    });
+})();
+</script>
 {% endblock %}

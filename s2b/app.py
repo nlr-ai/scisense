@@ -378,6 +378,13 @@ def reveal(request: Request, test_id: int):
 
     s9a_score = test.get("s9a_score") or 0.0
 
+    # s10_hit: True (hit), False (miss), None (spotlight mode — treat as hit for display)
+    raw_s10 = test.get("s10_hit")
+    if raw_s10 is None:
+        s10_hit = True  # spotlight mode: always show score card
+    else:
+        s10_hit = bool(raw_s10)
+
     return templates.TemplateResponse("reveal.html", {
         "request": request,
         "test": test,
@@ -387,6 +394,7 @@ def reveal(request: Request, test_id: int):
         "s2b_label": s2b_label,
         "speed_accuracy": speed_acc,
         "s9a_score": round(float(s9a_score), 3),
+        "s10_hit": s10_hit,
     })
 
 

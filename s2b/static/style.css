@@ -430,86 +430,195 @@ textarea::placeholder {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── Reveal ─── */
-.reveal h1 {
-    text-align: center;
-    margin-bottom: var(--sp-8);
+/* ─── Reveal (popup card) ─── */
+
+/* Dark overlay — covers entire viewport */
+.reveal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: var(--sp-6);
 }
 
-/* Hero score — the single focus element (P26: negative space) */
-.score-hero {
-    text-align: center;
-    padding: var(--sp-10) var(--sp-6);
-    margin-bottom: var(--sp-8);
+/* The card itself */
+.reveal-card {
+    position: relative;
     background: var(--surface);
     border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
+    border-radius: 16px;
+    max-width: 400px;
+    width: 100%;
+    padding: var(--sp-6) var(--sp-6) var(--sp-5);
+    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+    /* Start off-screen (below), then animate up */
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.25s ease;
 }
-.score-hero-value {
-    font-size: var(--text-hero);
-    font-weight: 800;
-    font-family: var(--font-mono);
-    letter-spacing: -0.03em;
-    line-height: 1;
-    margin-bottom: var(--sp-2);
-}
-.score-hero-value.pass { color: var(--pass); }
-.score-hero-value.fail { color: var(--fail); }
-.score-hero-label {
-    font-size: var(--text-md);
-    color: var(--text-muted);
-    font-weight: 400;
-    margin-bottom: var(--sp-2);
-}
-.score-hero-meta {
-    font-size: var(--text-sm);
-    color: var(--text-dim);
+.reveal-card.reveal-card-visible {
+    transform: translateY(0);
+    opacity: 1;
 }
 
-/* Score sub-cards */
-.score-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--sp-4);
-    margin-bottom: var(--sp-8);
-}
-.score-card {
-    background: var(--surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: var(--sp-5) var(--sp-3);
-    text-align: center;
-}
-/* P34: luminance-based pass/fail — subtle background tint, not heavy border */
-.score-card.pass {
-    border-color: var(--pass);
-    background: var(--pass-dim);
-}
-.score-card.fail {
-    border-color: var(--fail);
-    background: var(--fail-dim);
-}
-.score-label {
+/* Auto-dismiss countdown — subtle top-right corner */
+.reveal-countdown {
+    position: absolute;
+    top: var(--sp-3);
+    right: var(--sp-4);
     font-size: var(--text-xs);
-    color: var(--text-muted);
-    margin-bottom: var(--sp-2);
-    line-height: 1.3;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    opacity: 0.6;
+    min-width: 1.2em;
+    text-align: center;
 }
-.score-icon {
-    font-size: var(--text-xl);
-    font-weight: 700;
-}
-.score-card.pass .score-icon { color: var(--pass); }
-.score-card.fail .score-icon { color: var(--fail); }
 
-@media (max-width: 400px) {
-    .score-grid {
-        grid-template-columns: 1fr;
-        gap: var(--sp-3);
+/* Body content */
+.reveal-body {
+    text-align: center;
+}
+.reveal-headline {
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: var(--sp-4);
+}
+
+/* Thumbnail (small, centered) */
+.reveal-thumb-wrap {
+    display: flex;
+    justify-content: center;
+    margin: var(--sp-4) 0;
+}
+.reveal-thumb {
+    width: 150px;
+    height: auto;
+    border-radius: var(--radius);
+    display: block;
+}
+
+/* Image title below thumbnail */
+.reveal-image-title {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    text-align: center;
+    margin: 0 0 var(--sp-3);
+}
+
+/* ── Mode A: Miss ── */
+.reveal-miss-text {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 0;
+}
+
+/* ── Mode B: Hit — score bar ── */
+.reveal-score-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-4);
+}
+.reveal-score-bar {
+    flex: 1;
+    height: 10px;
+    background: var(--bg);
+    border-radius: 5px;
+    overflow: hidden;
+}
+.reveal-score-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-score-fill.pass { background: var(--pass); }
+.reveal-score-fill.fail { background: var(--fail); }
+.reveal-score-pct {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: var(--text-lg);
+    min-width: 3.5em;
+    text-align: right;
+}
+.reveal-score-pct.pass { color: var(--pass); }
+.reveal-score-pct.fail { color: var(--fail); }
+
+/* Checklist */
+.reveal-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--sp-3);
+    text-align: left;
+}
+.reveal-checklist li {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-1) 0;
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+}
+.reveal-check-icon {
+    font-weight: 700;
+    font-size: var(--text-base);
+    width: 1.2em;
+    text-align: center;
+    flex-shrink: 0;
+}
+.reveal-checklist li.pass .reveal-check-icon { color: var(--pass); }
+.reveal-checklist li.fail .reveal-check-icon { color: var(--fail); }
+
+/* Correct answer below thumbnail */
+.reveal-correct-answer {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+    text-align: center;
+    margin: 0;
+}
+
+/* CTA area */
+.reveal-cta {
+    margin-top: var(--sp-5);
+    text-align: center;
+}
+.reveal-btn-continue {
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+.reveal-all-done {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    margin-bottom: var(--sp-3);
+}
+
+/* Responsive: on larger screens, center the card vertically */
+@media (min-height: 600px) {
+    .reveal-overlay {
+        align-items: center;
     }
 }
 
-/* Result table */
+/* On very small screens, let the card take more width */
+@media (max-width: 440px) {
+    .reveal-overlay {
+        padding: var(--sp-3);
+    }
+    .reveal-card {
+        max-width: 100%;
+        border-radius: 12px;
+    }
+}
+
+/* ── Legacy reveal classes (kept for dashboard compatibility) ── */
+
 .result-table {
     width: 100%;
     border-collapse: collapse;
@@ -534,46 +643,6 @@ textarea::placeholder {
 .correct-answer {
     color: var(--text-dim);
     font-size: var(--text-xs);
-}
-
-.reveal-image {
-    margin: var(--sp-8) 0;
-}
-.reveal-image h2 {
-    text-align: center;
-    margin-bottom: var(--sp-4);
-}
-.reveal-image img {
-    width: 100%;
-    border-radius: var(--radius-lg);
-    display: block;
-}
-.image-title {
-    color: var(--text-dim);
-    text-align: center;
-    margin-top: var(--sp-3);
-    font-size: var(--text-sm);
-}
-
-.actions {
-    text-align: center;
-    margin-top: var(--sp-10);
-    padding-bottom: var(--sp-8);
-}
-.actions .btn-primary {
-    display: block;
-    width: 100%;
-    max-width: 320px;
-    margin: 0 auto var(--sp-4);
-}
-.actions .btn-secondary {
-    border: none;
-    font-size: var(--text-xs);
-    opacity: 0.5;
-}
-.actions .btn-secondary:hover {
-    opacity: 0.8;
-    border: none;
 }
 
 /* ─── Complete ─── */
