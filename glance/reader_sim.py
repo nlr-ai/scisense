@@ -949,7 +949,7 @@ if __name__ == "__main__":
 
     # Prompts
     if result["prompts"]:
-        print(f"\n── PROMPTS ──")
+        print(f"\n── AXES D'AMÉLIORATION SUGGÉRÉS ──")
         for p in result["prompts"]:
             print(f"  → {p}")
 
