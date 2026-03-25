@@ -7,7 +7,8 @@
       "journal": "NEJM",
       "likes": 142,
       "comments": 23,
-      "pfp": "pfp_reck.jpg"
+      "pfp": "pfp_reck.jpg",
+      "content_type": "paper"
     },
     {
       "filename": "leurre_title_neuroscience.png",
@@ -16,7 +17,8 @@
       "journal": "Nature Neuroscience",
       "likes": 87,
       "comments": 12,
-      "pfp": "pfp_buzsaki.jpg"
+      "pfp": "pfp_buzsaki.jpg",
+      "content_type": "paper"
     },
     {
       "filename": "leurre_title_epidemiology.png",
@@ -25,7 +27,8 @@
       "journal": "The Lancet",
       "likes": 234,
       "comments": 45,
-      "pfp": "pfp_gbd.jpg"
+      "pfp": "pfp_gbd.jpg",
+      "content_type": "paper"
     },
     {
       "filename": "leurre_title_cardiology.png",
@@ -34,7 +37,8 @@
       "journal": "NEJM",
       "likes": 198,
       "comments": 31,
-      "pfp": "pfp_mcmurray.jpg"
+      "pfp": "pfp_mcmurray.jpg",
+      "content_type": "paper"
     },
     {
       "filename": "leurre_figure_scatter.png",
@@ -43,7 +47,8 @@
       "journal": "JCO",
       "likes": 56,
       "comments": 8,
-      "pfp": "pfp_ribas.jpg"
+      "pfp": "pfp_ribas.jpg",
+      "content_type": "paper"
     },
     {
       "filename": "leurre_figure_line_pfs.png",
@@ -52,7 +57,8 @@
       "journal": "NEJM",
       "likes": 112,
       "comments": 19,
-      "pfp": "pfp_larkin.jpg"
+      "pfp": "pfp_larkin.jpg",
+      "content_type": "paper"
     },
     {
       "filename": "leurre_figure_heatmap.png",
@@ -61,7 +67,8 @@
       "journal": "Cell",
       "likes": 73,
       "comments": 11,
-      "pfp": "pfp_hugo.jpg"
+      "pfp": "pfp_hugo.jpg",
+      "content_type": "paper"
     },
     {
       "filename": "leurre_ga_bar_comparison.png",
@@ -70,7 +77,8 @@
       "journal": "JAMA Dermatology",
       "likes": 91,
       "comments": 14,
-      "pfp": "pfp_reich.jpg"
+      "pfp": "pfp_reich.jpg",
+      "content_type": "paper"
     },
     {
       "filename": "leurre_ga_infographic_meta.png",
@@ -79,7 +87,8 @@
       "journal": "JAMA Psychiatry",
       "likes": 167,
       "comments": 28,
-      "pfp": "pfp_schuch.jpg"
+      "pfp": "pfp_schuch.jpg",
+      "content_type": "paper"
     },
     {
       "filename": "leurre_ga_flowchart_prisma.png",
@@ -88,7 +97,8 @@
       "journal": "Pediatrics",
       "likes": 44,
       "comments": 6,
-      "pfp": "pfp_gerber.jpg"
+      "pfp": "pfp_gerber.jpg",
+      "content_type": "paper"
     },
     {
       "filename": "leurre_personal_newjob.png",
@@ -97,7 +107,8 @@
       "journal": "LinkedIn",
       "likes": 287,
       "comments": 34,
-      "pfp": "pfp_vasquez.jpg"
+      "pfp": "pfp_vasquez.jpg",
+      "content_type": "social"
     },
     {
       "filename": "leurre_personal_conference.png",
@@ -106,7 +117,8 @@
       "journal": "LinkedIn",
       "likes": 156,
       "comments": 22,
-      "pfp": "pfp_rinaldi.jpg"
+      "pfp": "pfp_rinaldi.jpg",
+      "content_type": "social"
     },
     {
       "filename": "leurre_personal_milestone.png",
@@ -115,7 +127,8 @@
       "journal": "ResearchGate",
       "likes": 89,
       "comments": 15,
-      "pfp": "pfp_alsayed.jpg"
+      "pfp": "pfp_alsayed.jpg",
+      "content_type": "social"
     },
     {
       "filename": "leurre_personal_opinion.png",
@@ -124,7 +137,8 @@
       "journal": "X/Twitter",
       "likes": 234,
       "comments": 41,
-      "pfp": "pfp_whitfield.jpg"
+      "pfp": "pfp_whitfield.jpg",
+      "content_type": "social"
     },
     {
       "filename": "leurre_job_postdoc.png",
@@ -133,7 +147,8 @@
       "journal": "LinkedIn",
       "likes": 67,
       "comments": 12,
-      "pfp": "pfp_eth.jpg"
+      "pfp": "pfp_eth.jpg",
+      "content_type": "social"
     },
     {
       "filename": "leurre_job_medwriter.png",
@@ -142,7 +157,8 @@
       "journal": "LinkedIn",
       "likes": 43,
       "comments": 8,
-      "pfp": "pfp_recruiter.jpg"
+      "pfp": "pfp_recruiter.jpg",
+      "content_type": "social"
     },
     {
       "filename": "leurre_news_who.png",
@@ -151,7 +167,8 @@
       "journal": "X/Twitter",
       "likes": 412,
       "comments": 38,
-      "pfp": "pfp_who.jpg"
+      "pfp": "pfp_who.jpg",
+      "content_type": "social"
     },
     {
       "filename": "leurre_news_funding.png",
@@ -160,7 +177,8 @@
       "journal": "LinkedIn",
       "likes": 324,
       "comments": 27,
-      "pfp": "pfp_eu.jpg"
+      "pfp": "pfp_eu.jpg",
+      "content_type": "social"
     },
     {
       "filename": "leurre_event_webinar.png",
@@ -169,7 +187,8 @@
       "journal": "LinkedIn",
       "likes": 78,
       "comments": 9,
-      "pfp": "pfp_webinar.jpg"
+      "pfp": "pfp_webinar.jpg",
+      "content_type": "social"
     },
     {
       "filename": "leurre_event_congress.png",
@@ -178,7 +197,116 @@
       "journal": "LinkedIn",
       "likes": 198,
       "comments": 14,
-      "pfp": "pfp_eccmid.jpg"
+      "pfp": "pfp_eccmid.jpg",
+      "content_type": "social"
+    },
+    {
+      "filename": "leurre_video_talk.png",
+      "title": "Keynote: The Future of Precision Medicine | ESMO 2025",
+      "author": "Dr. Philippe Laurent",
+      "journal": "LinkedIn",
+      "likes": 312,
+      "comments": 47,
+      "content_type": "video"
+    },
+    {
+      "filename": "leurre_video_tutorial.png",
+      "title": "How to Use R for Meta-Analysis — Step by Step",
+      "author": "Dr. Maria Santos",
+      "journal": "LinkedIn",
+      "likes": 189,
+      "comments": 31,
+      "content_type": "video"
+    },
+    {
+      "filename": "leurre_video_interview.png",
+      "title": "In Conversation: Dr. Sarah Chen on mRNA Vaccines Beyond COVID",
+      "author": "BioTech Weekly",
+      "journal": "LinkedIn",
+      "likes": 534,
+      "comments": 82,
+      "content_type": "video"
+    },
+    {
+      "filename": "leurre_carousel_tips.png",
+      "title": "5 Tips for Writing a Better Graphical Abstract",
+      "author": "Dr. Sophie Martin",
+      "journal": "LinkedIn",
+      "likes": 267,
+      "comments": 38,
+      "content_type": "carousel"
+    },
+    {
+      "filename": "leurre_carousel_stats.png",
+      "title": "Global Health Spending 2024 — Key Figures",
+      "author": "Global Health Analytics",
+      "journal": "LinkedIn",
+      "likes": 421,
+      "comments": 56,
+      "content_type": "carousel"
+    },
+    {
+      "filename": "leurre_carousel_career.png",
+      "title": "From PhD to Industry: What I Wish I'd Known",
+      "author": "Dr. Aisha Patel",
+      "journal": "LinkedIn",
+      "likes": 1247,
+      "comments": 193,
+      "content_type": "carousel"
+    },
+    {
+      "filename": "leurre_textonly_opinion.png",
+      "title": "Unpopular opinion: Impact Factor is dead. Here's why your h-index matters more in 2026...",
+      "author": "Prof. David Nkomo",
+      "journal": "LinkedIn",
+      "likes": 856,
+      "comments": 127,
+      "content_type": "text_only"
+    },
+    {
+      "filename": "leurre_textonly_question.png",
+      "title": "Quick question for my network: Has anyone successfully transitioned from bench science to medical writing?",
+      "author": "Dr. Camille Dubois",
+      "journal": "LinkedIn",
+      "likes": 145,
+      "comments": 89,
+      "content_type": "text_only"
+    },
+    {
+      "filename": "leurre_textonly_announcement.png",
+      "title": "Thrilled to share: our paper on CAR-T cell therapy in pediatric ALL just got accepted in Blood!",
+      "author": "Dr. Yuki Tanaka",
+      "journal": "LinkedIn",
+      "likes": 1893,
+      "comments": 214,
+      "content_type": "text_only"
+    },
+    {
+      "filename": "leurre_link_nature.png",
+      "title": "New CRISPR technique corrects 90% of genetic mutations | Nature",
+      "author": "Dr. Hannah Berg",
+      "journal": "LinkedIn",
+      "likes": 743,
+      "comments": 98,
+      "content_type": "link_preview"
+    },
+    {
+      "filename": "leurre_link_bbc.png",
+      "title": "WHO warns of rising antibiotic resistance in children under 5",
+      "author": "Dr. Priya Sharma",
+      "journal": "LinkedIn",
+      "likes": 567,
+      "comments": 73,
+      "content_type": "link_preview"
+    },
+    {
+      "filename": "leurre_link_preprint.png",
+      "title": "Preprint: Single-cell atlas of human liver aging reveals stellate cell niche remodeling",
+      "author": "Prof. Li Wei",
+      "journal": "LinkedIn",
+      "likes": 198,
+      "comments": 34,
+      "content_type": "link_preview"
     }
   ]
 }
