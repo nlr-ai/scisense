@@ -1,7 +1,7 @@
 # SciSense — Business Plan
 # Le Michelin de la Communication Scientifique Visuelle
 
-**Version 2.1 — 25 mars 2026**
+**Version 2.2 — 25 mars 2026**
 **SciSense x Mind Protocol**
 
 ---
@@ -18,7 +18,11 @@ GLANCE n'est plus seulement un benchmark -- c'est un **outil complet d'analyse e
 - **70 canaux visuels** analyses avec detection d'anti-patterns (fragile, incongruent, inverse, missing_category)
 - **Simulation de lecteur** : System 1 (glance 5s) + System 2 (lecture deliberee 90s) -- couverture narrative = % des messages scientifiques transmis
 - **Boucle d'amelioration auto** : diagnostiquer -> conseiller -> iterer
-- **Overlay graphe** sur l'image du GA + animation scanpath en temps reel
+- **Overlay graphe** sur l'image du GA + animation scanpath en temps reel (Pensieve aesthetic)
+- **Multi-resolution** : deepen() recursive -- chaque zone visuelle est re-analysee independamment. R = log2(N_total/N_root). Sweet spot R=2 (25 appels, 250 nodes)
+- **GA Creation** : le pivot game changer -- GLANCE ne score plus seulement un GA, il le CREE. Abstract + donnees -> compositor parametrique (vec_lib + compose_*.py) -> SVG/PNG -> score -> itere -> livre
+- **Self-analysis** : GLANCE mange son propre dog food. Cron screenshots chaque page, lance le pipeline d'analyse complet, implemente les recommandations. Amelioration continue sans intervention humaine
+- **Auth** : magic link email, page profil, multi-designer (meme image = GA partage), flag public/prive
 - **Une taxonomie de distorsion** proprietaire : **Spin / Drift / Warp**
 - **7 archetypes de GA** ("Les 7 types de Graphical Abstracts -- lequel est le votre ?")
 - **6 verdicts** : Limpide -> Clair -> Ambigu -> Confus -> Obscur -> Incomprehensible
@@ -185,7 +189,52 @@ Upload (PNG/JPG/PDF, auto-resize >2000px, dedup SHA-256)
 - Health et reader_sim : **toujours gratuits** (zero cout API, calcul local)
 - Premium : analyses illimitees (Stripe integration en cours)
 
-### 2.5 Ce qui le rend unique
+### 2.5 GA Creation -- Le Vrai Produit (mars 2026)
+
+GLANCE evolue d'un outil qui *score* des GAs existants vers un outil qui *cree* des GAs optimaux from scratch. C'est le vrai product-market fit.
+
+**Le flux de creation :**
+
+```
+Abstract + donnees -> Gemini genere YAML config -> compose_ga (vec_lib + compose_*.py) -> SVG/PNG -> GLANCE score -> itere -> livre
+```
+
+Le compositor parametrique existe : `vec_lib` fournit les primitives visuelles (barres, labels, frames), `compose_*.py` assemble les compositions specifiques. Gemini traduit un abstract scientifique en configuration YAML, le compositor genere le GA, GLANCE le score, et la boucle itere jusqu'a atteindre le seuil de qualite cible.
+
+**Pourquoi c'est le game changer :** Aujourd'hui, un chercheur doit *avoir* un GA pour le tester. Demain, il donne son abstract et GLANCE *genere* le GA optimal. Le funnel passe de "j'ai un GA, est-il bon ?" a "j'ai un paper, fais-moi le meilleur GA possible". C'est un marche 10x plus large.
+
+### 2.6 Multi-Resolution Analysis -- deepen()
+
+L'analyse standard decompose un GA en ~10 noeuds racines. La fonction `deepen()` pousse la resolution en re-analysant chaque zone visuelle (space) independamment, en croppant l'image au bounding box de la zone.
+
+**Resolution R = log2(N_total / N_root).** A R=0, 10 noeuds. A R=1, ~50 noeuds. A R=2, ~250 noeuds (25 appels Gemini). Le sweet spot est R=2 : suffisamment granulaire pour detecter les micro-problemes sans exploser le budget API.
+
+Chaque deepening revele des details invisibles a la resolution standard : texte trop petit, contraste insuffisant, hierarchie locale inversee. L'evolution chart montre la progression des noeuds apres chaque deepening.
+
+### 2.7 Live Scanpath Animation -- Le Moment Hero
+
+L'animation scanpath est le moment UX qui vend GLANCE. Le chercheur voit *litteralement* ou un lecteur virtuel regarde sur son GA, en temps reel.
+
+**Composantes de l'animation :**
+- **Auto-play en boucle** -- pas de bouton "Rejouer", l'animation tourne en continu
+- **Burst particles** -- eclats dores quand le regard fixe un noeud (attention recue)
+- **Link particles** -- flux de particules le long des liens du graphe
+- **Space fills** -- les zones visuelles se remplissent progressivement (couverture)
+- **Halo sombre** -- effet Pensieve, focus attentionnel sur le noeud actif
+
+L'overlay graphe se superpose directement sur l'image du GA avec encodage couleur : dore = haute attention recue, gris = non visite. La taille des noeuds encode le poids visuel.
+
+### 2.8 Self-Analysis Loop
+
+GLANCE mange son propre dog food. Un cron (toutes les 4h) :
+1. Screenshot chaque page principale du site (landing, leaderboard, ga-detail, analyze, admin)
+2. Lance le pipeline d'analyse complet sur chaque screenshot
+3. Genere des recommandations d'amelioration
+4. Implemente automatiquement les corrections CSS/layout
+
+C'est la boucle d'amelioration continue ultime : le produit s'ameliore sans intervention humaine. Et c'est une story marketing puissante : "Notre outil d'analyse de visuels analyse *ses propres* visuels."
+
+### 2.9 Ce qui le rend unique
 
 **Embedding semantique** -- Le rappel libre (Q1) est score par similarite cosinus dans un espace d'embedding 384 dimensions (paraphrase-multilingual-MiniLM-L12-v2, 50+ langues). "Un truc de poumon avec des virus" et "immunomodulateurs pediatriques" sont correctement reconnus comme decrivant le meme GA.
 
@@ -193,7 +242,7 @@ Upload (PNG/JPG/PDF, auto-resize >2000px, dedup SHA-256)
 
 **Profilage 2D** -- Chaque participant est classe sur deux axes (Expertise Clinique x Litteratie Analytique). Le score est stratifiable : "Ce GA est compris a 85% par les specialistes mais seulement 42% par le grand public."
 
-**Multi-domaines** -- Le meme protocole s'applique a la medecine, cs.AI, economie, climat, education. Le GA d'un paper sur les Transformers est teste avec les memes metriques que celui d'un paper sur les immunomodulateurs. 15 domaines, 60+ GAs dans la bibliotheque.
+**Multi-domaines** -- Le meme protocole s'applique a la medecine, cs.AI, economie, climat, education. Le GA d'un paper sur les Transformers est teste avec les memes metriques que celui d'un paper sur les immunomodulateurs. 15 domaines, 70+ GAs dans la bibliotheque.
 
 ### 2.6 Le moteur de recommandation
 
@@ -282,7 +331,7 @@ Pas besoin de vrais testeurs pour le diagnostic IA. Le chercheur obtient un audi
 
 ### 3.4 Le Benchmark Public -- Leaderboards et Classements
 
-**Leaderboards par domaine** -- 15 domaines scientifiques, 60+ GAs. Chaque GA montre son score GLANCE, son archetype, ses metriques detaillees.
+**Leaderboards par domaine** -- 15 domaines scientifiques, 70+ GAs. Chaque GA montre son score GLANCE, son archetype, ses metriques detaillees.
 
 **Classement des participants** -- Deux classements :
 - **Comprehension** : precision GLANCE moyenne (minimum 3 tests pour se qualifier)
@@ -330,7 +379,7 @@ Le GA Graph est l'outil interne qui alimente tout le systeme :
 - **70 canaux visuels** organises en familles perceptives, avec detection de 4 anti-patterns par canal
 - **Patterns catalogues** dans `pattern_registry.yaml`
 - **Registre de leurres** calibres par domaine pour le mode Stream
-- **Base actuelle** -- 60+ images, 15 domaines scientifiques, sourcing strategique depuis les benchmarks Cristallin
+- **Base actuelle** -- 70+ images, 15 domaines scientifiques, sourcing strategique depuis les benchmarks Cristallin
 - **OCR** sur toutes les images (`ocr_results.json`)
 - **Reader simulation** -- S1 (5s glance) + S2 (90s delibere), scanpath anime, couverture narrative
 - **Graph overlay** -- visualisation du graphe superpose sur l'image, genere automatiquement a chaque save_graph()
@@ -447,6 +496,23 @@ Landing -> Upload GA -> Archetype diagnostic -> Partage -> Collegues uploadent -
 Paper GLANCE publie -> Citation -> Chercheurs decouvrent GLANCE -> Uploadent leurs GAs -> Clients payants
 ```
 
+### 5.4 Growth Levers (mars 2026)
+
+**Reddit semi-auto** -- Pipeline d'ingestion depuis r/dataisugly, r/dataisbeautiful, r/science. GLANCE ingere les posts, genere un commentaire diagnostic pre-rempli, envoie une alerte TG avec le template. Aurore ou Nicolas postent manuellement les meilleurs diagnostics. Cron toutes les 6h. Zero credentials Reddit necessaires (JSON public).
+
+**SEO** -- sitemap.xml + robots.txt + JSON-LD sur chaque page GA + meta descriptions dynamiques. Soumission Google Search Console. Chaque GA est une page indexable avec un titre unique, un verdict, un archetype.
+
+**LinkedIn strategy** -- Posts de valeur, pas de promo. 3 formats : (1) insight choquant + GIF scanpath, (2) les 7 archetypes (quiz format), (3) avant/apres redesign. Posts personnels d'Aurore = 5-10x plus d'engagement que le contenu scientifique pur.
+
+**Share video GIF** -- Chaque GA a un GIF scanpath generable (`/video/ga/{slug}.gif`). OG card avec diagonal split (original en haut-gauche, overlay en bas-droite). Le GIF est le contenu viral natif pour LinkedIn et Twitter.
+
+**Blog content** -- 3 articles en preparation :
+1. "Ce GA s'est teste lui-meme" (self-analysis story)
+2. "Comment un lecteur scanne votre GA en 5 secondes" (reader sim explainer)
+3. "Les 7 archetypes de Graphical Abstracts" (evergreen reference)
+
+Le blog est integre au site (liste de posts + route article). Contenu marketing par l'education, pas la promotion.
+
 ### 5.4 Scenarios a M12
 
 | Scenario | Testeurs | Analyses IA | MRR | Ce qui s'est passe |
@@ -479,9 +545,17 @@ Paper GLANCE publie -> Citation -> Chercheurs decouvrent GLANCE -> Uploadent leu
 | Mind the Graph | Design de GA | Validation perceptive |
 | Altmetric | Metriques d'engagement | Metriques de comprehension |
 | GRADEpro | Symboles d'evidence | Encodage multi-canal narratif |
-| **SciSense GLANCE** | **Mesure + taxonomie Spin/Drift/Warp + archetypes + analyse IA + scoring L3 a 70 canaux + anti-patterns + reader simulation + graph overlay + recommandations + bot Telegram** | -- |
+| **SciSense GLANCE** | **Mesure + taxonomie Spin/Drift/Warp + archetypes + analyse IA + scoring L3 a 70 canaux + anti-patterns + reader simulation + graph overlay + recommandations + bot Telegram + GA creation from scratch + multi-resolution + self-analysis loop + live scanpath animation** | -- |
 
-La concurrence est sur le *design*. SciSense est sur la *mesure et le diagnostic*. Pas le meme marche.
+La concurrence est sur le *design*. SciSense est sur la *mesure, le diagnostic, et maintenant la creation*. Pas le meme marche.
+
+**Ce que personne d'autre n'a :**
+- **Reader simulation** avec scanpath anime et couverture narrative
+- **Multi-resolution analysis** (deepen recursif, R = log2(N_total/N_root))
+- **Live scanpath animation** en overlay sur l'image du GA (Pensieve aesthetic)
+- **Auto-improve loop** (le site s'analyse et s'ameliore lui-meme)
+- **GA creation from abstract** (compositor parametrique + scoring + iteration)
+- **Auth multi-designer** (meme image = GA partage entre chercheurs)
 
 ### 5.7 Comparables
 
@@ -514,7 +588,7 @@ Trois dimensions de distorsion visuelle, conçues pour la publication academique
 
 Chaque test enrichit le modele. Chaque profil ajoute une dimension. A N=10 000 tests, le seuil theta du scoring semantique est calibre empiriquement -- un concurrent qui part de zero n'a que des seuils theoriques.
 
-- 60+ GAs dans la bibliotheque (15 domaines), sourcing strategique depuis les benchmarks Cristallin
+- 70+ GAs dans la bibliotheque (15 domaines), sourcing strategique depuis les benchmarks Cristallin
 - OCR sur toutes les images
 - Graphes L3 par GA avec coordonnees bbox et auto-linking
 - Pattern registry avec scores empiriques
@@ -583,9 +657,12 @@ Le leaderboard avec analyses detaillees positionne SciSense comme l'expert de la
 | Canaux visuels analyses | 70 |
 | Types d'anti-patterns detectes | 4 (fragile, incongruent, inverse, missing_category) |
 | Niveaux de verdict | 6 (Limpide -> Incomprehensible) |
-| GAs en bibliotheque | 60+ (15 domaines) |
+| GAs en bibliotheque | 70+ (15 domaines) |
 | Deploy time (Docker/Render) | ~30s |
 | Appels Gemini gratuits/GA | 6 |
+| Perceptual behaviors validated | 13 (9 VALID, 2 PARTIAL, 2 NOT MODELED) |
+| Auth system | Magic link email + profil + multi-designer |
+| Multi-resolution max depth | R=2 (~250 nodes, 25 appels) |
 
 ---
 
@@ -607,6 +684,13 @@ Le leaderboard avec analyses detaillees positionne SciSense comme l'expert de la
 - ~~Crash test Nicolas (localhost) -- le flux E2E tourne~~ **FAIT** (mars 2026)
 - ~~Validation : l'Analyse Instantanee (pipeline Gemini) tourne E2E~~ **FAIT** -- 30+ features deployees
 - ~~Deploiement glance.scisense.fr~~ **FAIT** -- Docker sur Render, deploys ~30s
+- ~~Live scanpath animation~~ **FAIT** -- auto-play, burst particles, Pensieve
+- ~~Graph overlay renderer~~ **FAIT** -- SVG + PNG, encode couleur attention
+- ~~Reddit auto-ingest~~ **FAIT** -- JSON public, cron 6h
+- ~~Email magic link auth~~ **FAIT** -- login + profil + multi-designer
+- ~~SEO (sitemap + JSON-LD)~~ **FAIT** -- complet
+- ~~deepen() multi-resolution~~ **FAIT** -- R=2 sweet spot
+- ~~Blog integration~~ **FAIT** -- 3 articles en preparation
 - Test GLANCE avec 5-10 personnes du reseau direct -- premiers datapoints reels
 - 1 post LinkedIn "Les 7 types de GA -- lequel est le votre ?" + resultats GLANCE
 - Validation : S9b discrimine (pas tous les GAs a ~50%)
@@ -614,7 +698,7 @@ Le leaderboard avec analyses detaillees positionne SciSense comme l'expert de la
 
 ### Phase 2 -- Premier revenu (Mai-Juillet 2026) -- 200 EUR (hebergement)
 
-- Leaderboard public (5 domaines, 60+ GAs)
+- Leaderboard public (5 domaines, 70+ GAs)
 - Premiere analyse IA payante + premier audit (99 EUR)
 - Stripe integration live -- monetisation premium
 - 5 posts LinkedIn (GA Battles + archetypes + Pire GA du mois)
@@ -633,13 +717,20 @@ Le leaderboard avec analyses detaillees positionne SciSense comme l'expert de la
 
 | Feature | Statut | Description |
 |---------|--------|-------------|
-| Chat UI pour /analyze | Planifie | Interaction conversationnelle avec les outils (vision, channels, advise, rubber duck) |
-| Multi-user | Planifie | GA switcher, ownership par designer, sessions persistantes |
-| Share video scanpath | Planifie | MP4 de 5s montrant l'animation scanpath du lecteur virtuel |
-| OG card diagonal split | Planifie | Carte de partage avec GA original / overlay cote a cote en diagonale |
-| N=10 human calibration | Prioritaire | 10 testeurs humains pour calibrer la reader simulation |
-| Reddit ingestion | Planifie | Pipeline d'ingestion de GAs depuis Reddit (r/dataisbeautiful, r/science) |
+| Live scanpath animation | **FAIT** | Auto-play en boucle, burst particles, link particles, space fills, Pensieve aesthetic |
+| Graph overlay renderer | **FAIT** | SVG + PNG, encode couleur (dore/gris), taille = poids visuel |
+| Share video GIF | **FAIT** | `/video/ga/{slug}.gif` + OG card diagonal split |
+| OG card diagonal split | **FAIT** | Carte de partage original / overlay en diagonale |
+| Reddit auto-ingest | **FAIT** | JSON public, no credentials, cron 6h, alerte TG |
+| Email magic link auth | **FAIT** | Login -> TG -> verify -> profil, sessions persistantes |
+| Blog integration | **FAIT** | Liste de posts + route article, 3 articles en preparation |
+| SEO (sitemap + JSON-LD) | **FAIT** | sitemap.xml, robots.txt, JSON-LD, meta descriptions dynamiques |
+| deepen() multi-resolution | **FAIT** | R = log2(N_total/N_root), sweet spot R=2 |
+| Self-analysis cron | Spec'd | Screenshots 5 pages, pipeline complet, auto-implement |
+| GA Creation (compositor) | En cours | vec_lib + compose_*.py -> abstract -> YAML -> SVG -> score -> iterate |
+| Chat UI pour /analyze | Planifie | Interaction conversationnelle avec les outils |
 | Stripe payment | En cours | Integration paiement pour tier Premium |
+| N=10 human calibration | Prioritaire | 10 testeurs humains pour calibrer la reader simulation |
 | Famous paper redesigns | En cours | Ozempic, AlphaFold, COVID vaccine -- redesigns pour le benchmark |
 
 ---
@@ -650,7 +741,7 @@ Le leaderboard avec analyses detaillees positionne SciSense comme l'expert de la
 |----------|-----|-----|-----|------|
 | Tests GLANCE completes | 10 | 80 | 500 | 3 000 |
 | Analyses IA (cumul) | 0 | 30 | 100 | 500 |
-| GAs dans la bibliotheque | 60+ | 80 | 120 | 200 |
+| GAs dans la bibliotheque | 70+ | 80 | 120 | 200 |
 | Clients payants (cumul) | 0 | 3 | 8 | 15 |
 | MRR | 0 EUR | 1 500 EUR | 3 500 EUR | 6 000 EUR |
 | Posts LinkedIn publies | 1 | 5 | 15 | 40 |
@@ -679,5 +770,5 @@ Le leaderboard avec analyses detaillees positionne SciSense comme l'expert de la
 
 ---
 
-*Version 2.1 -- 25 mars 2026*
+*Version 2.2 -- 25 mars 2026*
 *SciSense x Mind Protocol*
