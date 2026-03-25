@@ -23,7 +23,7 @@ from db import get_all_tests, get_image_count, get_all_images, add_ga_image
 from db import get_image_by_id, get_image_by_slug, get_tests_for_image, get_tests_for_participant, get_landing_stats, get_example_ga
 from db import get_referral_count, get_top_referrers, save_analysis_lead
 from db import get_latest_graph, get_reading_sims, save_graph
-from db import create_auth_token, verify_auth_token, get_user_gas, add_designer
+from db import create_auth_token, verify_auth_token, get_user_gas, add_designer, swap_ga_image, get_image_iteration
 from scoring import score_test, classify_speed_accuracy
 from analytics import (
     compute_aggregate_stats,
@@ -1673,6 +1673,7 @@ def ga_detail(request: Request, ga_id: str):
         "scanpath_json": scanpath_json,
         "graphs_history": graphs_history,
         "graphs_history_json": json.dumps(graphs_history),
+        "iteration": get_image_iteration(ga_id),
     })
 
 
@@ -2061,7 +2062,148 @@ async def analyze_submit(request: Request, file: UploadFile = File(...), public:
     return RedirectResponse(url=f"/analyze?ga={redirect_key}", status_code=303)
 
 
-@app.post("/analyze/improve/{ga_slug}")
+@app.post("/analyze/swap-image/{ga_slug}")
+async def analyze_swap_image(ga_slug: str, file: UploadFile = File(...)):
+    """Swap the image on an existing GA, preserving the graph as prior_graph.
+
+    The old image is recorded in image_history. The existing graph is kept
+    and used as prior_graph for re-analysis with the new image.
+    """
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    ga_id = image["id"]
+
+    # Validate file type
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file uploaded")
+
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    allowed_exts = {"png", "jpg", "jpeg", "webp"}
+    if ext not in allowed_exts:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Format non supporte : .{ext}. Utilisez PNG, JPG, ou WebP.",
+        )
+
+    # Read file bytes
+    image_bytes = await file.read()
+    if len(image_bytes) > 20 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Fichier trop volumineux (max 20 Mo)")
+
+    # Auto-resize large images to max 2000px
+    if len(image_bytes) > 2 * 1024 * 1024:
+        try:
+            from PIL import Image as PILImage
+            import io
+            img = PILImage.open(io.BytesIO(image_bytes))
+            if img.width > 2000:
+                ratio = 2000 / img.width
+                img = img.resize((2000, int(img.height * ratio)), PILImage.LANCZOS)
+                buf = io.BytesIO()
+                img.save(buf, format="PNG", optimize=True)
+                image_bytes = buf.getvalue()
+                ext = "png"
+                logger.info(f"Swap: resized to 2000px ({len(image_bytes)//1024}KB)")
+        except Exception as e:
+            logger.warning(f"Auto-resize failed on swap: {e}")
+
+    # Compute hash for the new image
+    import hashlib
+    img_hash = hashlib.sha256(image_bytes).hexdigest()
+
+    # Save new image file
+    timestamp = int(time.time())
+    safe_name = re.sub(r'[^\w\-.]', '_', file.filename)
+    upload_filename = f"user_uploads/{timestamp}_{safe_name}"
+    persist_dir = os.path.join(os.environ.get("GLANCE_DATA_DIR", os.path.join(BASE, "ga_library")), "user_uploads")
+    local_dir = os.path.join(BASE, "ga_library", "user_uploads")
+    os.makedirs(persist_dir, exist_ok=True)
+    os.makedirs(local_dir, exist_ok=True)
+    persist_path = os.path.join(persist_dir, f"{timestamp}_{safe_name}")
+    with open(persist_path, "wb") as f:
+        f.write(image_bytes)
+    upload_path = os.path.join(BASE, "ga_library", upload_filename)
+    with open(upload_path, "wb") as f:
+        f.write(image_bytes)
+
+    # Get existing graph BEFORE swapping (this is the prior_graph)
+    existing_graph = get_latest_graph(ga_id)
+    prior_graph_dict = existing_graph["graph"] if existing_graph else None
+
+    # Swap the image in DB (preserves graph, records history)
+    iteration = swap_ga_image(ga_id, upload_filename, new_image_hash=img_hash)
+    logger.info(f"Image swapped for GA {ga_id} ({ga_slug}) — iteration {iteration}")
+
+    # Re-analyze with prior_graph so Gemini extends rather than starts fresh
+    import threading
+
+    def _swap_reanalyze_bg(ga_img_id, img_path, prior_graph):
+        """Background: re-analyze swapped image using existing graph as prior."""
+        try:
+            from vision_scorer import analyze_ga_image
+            with open(img_path, "rb") as f:
+                img_bytes = f.read()
+            result = analyze_ga_image(
+                img_bytes,
+                filename=os.path.basename(img_path),
+                prior_graph=prior_graph if prior_graph else True,
+            )
+            graph = result["graph"]
+            graph_id = save_graph(graph, ga_image_id=ga_img_id,
+                                  graph_type="vision", source="image_swap")
+            logger.info(f"Swap re-analysis for GA {ga_img_id}: graph {graph_id}")
+
+            # Auto-improve: channels + advise (same as initial upload)
+            time.sleep(5)
+            from channel_analyzer import analyze_ga_channels
+            graph_path = result.get("saved_path", "")
+            if graph_path and os.path.exists(graph_path):
+                enriched = analyze_ga_channels(img_path, graph_path, prior_graph=True)
+                if enriched:
+                    save_graph(enriched, ga_image_id=ga_img_id,
+                               graph_type="enriched", source="swap_auto_enrich")
+                    logger.info(f"Swap auto-enriched GA {ga_img_id}")
+
+            time.sleep(4)
+            from db import get_latest_graph as _glg, get_reading_sims as _grs
+            latest = _glg(ga_img_id)
+            if latest:
+                sims = _grs(graph_id=latest["id"])
+                s1 = next((s for s in sims if s["mode"] == "system1"), None)
+                intent = ""
+                if s1 and s1.get("narrative_text"):
+                    intent = s1["narrative_text"]
+                if not intent:
+                    intent = "Proposer des ameliorations de clarte visuelle."
+                _tmp = os.path.join(BASE, "data", f"swap_adv_{ga_img_id}_{int(time.time())}.yaml")
+                os.makedirs(os.path.dirname(_tmp), exist_ok=True)
+                with open(_tmp, "w", encoding="utf-8") as f:
+                    yaml.dump(latest["graph"], f, default_flow_style=False, allow_unicode=True)
+                try:
+                    from ga_advisor import advise
+                    advised = advise(img_path, _tmp, intent, prior_graph=True)
+                    if advised:
+                        save_graph(advised, ga_image_id=ga_img_id,
+                                   graph_type="advised", source="swap_auto_advise")
+                        logger.info(f"Swap auto-advised GA {ga_img_id}")
+                finally:
+                    try:
+                        os.remove(_tmp)
+                    except OSError:
+                        pass
+        except Exception as e:
+            logger.warning(f"Swap re-analysis failed for GA {ga_img_id}: {e}")
+
+    t = threading.Thread(target=_swap_reanalyze_bg,
+                         args=(ga_id, upload_path, prior_graph_dict), daemon=True)
+    t.start()
+
+    return RedirectResponse(url=f"/analyze?ga={ga_slug}", status_code=303)
+
+
+@app.get("/analyze/poll/{ga_slug}")
 async def analyze_poll_state(ga_slug: str):
     """Poll the current analysis state for a GA. Used by frontend to update without refresh."""
     image = get_image_by_slug(ga_slug)
@@ -2108,10 +2250,32 @@ async def analyze_poll_state(ga_slug: str):
     return JSONResponse(state)
 
 
-@app.get("/analyze/poll/{ga_slug}")
-async def analyze_poll_get(ga_slug: str):
-    """GET alias for poll."""
-    return await analyze_poll_state(ga_slug)
+
+@app.get("/analyze/activity/{ga_slug}")
+async def analyze_activity(ga_slug: str):
+    """Activity log for a GA — what ran, when, results."""
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        return JSONResponse({"error": "not_found"}, status_code=404)
+    ga_id = image["id"]
+    db = get_db()
+    graphs = [dict(r) for r in db.execute(
+        "SELECT id, graph_type, source, created_at, node_count, link_count, avg_effectiveness, anti_pattern_count FROM ga_graphs WHERE ga_image_id = ? ORDER BY id", (ga_id,)
+    ).fetchall()]
+    sims = [dict(r) for r in db.execute(
+        "SELECT id, graph_id, mode, created_at, complexity_verdict, budget_pressure, nodes_visited, nodes_total, narrative_coverage, dead_space_count FROM reading_simulations WHERE ga_image_id = ? ORDER BY id", (ga_id,)
+    ).fetchall()]
+    db.close()
+    events = []
+    for g in graphs:
+        events.append({"type": "graph", "time": g["created_at"], "icon": "📊",
+            "title": f"Graph {g['graph_type']} ({g['source']})", "detail": f"{g['node_count']} nodes, {g['link_count']} links"})
+    for s in sims:
+        events.append({"type": "sim", "time": s["created_at"], "icon": "👀" if s["mode"] == "system1" else "🔍",
+            "title": f"Lecture {'5s' if s['mode'] == 'system1' else '90s'} — {s['complexity_verdict']}",
+            "detail": f"{s['nodes_visited']}/{s['nodes_total']} lus, {round((s['narrative_coverage'] or 0)*100)}% messages"})
+    events.sort(key=lambda e: e.get("time", ""))
+    return JSONResponse({"ga_id": ga_id, "total_events": len(events), "timeline": events})
 
 
 @app.post("/analyze/improve/{ga_slug}")
@@ -2316,6 +2480,14 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
     except Exception:
         pass
     text_input = body.get("text", "")
+    node_id = body.get("node_id", "")
+
+    # Prepend node context for tools that use text_input
+    if node_id and tool_name in ("advise", "rubber_duck"):
+        if text_input:
+            text_input = f"Focus on node '{node_id}': {text_input}"
+        else:
+            text_input = f"Improve node '{node_id}' specifically."
 
     # Get latest graph
     latest = get_latest_graph(ga_id)
@@ -2542,6 +2714,36 @@ async def analyze_deepen(ga_slug: str, pwd: str = "", max_depth: int = 1):
         raise HTTPException(status_code=500, detail=f"Deepen failed: {str(e)}")
 
 
+@app.post("/analyze/extract-claims")
+async def analyze_extract_claims(request: Request):
+    """Extract structured claims from a paper abstract using Gemini.
+
+    Accepts JSON body: {"abstract": "text...", "context": "optional..."}
+    Returns claims classified by data family + suggested GA narratives.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    abstract_text = body.get("abstract", "").strip()
+    if not abstract_text:
+        raise HTTPException(status_code=400, detail="'abstract' field is required")
+
+    context = body.get("context", None)
+
+    try:
+        from claim_extractor import extract_claims
+        result = extract_claims(abstract_text, context=context)
+        return JSONResponse(result)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Claim extraction failed: {str(e)}")
+
+
 @app.post("/admin/batch-analyze")
 async def admin_batch_analyze(pwd: str = "", batch_size: int = 5):
     """Launch background batch analysis on GAs without graphs.
@@ -2593,10 +2795,15 @@ async def admin_batch_analyze(pwd: str = "", batch_size: int = 5):
             try:
                 with open(image_path, "rb") as f:
                     image_bytes = f.read()
-                result = analyze_ga_image(image_bytes, filename=filename)
+                # Use existing graph as prior_graph if available
+                existing = get_latest_graph(ga_id)
+                prior = existing["graph"] if existing else True
+                result = analyze_ga_image(image_bytes, filename=filename,
+                                          prior_graph=prior)
                 graph_id = save_graph(result["graph"], ga_image_id=ga_id,
                                      graph_type="vision", source="batch_analyze")
-                _log.info(f"Batch: GA {ga_id} ({img['slug']}) → graph {graph_id}")
+                _log.info(f"Batch: GA {ga_id} ({img['slug']}) → graph {graph_id}"
+                          f"{' (prior_graph used)' if existing else ''}")
             except Exception as e:
                 _log.warning(f"Batch: GA {ga_id} failed: {e}")
             time.sleep(6)  # gentle rate limit
@@ -2895,6 +3102,33 @@ def blog_ga_tests_itself(request: Request):
     })
 
 
+@app.get("/blog/reader-simulation", response_class=HTMLResponse)
+def blog_reader_sim(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("blog_reader_simulation.html", {
+        "request": request,
+        "lang": lang,
+    })
+
+
+@app.get("/blog/7-archetypes", response_class=HTMLResponse)
+def blog_archetypes(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("blog_7_archetypes.html", {
+        "request": request,
+        "lang": lang,
+    })
+
+
+@app.get("/blog/redesign-ozempic", response_class=HTMLResponse)
+def blog_ozempic(request: Request):
+    lang = _lang(request)
+    return templates.TemplateResponse("blog_redesign_ozempic.html", {
+        "request": request,
+        "lang": lang,
+    })
+
+
 @app.get("/og/ga/{ga_id}.png")
 def og_ga_image(ga_id: int):
     """Generate a 1200x630 OG card for a GA detail page.
@@ -2933,6 +3167,43 @@ def og_ga_image(ga_id: int):
 # ── Scanpath video (animated GIF) ────────────────────────────────────
 
 _gif_cache: dict[str, bytes] = {}
+
+
+@app.get("/overlay/ga/{ga_slug}.png")
+def ga_overlay(ga_slug: str):
+    """Serve the graph overlay PNG for a GA (composite: GA image + overlay)."""
+    image = get_image_by_slug(ga_slug)
+    if not image:
+        raise HTTPException(status_code=404, detail="GA not found")
+
+    ga_id = image["id"]
+    latest = get_latest_graph(ga_id)
+
+    if not latest:
+        raise HTTPException(status_code=404, detail="No graph yet")
+
+    # Try to generate overlay on-the-fly
+    try:
+        from graph_renderer import render_overlay_png
+        from reader_sim import simulate_reading
+
+        image_path = os.path.join(BASE, "ga_library", image["filename"])
+        if not os.path.exists(image_path):
+            raise HTTPException(status_code=404, detail="Image file not found")
+
+        graph_dict = latest["graph"]
+        sim = simulate_reading(graph_dict, total_ticks=50, mode="system1")
+        png_path = render_overlay_png(graph_dict, sim, image_path)
+
+        if png_path and os.path.exists(png_path):
+            with open(png_path, "rb") as f:
+                png_bytes = f.read()
+            return Response(content=png_bytes, media_type="image/png",
+                            headers={"Cache-Control": "public, max-age=3600"})
+    except Exception as e:
+        logger.warning(f"Overlay generation failed: {e}")
+
+    raise HTTPException(status_code=500, detail="Overlay generation failed")
 
 
 @app.get("/video/ga/{ga_slug}.gif")
@@ -2980,23 +3251,84 @@ def ga_video(ga_slug: str):
                     headers={"Cache-Control": "public, max-age=3600"})
 
 
+# ── Changelog ──────────────────────────────────────────────────────────
+
+@app.get("/changelog", response_class=HTMLResponse)
+def changelog_page(request: Request):
+    """Auto-generated changelog from git log."""
+    import subprocess
+    lang = _lang(request)
+    changelog = []
+    try:
+        result = subprocess.run(
+            ["git", "log", "--oneline", "--format=%H|%ai|%s", "-50"],
+            capture_output=True, text=True, timeout=5, cwd=BASE
+        )
+        current_day = None
+        day_items = []
+        for line in result.stdout.strip().split("\n"):
+            if not line or "|" not in line:
+                continue
+            parts = line.split("|", 2)
+            if len(parts) < 3:
+                continue
+            _, date_str, msg = parts
+            day = date_str[:10]
+            # Determine type from conventional commit prefix
+            if msg.startswith("feat"):
+                item_type = "feat"
+                text = msg.split(":", 1)[-1].strip() if ":" in msg else msg[5:].strip()
+            elif msg.startswith("fix"):
+                item_type = "fix"
+                text = msg.split(":", 1)[-1].strip() if ":" in msg else msg[4:].strip()
+            elif msg.startswith("docs"):
+                item_type = "docs"
+                text = msg.split(":", 1)[-1].strip() if ":" in msg else msg[5:].strip()
+            else:
+                continue  # skip non-conventional commits
+            if day != current_day:
+                if current_day and day_items:
+                    changelog.append({"date": current_day, "items": day_items})
+                current_day = day
+                day_items = []
+            day_items.append({"type": item_type, "text": text})
+        if current_day and day_items:
+            changelog.append({"date": current_day, "items": day_items})
+    except Exception:
+        pass
+    return templates.TemplateResponse("changelog.html", {
+        "request": request, "lang": lang, "changelog": changelog,
+    })
+
+
 # ── SEO: sitemap.xml + robots.txt ──────────────────────────────────────
 
 @app.get("/sitemap.xml")
 def sitemap():
     """Dynamic sitemap for Google indexing."""
-    db = get_db()
-
-    # All public GA pages
-    gas = db.execute(
-        "SELECT slug, created_at FROM ga_images WHERE public = 1 AND slug IS NOT NULL ORDER BY id DESC"
-    ).fetchall()
-
-    # All domain leaderboard pages
-    domains = db.execute(
-        "SELECT DISTINCT domain FROM ga_images WHERE public = 1"
-    ).fetchall()
-    db.close()
+    try:
+        db = get_db()
+        try:
+            gas = [dict(r) for r in db.execute(
+                "SELECT slug FROM ga_images WHERE public = 1 AND slug IS NOT NULL ORDER BY id DESC"
+            ).fetchall()]
+        except Exception:
+            gas = [dict(r) for r in db.execute(
+                "SELECT slug FROM ga_images WHERE domain != 'user_upload' AND slug IS NOT NULL ORDER BY id DESC"
+            ).fetchall()]
+        try:
+            domains = [dict(r) for r in db.execute(
+                "SELECT DISTINCT domain FROM ga_images WHERE public = 1"
+            ).fetchall()]
+        except Exception:
+            domains = [dict(r) for r in db.execute(
+                "SELECT DISTINCT domain FROM ga_images WHERE domain != 'user_upload'"
+            ).fetchall()]
+        db.close()
+    except Exception as e:
+        logger.warning(f"Sitemap DB error: {e}")
+        gas = []
+        domains = []
 
     base = "https://glance.scisense.fr"
 

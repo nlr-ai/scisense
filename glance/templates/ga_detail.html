@@ -86,6 +86,11 @@
 .gd-node-tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--gd-navy);color:#fff;padding:0.5rem 0.75rem;border-radius:6px;font-size:0.75rem;white-space:nowrap;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.2);pointer-events:none}
 .gd-node-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--gd-navy)}
 .gd-node-bubble:hover .gd-node-tooltip{display:block}
+#nodeContextMenu{display:none;position:absolute;z-index:20;background:#1a2332;border:1px solid rgba(42,157,143,0.3);border-radius:8px;padding:0.25rem 0;min-width:220px;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.ctx-item{display:block;padding:0.5rem 1rem;color:#e2e8f0;font-size:0.8rem;cursor:pointer;text-decoration:none;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.ctx-item:hover{background:rgba(42,157,143,0.15)}
+.ctx-sep{border-top:1px solid rgba(255,255,255,0.1);margin:0.25rem 0}
+.ctx-header{padding:0.5rem 1rem;color:#fff;font-weight:700;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
 .gd-node-legend{display:flex;gap:1.5rem;margin-top:1rem;font-size:0.75rem;color:var(--gd-text-dim)}
 .gd-node-legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:0.375rem;vertical-align:middle}
 .gd-pair-compare{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
@@ -251,6 +256,7 @@
                     <span class="gd-hero-tag">{{ detail.n_tests }} test{{ 's' if detail.n_tests != 1 else '' }}</span>
                     {% if image.is_control %}<span class="gd-hero-tag">Control</span>{% else %}<span class="gd-hero-tag">VEC</span>{% endif %}
                     {% if sidecar.get('description') %}<span class="gd-hero-tag">{{ sidecar.description[:60] }}{% if sidecar.description|length > 60 %}...{% endif %}</span>{% endif %}
+                    {% if iteration is defined and iteration > 1 %}<span class="gd-hero-tag" style="background:rgba(13,148,136,0.25);color:#5eead4;">Iteration {{ iteration }}</span>{% endif %}
                 </div>
                 {% if domain_rank and domain_rank.rank > 0 %}
                 {% set top_pct = ((domain_rank.rank / domain_rank.total_in_domain) * 100) | round(0) | int %}
@@ -322,7 +328,155 @@
         <div id="overlayContainer" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
             {{ overlay_svg | safe }}
         </div>
-        <!-- No UI chrome — animation loops silently -->
+        <!-- Hover card for node details -->
+        <div id="nodeHoverCard" style="display:none;position:absolute;z-index:10;
+             background:#1a2332;color:#e2e8f0;border:1px solid rgba(42,157,143,0.3);
+             border-radius:8px;padding:0.75rem;font-size:0.75rem;line-height:1.5;
+             max-width:280px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+            <div id="hcName" style="font-weight:700;color:#fff;margin-bottom:0.25rem;"></div>
+            <div id="hcMeta" style="color:#94a3b8;font-size:0.65rem;margin-bottom:0.4rem;"></div>
+            <div id="hcNarratives" style="border-top:1px solid rgba(255,255,255,0.1);padding-top:0.4rem;"></div>
+        </div>
+        <!-- Context menu for node actions -->
+        <div id="nodeContextMenu">
+            <div id="ctxNodeTitle" class="ctx-header"></div>
+            <div class="ctx-sep"></div>
+            <button class="ctx-item" onclick="ctxAction('vision')">&#x1f441; Re-analyser cette zone</button>
+            <button class="ctx-item" onclick="ctxAction('channels')">&#x1f4e1; Canaux de ce node</button>
+            <button class="ctx-item" onclick="ctxAction('deepen')">&#x1f52c; Approfondir ici</button>
+            <button class="ctx-item" onclick="ctxAction('ask')">&#x1f4ac; Demander sur ce node...</button>
+            <button class="ctx-item" onclick="ctxAction('improve')">&#x26a1; Ameliorer ce node</button>
+            <div class="ctx-sep"></div>
+            <button class="ctx-item" onclick="ctxAction('health')">&#x1f517; Narratives liees</button>
+        </div>
+    </div>
+    <script>
+    // Node hover interaction
+    (function() {
+        const card = document.getElementById('nodeHoverCard');
+        const container = document.querySelector('.graph-overlay');
+        if (!card || !container) return;
+
+        // Enable pointer events on node groups only
+        container.querySelectorAll('[data-node-id]').forEach(function(el) {
+            el.style.pointerEvents = 'auto';
+            el.style.cursor = 'pointer';
+
+            el.addEventListener('mouseenter', function(e) {
+                const name = el.querySelector('title')?.textContent || el.dataset.nodeId;
+                const weight = parseFloat(el.dataset.weight || 0);
+                const att = parseFloat(el.dataset.attentionRatio || 0);
+
+                // Parse narrative data from data attribute
+                let narrHtml = '';
+                const narrData = (el.dataset.narratives || '').split('|').filter(Boolean);
+                if (narrData.length > 0) {
+                    narrHtml = '<div style="font-size:0.65rem;color:#94a3b8;margin-bottom:0.2rem;">Messages :</div>';
+                    narrData.forEach(function(n) {
+                        const parts = n.split(':');
+                        const nName = parts[0] || '';
+                        const status = parts[1] || '';
+                        const icon = status === 'reached' ? '✓' : status === 'weak' ? '⚠' : '✗';
+                        const color = status === 'reached' ? '#10b981' : status === 'weak' ? '#f59e0b' : '#ef4444';
+                        narrHtml += `<div style="color:${color};font-size:0.7rem;">${icon} ${nName}</div>`;
+                    });
+                }
+
+                document.getElementById('hcName').textContent = name.split('(')[0].trim();
+                document.getElementById('hcMeta').innerHTML =
+                    `Poids: <strong>${(weight*100).toFixed(0)}%</strong> | ` +
+                    `Attention: <strong>${(att*100).toFixed(0)}%</strong>`;
+                document.getElementById('hcNarratives').innerHTML = narrHtml;
+
+                card.style.display = 'block';
+            });
+
+            el.addEventListener('mousemove', function(e) {
+                const rect = card.parentElement.getBoundingClientRect();
+                let x = e.clientX - rect.left + 12;
+                let y = e.clientY - rect.top - 10;
+                if (x + 280 > rect.width) x = e.clientX - rect.left - 290;
+                if (y + 120 > rect.height) y = y - 100;
+                card.style.left = x + 'px';
+                card.style.top = y + 'px';
+            });
+
+            el.addEventListener('mouseleave', function() {
+                card.style.display = 'none';
+            });
+        });
+    })();
+    </script>
+    <script>
+    // Node context menu interaction
+    (function() {
+        var ctxNodeId = null;
+        var ctxNodeName = '';
+        var menu = document.getElementById('nodeContextMenu');
+        var container = document.querySelector('.graph-overlay');
+        if (!menu || !container) return;
+
+        // Enable context menu on nodes
+        container.querySelectorAll('[data-node-id]').forEach(function(el) {
+            el.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                ctxNodeId = el.dataset.nodeId;
+                var titleEl = el.querySelector('title');
+                ctxNodeName = (titleEl ? titleEl.textContent : ctxNodeId).split('(')[0].trim();
+                var weight = parseFloat(el.dataset.weight || 0);
+
+                document.getElementById('ctxNodeTitle').textContent = ctxNodeName + ' (w=' + Math.round(weight * 100) + '%)';
+
+                var rect = menu.parentElement.getBoundingClientRect();
+                var x = e.clientX - rect.left;
+                var y = e.clientY - rect.top;
+                // Keep menu within bounds
+                if (x + 240 > rect.width) x = rect.width - 240;
+                if (y + 260 > rect.height) y = Math.max(0, rect.height - 260);
+                menu.style.left = x + 'px';
+                menu.style.top = y + 'px';
+                menu.style.display = 'block';
+            });
+        });
+
+        // Dismiss on click outside
+        document.addEventListener('click', function(e) {
+            if (!menu.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+        // Dismiss on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') menu.style.display = 'none';
+        });
+
+        // Prevent default context menu on the overlay container itself
+        menu.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+        // Expose ctxAction globally
+        window.ctxAction = function(action) {
+            menu.style.display = 'none';
+            if (action === 'ask') {
+                showTextTool('ask');
+                var textarea = document.getElementById('toolText');
+                textarea.value = "Concernant '" + ctxNodeName + "': ";
+                textarea.focus();
+            } else if (action === 'improve') {
+                runTool('advise', "Ameliore specifiquement l'element '" + ctxNodeName + "' (" + ctxNodeId + ")", ctxNodeId);
+            } else if (action === 'deepen') {
+                runTool('deepen', '', ctxNodeId);
+            } else if (action === 'vision') {
+                runTool('vision', '', ctxNodeId);
+            } else if (action === 'channels') {
+                runTool('channels', '', ctxNodeId);
+            } else if (action === 'health') {
+                runTool('health', '', ctxNodeId);
+            }
+        };
+    })();
+    </script>
     </div>
     <script>
     function toggleLayer(name) {
@@ -712,57 +866,79 @@ new Chart(document.getElementById('evolutionChart'), {
 </script>
 {% endif %}
 
-<!-- Tool panel -->
+<!-- Tool panel — Pipeline layout -->
 {% if true %}
 <div style="margin-top:1rem;margin-bottom:1.5rem;padding:1.5rem;border:1px solid var(--gd-border);border-radius:var(--gd-radius);background:var(--gd-card);box-shadow:var(--gd-shadow-sm);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-        <h3 style="margin:0;font-size:1rem;font-weight:700;color:var(--gd-navy);">Outils d'analyse</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+        <h3 style="margin:0;font-size:1rem;font-weight:700;color:var(--gd-navy);">Boucle d'analyse</h3>
         <span id="callBadge" style="font-size:0.75rem;color:var(--gd-text-dim);"></span>
     </div>
 
-    <!-- Tool buttons -->
-    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem;">
-        <button class="tool-btn" onclick="runTool('vision')" data-tool="vision" title="Gemini Vision decompose l'image en graphe L3 : zones, elements, messages"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            👁 Analyser
-        </button>
-        <button class="tool-btn" onclick="runTool('channels')" data-tool="channels" title="Evalue 70 canaux visuels (couleur, forme, taille, position) et detecte les anti-patterns"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            📡 Canaux
-        </button>
-        <button class="tool-btn" onclick="showTextTool('advise')" data-tool="advise" title="Decrivez ce que vous voulez ameliorer — l'IA propose des modifications concretes sur le graphe"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-teal);background:var(--gd-teal-light);color:var(--gd-teal);cursor:pointer;font-size:0.8rem;font-weight:600;">
-            💡 Recommander
-        </button>
-        <button class="tool-btn" onclick="showTextTool('rubber_duck')" data-tool="rubber_duck" title="Posez n'importe quelle question sur votre GA — exploration libre avec l'IA"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-amber);background:var(--gd-amber-light);color:var(--gd-amber);cursor:pointer;font-size:0.8rem;font-weight:600;">
-            🦆 Explorer
-        </button>
-        <button class="tool-btn" onclick="runTool('health')" data-tool="health" title="Verifie que chaque message scientifique est porte par un element visuel — detecte les routes cassees"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            🔗 Routes
-        </button>
-        <button class="tool-btn" onclick="runTool('reader_sim')" data-tool="reader_sim" title="Un lecteur virtuel scanne votre figure pendant 5 secondes — montre ce qu'il voit et ce qu'il rate"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            👀 Lecture 5s
-        </button>
-        <button class="tool-btn" onclick="runTool('reader_sim_s2')" data-tool="reader_sim_s2" title="Lecture deliberee de 90 secondes — le lecteur prend son temps, explore chaque zone"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.8rem;font-weight:500;">
-            🔍 Lecture 90s
-        </button>
-        <button class="tool-btn" onclick="runImprove()" data-tool="improve" title="Lance un tour complet : diagnostic + recommandations + application automatique des corrections"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid var(--gd-pass);background:var(--gd-pass-bg);color:var(--gd-pass);cursor:pointer;font-size:0.8rem;font-weight:600;">
-            ⚡ Auto-fix
-        </button>
-        <button class="tool-btn" onclick="runTool('deepen')" data-tool="deepen" title="Analyse chaque zone en detail — augmente la resolution du graphe"
-                style="padding:0.5rem 1rem;border-radius:var(--gd-radius-sm);border:1px solid #8b5cf6;background:rgba(139,92,246,0.08);color:#8b5cf6;cursor:pointer;font-size:0.8rem;font-weight:600;">
-            🔬 Approfondir
-        </button>
+    <!-- Phase 1: COMPRENDRE -->
+    <div style="margin-bottom:0.75rem;">
+        <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gd-text-dim);margin-bottom:0.4rem;">1. Comprendre</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+            <button class="tool-btn" onclick="runTool('vision')" data-tool="vision" title="Gemini Vision decompose l'image en graphe : zones, elements, messages"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                👁 Analyser
+            </button>
+            <button class="tool-btn" onclick="runTool('channels')" data-tool="channels" title="70 canaux visuels evalues + anti-patterns detectes"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                📡 Canaux
+            </button>
+            <button class="tool-btn" onclick="runTool('deepen')" data-tool="deepen" title="Analyse chaque zone en detail — augmente la resolution"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                🔬 Approfondir
+            </button>
+        </div>
     </div>
 
-    <!-- Text input (shows for advise + rubber_duck) -->
-    <div id="toolTextInput" style="display:none;margin-bottom:1rem;">
-        <textarea id="toolText" rows="3" placeholder="Votre question ou intention..."
+    <!-- Arrow -->
+    <div style="text-align:center;color:var(--gd-text-muted);font-size:0.8rem;margin:0.25rem 0;">↓</div>
+
+    <!-- Phase 2: DIAGNOSTIQUER -->
+    <div style="margin-bottom:0.75rem;">
+        <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gd-text-dim);margin-bottom:0.4rem;">2. Diagnostiquer</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+            <button class="tool-btn" onclick="runTool('reader_sim')" data-tool="reader_sim" title="Simulation de lecture 5 secondes — que voit le lecteur ?"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                👀 Lecture 5s
+            </button>
+            <button class="tool-btn" onclick="runTool('reader_sim_s2')" data-tool="reader_sim_s2" title="Lecture deliberee 90 secondes"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                🔍 Lecture 90s
+            </button>
+            <button class="tool-btn" onclick="runTool('health')" data-tool="health" title="Routes de transmission : chaque message a-t-il un porteur visuel ?"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-border);background:var(--gd-card);color:var(--gd-text);cursor:pointer;font-size:0.75rem;">
+                🔗 Routes
+            </button>
+        </div>
+    </div>
+
+    <!-- Arrow -->
+    <div style="text-align:center;color:var(--gd-text-muted);font-size:0.8rem;margin:0.25rem 0;">↓</div>
+
+    <!-- Phase 3: AMÉLIORER -->
+    <div style="margin-bottom:0.75rem;">
+        <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gd-text-dim);margin-bottom:0.4rem;">3. Ameliorer</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;">
+            <button class="tool-btn" onclick="showTextTool('ask')" data-tool="ask" title="Posez une question ou donnez une instruction — le systeme route automatiquement"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-teal);background:var(--gd-teal-light);color:var(--gd-teal);cursor:pointer;font-size:0.75rem;font-weight:600;">
+                💬 Demander
+            </button>
+            <button class="tool-btn" onclick="runImprove()" data-tool="improve" title="Tour complet automatique : diagnostic + recommandations + corrections"
+                    style="padding:0.4rem 0.8rem;border-radius:6px;border:1px solid var(--gd-pass);background:var(--gd-pass-bg);color:var(--gd-pass);cursor:pointer;font-size:0.75rem;font-weight:600;">
+                ⚡ Auto-fix
+            </button>
+        </div>
+    </div>
+
+    <!-- Arrow looping back -->
+    <div style="text-align:center;color:var(--gd-text-muted);font-size:0.7rem;margin:0.25rem 0;">↻ repeter jusqu'a satisfaction</div>
+
+    <!-- Unified text input -->
+    <div id="toolTextInput" style="display:none;margin-bottom:1rem;margin-top:0.75rem;">
+        <textarea id="toolText" rows="2" placeholder="Question ou instruction..."
                   style="width:100%;padding:0.75rem;border:1px solid var(--gd-border);border-radius:var(--gd-radius-sm);
                          background:var(--gd-bg);color:var(--gd-text);font-size:0.85rem;font-family:inherit;resize:vertical;"></textarea>
         <button id="toolTextSubmit" onclick="runTextTool()"
@@ -819,19 +995,20 @@ function showTextTool(toolName) {
     const textarea = document.getElementById('toolText');
     input.style.display = 'block';
     textarea.focus();
-    textarea.placeholder = toolName === 'advise'
-        ? "Intent : que voulez-vous améliorer ? (ex: renforcer la hiérarchie, réduire les mots...)"
-        : "Question : explorez le GA librement (ex: qu'est-ce qui capte l'attention en premier ?)";
+    textarea.placeholder = "Question ou instruction (ex: qu'est-ce qui capte l'attention ? / renforce la hierarchie)";
 }
 
 function runTextTool() {
     const text = document.getElementById('toolText').value.trim();
     if (!text) return;
     document.getElementById('toolTextInput').style.display = 'none';
-    runTool(pendingTextTool, text);
+    // Auto-route: questions → rubber_duck, instructions → advise
+    const isQuestion = /\?|qu['e]|comment|pourquoi|est-ce|what|how|why/i.test(text);
+    const tool = isQuestion ? 'rubber_duck' : 'advise';
+    runTool(tool, text);
 }
 
-async function runTool(toolName, textInput) {
+async function runTool(toolName, textInput, nodeId) {
     const spinner = document.getElementById('toolSpinner');
     const resultsDiv = document.getElementById('toolResults');
 
@@ -856,8 +1033,11 @@ async function runTool(toolName, textInput) {
 
     try {
         const fetchOpts = { method: 'POST', headers: {'Content-Type': 'application/json'} };
-        if (textInput) {
-            fetchOpts.body = JSON.stringify({ text: textInput });
+        if (textInput || nodeId) {
+            const bodyObj = {};
+            if (textInput) bodyObj.text = textInput;
+            if (nodeId) bodyObj.node_id = nodeId;
+            fetchOpts.body = JSON.stringify(bodyObj);
         }
 
         const resp = await fetch(`/analyze/tool/${toolName}/${SLUG}?pwd=${PWD}`, fetchOpts);

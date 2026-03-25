@@ -4,6 +4,9 @@ import sqlite3
 import os
 import json
 import re
+import uuid
+from datetime import datetime, timedelta
+import yaml
 
 DB_PATH = os.environ.get("GLANCE_DB_PATH", os.path.join(os.path.dirname(__file__), "data", "glance.db"))
 
@@ -33,7 +36,8 @@ CREATE TABLE IF NOT EXISTS participants (
     colorblind_status TEXT DEFAULT 'unknown',
     input_mode TEXT DEFAULT 'text',
     referred_by TEXT,
-    handle TEXT
+    handle TEXT,
+    is_admin INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS ga_images (
@@ -58,7 +62,10 @@ CREATE TABLE IF NOT EXISTS ga_images (
     redesign_image_id INTEGER,
     ingestion_source TEXT DEFAULT 'manual',
     reddit_post_id TEXT,
-    image_hash TEXT
+    image_hash TEXT,
+    designers TEXT,
+    public INTEGER DEFAULT 1,
+    abstract TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ga_graphs (
@@ -73,6 +80,7 @@ CREATE TABLE IF NOT EXISTS ga_graphs (
     link_count INTEGER,
     avg_effectiveness REAL,
     anti_pattern_count INTEGER,
+    overlay_path TEXT,
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id)
 );
 
@@ -144,6 +152,15 @@ CREATE TABLE IF NOT EXISTS analysis_leads (
     ga_image_id INTEGER,
     source TEXT DEFAULT 'analyze',
     paid INTEGER DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS auth_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    token TEXT UNIQUE NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    expires_at TEXT NOT NULL,
+    used INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS tests (
@@ -292,6 +309,44 @@ def init_db():
         ("prompts_json", "TEXT"),
         ("plan_vs_actual_json", "TEXT"),
     ])
+    # Migrate: add designers column + public flag to ga_images
+    _migrate_add_columns(conn, "ga_images", [
+        ("designer", "TEXT"),  # legacy
+        ("designers", "TEXT"),
+        ("public", "INTEGER DEFAULT 1"),
+    ])
+    # Set existing user_upload GAs to private, rest to public
+    conn.execute("UPDATE ga_images SET public = 0 WHERE domain = 'user_upload' AND public IS NULL")
+    conn.execute("UPDATE ga_images SET public = 1 WHERE public = 1 AND public IS NULL")
+    conn.commit()
+    # Migrate: add is_admin column to participants
+    _migrate_add_columns(conn, "participants", [
+        ("is_admin", "INTEGER DEFAULT 0"),
+    ])
+    # Migrate: add overlay_path column to ga_graphs
+    _migrate_add_columns(conn, "ga_graphs", [
+        ("overlay_path", "TEXT"),
+    ])
+    # Migrate: add abstract column to ga_images
+    _migrate_add_columns(conn, "ga_images", [
+        ("abstract", "TEXT"),
+    ])
+    # Migrate: add image_history column to ga_images (JSON array of previous images)
+    _migrate_add_columns(conn, "ga_images", [
+        ("image_history", "TEXT"),
+    ])
+    # Migrate: ensure auth_tokens table exists (for existing DBs)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL,
+            token TEXT UNIQUE NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            expires_at TEXT NOT NULL,
+            used INTEGER DEFAULT 0
+        )
+    """)
+    conn.commit()
     # Generate slugs for any images that don't have one yet
     _backfill_slugs(conn)
     conn.close()
@@ -377,12 +432,315 @@ def save_reading_simulation(result, narrative_text, ga_image_id=None, graph_id=N
     return sim_id
 
 
+def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
+               version=None, yaml_path=None, skip_deepen=False):
+    """Persist a graph to DB and trigger async reader simulation.
+
+    This is the SINGLE entry point for graph persistence. Every time a graph
+    is saved, S1 + S2 reader simulations are automatically launched in a
+    background thread.
+
+    Args:
+        graph: L3 graph dict (nodes, links, metadata)
+        ga_image_id: FK to ga_images
+        graph_type: 'vision', 'enriched', 'advised'
+        source: origin of graph ('gemini_vision', 'channel_analyzer', 'advisor')
+        version: optional version string
+        yaml_path: optional path to also save YAML file
+        skip_deepen: when True, skip auto-deepen in post-save (prevents recursion)
+
+    Returns:
+        graph_id: ID of the inserted row
+    """
+    import threading
+
+    graph_yaml = yaml.dump(graph, default_flow_style=False, allow_unicode=True)
+    nodes = graph.get("nodes", [])
+    links = graph.get("links", [])
+    anti_patterns = graph.get("metadata", {}).get("channel_analysis", {}).get("anti_patterns", [])
+    avg_eff = graph.get("metadata", {}).get("channel_analysis", {}).get("avg_effectiveness")
+
+    db = get_db()
+    db.execute("""
+        INSERT INTO ga_graphs
+        (ga_image_id, graph_type, graph_yaml, source, version,
+         node_count, link_count, avg_effectiveness, anti_pattern_count)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        ga_image_id, graph_type, graph_yaml, source, version,
+        len(nodes), len(links), avg_eff, len(anti_patterns),
+    ))
+    graph_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+    db.commit()
+    db.close()
+
+    # Save YAML file too if path provided
+    if yaml_path:
+        os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
+        with open(yaml_path, "w", encoding="utf-8") as f:
+            f.write(graph_yaml)
+
+    # ── Async post-save listener ──
+    def _post_save_async(graph_dict, gimg_id, gid, _skip_deepen=False):
+        """Background thread: run reader sim + graph health after every graph save."""
+        import logging
+        log = logging.getLogger("db.post_save")
+
+        # ── 1. Reader simulation (S1 + S2) ──
+        sim_s1 = None
+        try:
+            from reader_sim import simulate_reading, generate_reading_narrative
+
+            sim_s1 = simulate_reading(graph_dict, total_ticks=50, mode="system1")
+            narr_s1 = generate_reading_narrative(sim_s1, graph_dict)
+            save_reading_simulation(sim_s1, narr_s1,
+                                    ga_image_id=gimg_id, graph_id=gid, mode="system1")
+
+            sim_s2 = simulate_reading(graph_dict, total_ticks=900, mode="system2")
+            narr_s2 = generate_reading_narrative(sim_s2, graph_dict)
+            save_reading_simulation(sim_s2, narr_s2,
+                                    ga_image_id=gimg_id, graph_id=gid, mode="system2")
+
+            log.info(f"Reader sim for graph {gid}: "
+                     f"S1={sim_s1['stats']['complexity_verdict']} "
+                     f"S2={sim_s2['stats']['complexity_verdict']}")
+        except Exception as e:
+            log.warning(f"Reader sim failed for graph {gid}: {e}")
+
+        # ── 2. Graph health (transmission chains) ──
+        try:
+            from graph_health import check_transmission_health
+
+            health = check_transmission_health(graph_dict)
+            # Update the graph row with health score
+            db2 = get_db()
+            db2.execute(
+                "UPDATE ga_graphs SET avg_effectiveness = ? WHERE id = ?",
+                (health.get("overall_score", 0), gid))
+            db2.commit()
+            db2.close()
+            log.info(f"Graph health for {gid}: score={health.get('overall_score', 0):.3f}")
+        except Exception as e:
+            log.warning(f"Graph health failed for graph {gid}: {e}")
+
+        # ── 3. Overlay PNG ──
+        try:
+            if sim_s1 is None:
+                raise ValueError("No S1 sim available — skipping overlay")
+            from graph_renderer import render_overlay_png
+            ga_image_path = None
+            # Find the GA image path
+            db3 = get_db()
+            row = db3.execute("SELECT filename FROM ga_images WHERE id = ?", (gimg_id,)).fetchone()
+            db3.close()
+            if row:
+                ga_image_path = os.path.join(os.path.dirname(__file__), "ga_library", row[0])
+            if ga_image_path and os.path.exists(ga_image_path):
+                overlay_path = render_overlay_png(graph_dict, sim_s1, ga_image_path)
+                if overlay_path:
+                    db4 = get_db()
+                    db4.execute("UPDATE ga_graphs SET overlay_path = ? WHERE id = ?", (overlay_path, gid))
+                    db4.commit()
+                    db4.close()
+                    log.info(f"Overlay rendered for graph {gid}: {overlay_path}")
+        except Exception as e:
+            log.warning(f"Overlay render failed for graph {gid}: {e}")
+
+        # ── 4. Fill abstract from graph narratives (if empty) ──
+        try:
+            db5 = get_db()
+            existing_abstract = db5.execute(
+                "SELECT abstract FROM ga_images WHERE id = ?", (gimg_id,)
+            ).fetchone()
+            if existing_abstract and not existing_abstract[0]:
+                # Extract narrative node names + syntheses from graph
+                nodes = graph_dict.get("nodes", [])
+                narratives = [n for n in nodes if n.get("node_type") == "narrative"]
+                if narratives:
+                    parts = []
+                    for n in narratives:
+                        name = n.get("name", "")
+                        synthesis = n.get("synthesis", "")
+                        if synthesis:
+                            parts.append(f"- {name}: {synthesis}" if name else f"- {synthesis}")
+                        elif name:
+                            parts.append(f"- {name}")
+                    if parts:
+                        abstract_text = "Narratives:\n" + "\n".join(parts)
+                        db5.execute(
+                            "UPDATE ga_images SET abstract = ? WHERE id = ?",
+                            (abstract_text, gimg_id))
+                        db5.commit()
+                        log.info(f"Abstract filled from graph narratives for GA {gimg_id}")
+            db5.close()
+        except Exception as e:
+            log.warning(f"Abstract fill failed for graph {gid}: {e}")
+
+        # ── 5. Auto-deepen if narratives are weak ──
+        try:
+            if not _skip_deepen and sim_s1:
+                narr_details = sim_s1.get("narrative_details", [])
+                weak = [n for n in narr_details if n.get("status") == "missed" or
+                        (n.get("received", 0) < 0.5 and n.get("status") == "reached")]
+                has_spaces_with_bbox = any(
+                    n.get("node_type") == "space" and n.get("bbox")
+                    for n in graph_dict.get("nodes", [])
+                )
+                if weak and has_spaces_with_bbox:
+                    from deepen import deepen
+                    # Resolve GA image path for deepen
+                    _deepen_img_path = None
+                    db6 = get_db()
+                    _row = db6.execute("SELECT filename FROM ga_images WHERE id = ?", (gimg_id,)).fetchone()
+                    db6.close()
+                    if _row:
+                        _deepen_img_path = os.path.join(os.path.dirname(__file__), "ga_library", _row[0])
+                    deepen(gimg_id, max_depth=1, image_path=_deepen_img_path)
+                    log.info(f"Auto-deepened GA {gimg_id}: {len(weak)} weak narratives")
+        except Exception as e:
+            log.warning(f"Auto-deepen failed for GA {gimg_id}: {e}")
+
+    # Fire and forget — non-blocking
+    t = threading.Thread(
+        target=_post_save_async,
+        args=(graph, ga_image_id, graph_id, skip_deepen),
+        daemon=True,
+    )
+    t.start()
+
+    return graph_id
+
+
+def get_graph_by_id(graph_id):
+    """Return a graph row by ID."""
+    db = get_db()
+    row = db.execute("SELECT * FROM ga_graphs WHERE id = ?", (graph_id,)).fetchone()
+    db.close()
+    return dict(row) if row else None
+
+
+def get_latest_graph(ga_image_id, graph_type=None):
+    """Return the most recent graph for a GA image."""
+    db = get_db()
+    if graph_type:
+        row = db.execute(
+            "SELECT * FROM ga_graphs WHERE ga_image_id = ? AND graph_type = ? ORDER BY id DESC LIMIT 1",
+            (ga_image_id, graph_type)
+        ).fetchone()
+    else:
+        row = db.execute(
+            "SELECT * FROM ga_graphs WHERE ga_image_id = ? ORDER BY id DESC LIMIT 1",
+            (ga_image_id,)
+        ).fetchone()
+    db.close()
+    if row:
+        result = dict(row)
+        result["graph"] = yaml.safe_load(result["graph_yaml"])
+        return result
+    return None
+
+
+def get_reading_sims(ga_image_id=None, graph_id=None):
+    """Return reading simulations for a GA or graph."""
+    db = get_db()
+    if graph_id:
+        rows = db.execute(
+            "SELECT * FROM reading_simulations WHERE graph_id = ? ORDER BY id DESC",
+            (graph_id,)
+        ).fetchall()
+    elif ga_image_id:
+        rows = db.execute(
+            "SELECT * FROM reading_simulations WHERE ga_image_id = ? ORDER BY id DESC",
+            (ga_image_id,)
+        ).fetchall()
+    else:
+        rows = []
+    db.close()
+    return [dict(r) for r in rows]
+
+
+def add_designer(ga_image_id, designer_id):
+    """Add a designer to a GA. Multiple designers allowed (comma-separated).
+
+    Same image uploaded by different users → all become designers.
+    Returns True if newly added, False if already listed.
+    """
+    db = get_db()
+    row = db.execute("SELECT designers FROM ga_images WHERE id = ?", (ga_image_id,)).fetchone()
+    current = row[0] if row and row[0] else ""
+    designers = [d.strip() for d in current.split(",") if d.strip()]
+    if designer_id in designers:
+        db.close()
+        return False
+    designers.append(designer_id)
+    db.execute("UPDATE ga_images SET designers = ? WHERE id = ?",
+               (",".join(designers), ga_image_id))
+    db.commit()
+    db.close()
+    return True
+
+
 def get_image_by_slug(slug: str):
     """Return a single GA image row by slug."""
     db = get_db()
     row = db.execute("SELECT * FROM ga_images WHERE slug = ?", (slug,)).fetchone()
     db.close()
     return dict(row) if row else None
+
+
+def swap_ga_image(ga_image_id: int, new_filename: str, new_image_hash: str = None):
+    """Swap the image file for an existing GA, preserving the graph.
+
+    Appends the old filename to image_history (JSON array) and updates
+    the filename and image_hash to the new values. Does NOT touch graphs.
+
+    Returns:
+        int: iteration number (1-based count of total images including current)
+    """
+    db = get_db()
+    row = db.execute("SELECT filename, image_hash, image_history FROM ga_images WHERE id = ?",
+                     (ga_image_id,)).fetchone()
+    if not row:
+        db.close()
+        return 0
+
+    old_filename = row["filename"]
+    old_hash = row["image_hash"]
+    history_raw = row["image_history"]
+
+    # Parse existing history or start fresh
+    history = json.loads(history_raw) if history_raw else []
+    history.append({
+        "filename": old_filename,
+        "image_hash": old_hash,
+        "swapped_at": datetime.utcnow().isoformat(),
+    })
+
+    db.execute(
+        """UPDATE ga_images
+           SET filename = ?, image_hash = ?, image_history = ?
+           WHERE id = ?""",
+        (new_filename, new_image_hash, json.dumps(history), ga_image_id),
+    )
+    db.commit()
+    db.close()
+    return len(history) + 1  # iteration = number of past images + current
+
+
+def get_image_iteration(ga_image_id: int) -> int:
+    """Return the iteration number for a GA (1 = original, 2+ = swapped).
+
+    Returns:
+        int: 1 if no swaps, N+1 if N swaps have occurred
+    """
+    db = get_db()
+    row = db.execute("SELECT image_history FROM ga_images WHERE id = ?",
+                     (ga_image_id,)).fetchone()
+    db.close()
+    if not row or not row["image_history"]:
+        return 1
+    history = json.loads(row["image_history"])
+    return len(history) + 1
 
 
 def create_participant(token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode="text", referred_by=None):
@@ -431,11 +789,11 @@ def get_next_image(participant_id):
     if seen_ids:
         placeholders = ",".join("?" * len(seen_ids))
         row = db.execute(
-            f"SELECT * FROM ga_images WHERE id NOT IN ({placeholders}) ORDER BY RANDOM() LIMIT 1",
+            f"SELECT * FROM ga_images WHERE id NOT IN ({placeholders}) AND public = 1 ORDER BY RANDOM() LIMIT 1",
             seen_ids,
         ).fetchone()
     else:
-        row = db.execute("SELECT * FROM ga_images ORDER BY RANDOM() LIMIT 1").fetchone()
+        row = db.execute("SELECT * FROM ga_images WHERE public = 1 ORDER BY RANDOM() LIMIT 1").fetchone()
 
     db.close()
     return dict(row) if row else None
@@ -712,8 +1070,8 @@ def get_landing_stats() -> dict:
 
     total_participants = db.execute("SELECT COUNT(*) as c FROM participants").fetchone()["c"]
     total_tests = db.execute("SELECT COUNT(*) as c FROM tests").fetchone()["c"]
-    total_gas = db.execute("SELECT COUNT(*) as c FROM ga_images").fetchone()["c"]
-    total_domains = db.execute("SELECT COUNT(DISTINCT domain) as c FROM ga_images").fetchone()["c"]
+    total_gas = db.execute("SELECT COUNT(*) as c FROM ga_images WHERE public = 1").fetchone()["c"]
+    total_domains = db.execute("SELECT COUNT(DISTINCT domain) as c FROM ga_images WHERE public = 1").fetchone()["c"]
 
     avg_row = db.execute("SELECT AVG(glance_score) as avg_g FROM tests WHERE glance_score IS NOT NULL").fetchone()
     avg_glance = round(avg_row["avg_g"], 4) if avg_row["avg_g"] is not None else None
@@ -724,7 +1082,7 @@ def get_landing_stats() -> dict:
                   COUNT(t.id) as n_tests
            FROM ga_images g
            JOIN tests t ON t.ga_image_id = g.id
-           WHERE t.glance_score IS NOT NULL
+           WHERE t.glance_score IS NOT NULL AND g.public = 1
            GROUP BY g.id
            ORDER BY avg_glance DESC
            LIMIT 5"""
@@ -732,7 +1090,7 @@ def get_landing_stats() -> dict:
     top_gas = [dict(r) for r in top_rows]
 
     domain_rows = db.execute(
-        "SELECT domain, COUNT(*) as n_gas FROM ga_images GROUP BY domain ORDER BY n_gas DESC"
+        "SELECT domain, COUNT(*) as n_gas FROM ga_images WHERE public = 1 GROUP BY domain ORDER BY n_gas DESC"
     ).fetchall()
     domain_counts = {r["domain"]: r["n_gas"] for r in domain_rows}
 
@@ -834,3 +1192,63 @@ def save_analysis_lead(email: str, ga_image_id: int | None = None, source: str =
     db.commit()
     db.close()
     return lead_id
+
+
+# ── Auth (magic link) ────────────────────────────────────────────────
+
+
+def create_auth_token(email: str) -> str:
+    """Create a magic link token for the given email. Returns the token string."""
+    token = uuid.uuid4().hex
+    expires_at = (datetime.utcnow() + timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S")
+    db = get_db()
+    db.execute(
+        "INSERT INTO auth_tokens (email, token, expires_at) VALUES (?, ?, ?)",
+        (email.strip().lower(), token, expires_at),
+    )
+    db.commit()
+    db.close()
+    return token
+
+
+def verify_auth_token(token: str) -> str | None:
+    """Verify and consume a magic link token.
+
+    Returns the email if valid, None if expired/used/missing.
+    """
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM auth_tokens WHERE token = ? AND used = 0",
+        (token,),
+    ).fetchone()
+    if not row:
+        db.close()
+        return None
+    # Check expiry
+    expires_at = datetime.strptime(row["expires_at"], "%Y-%m-%d %H:%M:%S")
+    if datetime.utcnow() > expires_at:
+        db.close()
+        return None
+    # Mark as used
+    db.execute("UPDATE auth_tokens SET used = 1 WHERE id = ?", (row["id"],))
+    db.commit()
+    db.close()
+    return row["email"]
+
+
+def get_user_gas(email: str) -> list[dict]:
+    """Get all GAs where this email appears in the designers field."""
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM ga_images WHERE designers LIKE ? ORDER BY id DESC",
+        (f"%{email}%",),
+    ).fetchall()
+    db.close()
+    # Filter precisely: the LIKE query may match partial emails
+    result = []
+    for r in rows:
+        designers_str = r["designers"] or ""
+        designers_list = [d.strip().lower() for d in designers_str.split(",") if d.strip()]
+        if email.strip().lower() in designers_list:
+            result.append(dict(r))
+    return result
