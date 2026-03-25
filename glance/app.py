@@ -137,6 +137,9 @@ def _build_flux_feed(target_image, flux_config):
 
     Returns (feed_items, target_position_0indexed) where feed_items is
     a list of dicts with 'filename' and 'path' keys.
+
+    Uses stratified sampling to guarantee diverse content_type representation:
+    one leurre per content_type bucket first, then fill remaining slots randomly.
     """
     n_items = flux_config.get("n_items", 6)
     n_leurres = n_items - 1  # one slot is the target
@@ -146,7 +149,32 @@ def _build_flux_feed(target_image, flux_config):
         # Not enough leurres — use what we have
         selected = all_leurres[:]
     else:
-        selected = random.sample(all_leurres, n_leurres)
+        # Stratified sampling: one per content_type bucket, then fill
+        buckets = {}
+        for l in all_leurres:
+            ct = l.get("content_type", "paper")
+            buckets.setdefault(ct, []).append(l)
+
+        selected = []
+        used_ids = set()
+        # Pick one from each bucket (shuffled order)
+        bucket_keys = list(buckets.keys())
+        random.shuffle(bucket_keys)
+        for key in bucket_keys:
+            if len(selected) >= n_leurres:
+                break
+            pick = random.choice(buckets[key])
+            selected.append(pick)
+            used_ids.add(pick["filename"])
+
+        # Fill remaining slots from all leurres (excluding already picked)
+        remaining = [l for l in all_leurres if l["filename"] not in used_ids]
+        if remaining and len(selected) < n_leurres:
+            fill_count = n_leurres - len(selected)
+            selected.extend(random.sample(remaining, min(fill_count, len(remaining))))
+
+        # Shuffle final selection so bucket order isn't visible
+        random.shuffle(selected)
 
     # Build leurre items (served from /ga/leurres/)
     leurre_items = [

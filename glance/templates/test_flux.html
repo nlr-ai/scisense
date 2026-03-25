@@ -224,24 +224,91 @@
         line-height: 1.35;
         font-weight: 700;
     }
-    .flux-feed-item img {
+    .flux-card-image {
+        position: relative;
+        overflow: hidden;
+    }
+    .flux-card-image img {
         width: 100%;
         height: auto;
         display: block;
     }
-    /* Text-only posts: hide image entirely */
-    .flux-card[data-type="text_only"] img { display: none; }
+    /* ── Content-type variant styles ── */
+
+    /* Text-only posts: hide image entirely, expand text area */
+    .flux-card[data-type="text_only"] .flux-card-image { display: none; }
     .flux-card[data-type="text_only"] .flux-card-title {
         font-size: 0.95rem;
         padding: 0.8rem 1rem 1rem;
         min-height: 80px;
+        line-height: 1.5;
     }
-    /* Video: constrain to 16:9 */
-    .flux-card[data-type="video"] img { max-height: 200px; object-fit: cover; }
-    /* Link preview: smaller image */
-    .flux-card[data-type="link_preview"] img { max-height: 150px; object-fit: cover; }
-    /* Carousel: square-ish */
-    .flux-card[data-type="carousel"] img { max-height: 250px; object-fit: cover; }
+
+    /* Video: constrain height, add play button overlay */
+    .flux-card[data-type="video"] .flux-card-image {
+        position: relative;
+        max-height: 200px;
+        overflow: hidden;
+    }
+    .flux-card[data-type="video"] .flux-card-image img {
+        max-height: 200px;
+        object-fit: cover;
+    }
+    .flux-card[data-type="video"] .flux-card-image::after {
+        content: '\25B6';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 48px;
+        height: 48px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-left: 4px;
+        pointer-events: none;
+    }
+
+    /* Link preview: smaller image, URL-style border */
+    .flux-card[data-type="link_preview"] .flux-card-image img {
+        max-height: 150px;
+        object-fit: cover;
+    }
+    .flux-card[data-type="link_preview"] .flux-card-image {
+        border-bottom: 2px solid #e5e7eb;
+    }
+    .flux-card[data-type="link_preview"] .flux-card-title {
+        font-size: 0.85rem;
+        color: #0a66c2;
+    }
+
+    /* Carousel: square-ish with page badge */
+    .flux-card[data-type="carousel"] .flux-card-image {
+        position: relative;
+        max-height: 250px;
+        overflow: hidden;
+    }
+    .flux-card[data-type="carousel"] .flux-card-image img {
+        max-height: 250px;
+        object-fit: cover;
+    }
+    .flux-card[data-type="carousel"] .flux-card-image::after {
+        content: '1/6';
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 10px;
+        pointer-events: none;
+    }
     .flux-card-actions {
         display: flex;
         justify-content: space-around;
@@ -448,7 +515,9 @@
                             <div class="flux-journal">{{ item.journal or 'Journal' }} · {{ ['2h', '4h', '6h', '1d', '3d'] | random }}</div>
                         </div>
                     </div>
-                    <img src="{{ item.path }}" alt="Content">
+                    <div class="flux-card-image">
+                        <img src="{{ item.path }}" alt="Content">
+                    </div>
                     {% if show_title and item.title %}
                     <div class="flux-card-title">{{ item.title }}</div>
                     {% endif %}
