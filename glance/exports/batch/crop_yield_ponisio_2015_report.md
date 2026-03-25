@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.69
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:crop_yield_ponisio_2015_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:crop_yield_ponisio_2015_precision_farming** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:crop_yield_ponisio_2015_conservation** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:crop_yield_ponisio_2015_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.83/1.0) — supports accurate S9a comprehension measurement.
+- **space:crop_yield_ponisio_2015_domain** — Solide (w=0.7833333333333333, s=0.81) — bien établi dans la littérature ou le design.
+- **thing:crop_yield_ponisio_2015_precision_farming** — Solide (w=0.942, s=0.947) — bien établi dans la littérature ou le design.
+- **thing:crop_yield_ponisio_2015_conservation** — Solide (w=0.636, s=0.891) — bien établi dans la littérature ou le design.
+- **narrative:crop_yield_ponisio_2015_comparison** — Solide (w=0.9333333333333333, s=0.922) — bien établi dans la littérature ou le design.
 - **moment:crop_yield_ponisio_2015_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:crop_yield_ponisio_2015_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

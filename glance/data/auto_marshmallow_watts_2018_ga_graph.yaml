@@ -3,7 +3,8 @@
 # Domain: psychology | Type: VEC | Channel: bar chart
 # Products: Academic achievement, Behavioral problems, SAT scores, BMI
 # Correct: Academic achievement
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.879 | Hierarchy clarity: 1.000
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:marshmallow_watts_2018_domain
@@ -11,18 +12,18 @@ nodes:
   node_type: space
   synthesis: 'Domain: psychology. Bar chart comparing 4 items. Paper: Revisiting the Marshmallow Test (Watts et al., Psych
     Science 2018).'
-  weight: 0.7
+  weight: 0.7878888888888889
   energy: 0.1
-  stability: 0.85
+  stability: 0.81
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:marshmallow_watts_2018_academic_achievement
   name: Academic achievement
   node_type: thing
   synthesis: Academic achievement. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.95
+  energy: 0.062
+  stability: 0.954
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -31,9 +32,9 @@ nodes:
   name: Behavioral problems
   node_type: thing
   synthesis: Behavioral problems. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.64
+  energy: 0.122
+  stability: 0.903
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -42,9 +43,9 @@ nodes:
   name: SAT scores
   node_type: thing
   synthesis: SAT scores. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.58
+  energy: 0.142
+  stability: 0.882
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -53,9 +54,9 @@ nodes:
   name: BMI
   node_type: thing
   synthesis: BMI. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.52
+  energy: 0.162
+  stability: 0.864
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -64,9 +65,9 @@ nodes:
   name: Marshmallow Test Replication — Effect Sizes (Watts et al., 2018)
   node_type: narrative
   synthesis: 'Comparison of 4 items. Academic achievement is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9378888888888889
+  energy: 0.162
+  stability: 0.928
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:marshmallow_watts_2018_source
@@ -79,7 +80,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:marshmallow_watts_2018_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -166,7 +167,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:marshmallow_watts_2018_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:marshmallow_watts_2018_length_channel
   node_b: narrative:marshmallow_watts_2018_comparison
   weight: 0.8
   affinity: 1.0

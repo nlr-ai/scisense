@@ -3,7 +3,8 @@
 # Domain: neuroscience | Type: VEC | Channel: bar chart
 # Products: Full night sleep, Nap, Fragmented sleep, Sleep deprived
 # Correct: Full night sleep
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.837 | Hierarchy clarity: 1.000
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:sleep_memory_walker_2009_domain
@@ -11,18 +12,18 @@ nodes:
   node_type: space
   synthesis: 'Domain: neuroscience. Bar chart comparing 4 items. Paper: The Role of Sleep in Cognition and Emotion (Walker,
     ANYAS 2009).'
-  weight: 0.7
+  weight: 0.7836944444444445
   energy: 0.1
-  stability: 0.85
+  stability: 0.8300000000000001
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:sleep_memory_walker_2009_full_night_sleep
   name: Full night sleep
   node_type: thing
   synthesis: Full night sleep. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.95
+  energy: 0.066
+  stability: 0.966
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -31,9 +32,9 @@ nodes:
   name: Nap
   node_type: thing
   synthesis: Nap. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.64
+  energy: 0.126
+  stability: 0.901
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -42,9 +43,9 @@ nodes:
   name: Fragmented sleep
   node_type: thing
   synthesis: Fragmented sleep. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.58
+  energy: 0.146
+  stability: 0.906
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -53,9 +54,9 @@ nodes:
   name: Sleep deprived
   node_type: thing
   synthesis: Sleep deprived. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.52
+  energy: 0.166
+  stability: 0.894
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -64,9 +65,9 @@ nodes:
   name: Sleep Stages and Memory Consolidation (Walker, 2009)
   node_type: narrative
   synthesis: 'Comparison of 4 items. Full night sleep is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9336944444444444
+  energy: 0.166
+  stability: 0.941
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:sleep_memory_walker_2009_source
@@ -79,7 +80,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:sleep_memory_walker_2009_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -166,7 +167,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:sleep_memory_walker_2009_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:sleep_memory_walker_2009_length_channel
   node_b: narrative:sleep_memory_walker_2009_comparison
   weight: 0.8
   affinity: 1.0

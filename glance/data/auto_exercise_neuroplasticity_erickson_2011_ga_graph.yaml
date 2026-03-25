@@ -3,7 +3,8 @@
 # Domain: neuroscience | Type: VEC | Channel: bar chart
 # Products: Aerobic exercise, Walking, Stretching, Control
 # Correct: Aerobic exercise
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.821 | Hierarchy clarity: 0.955
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:exercise_neuroplasticity_erickson_2011_domain
@@ -11,18 +12,18 @@ nodes:
   node_type: space
   synthesis: 'Domain: neuroscience. Bar chart comparing 4 items. Paper: Exercise training increases hippocampal volume (Erickson
     et al., PNAS 2011).'
-  weight: 0.7
+  weight: 0.7821388888888888
   energy: 0.1
-  stability: 0.85
+  stability: 0.8300000000000001
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:exercise_neuroplasticity_erickson_2011_aerobic_exercise
   name: Aerobic exercise
   node_type: thing
   synthesis: Aerobic exercise. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.945
+  energy: 0.068
+  stability: 0.965
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -31,9 +32,9 @@ nodes:
   name: Walking
   node_type: thing
   synthesis: Walking. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.638
+  energy: 0.128
+  stability: 0.904
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -42,9 +43,9 @@ nodes:
   name: Stretching
   node_type: thing
   synthesis: Stretching. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.578
+  energy: 0.148
+  stability: 0.898
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -53,9 +54,9 @@ nodes:
   name: Control
   node_type: thing
   synthesis: Control. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.518
+  energy: 0.168
+  stability: 0.884
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -64,9 +65,9 @@ nodes:
   name: Exercise and Hippocampal Volume Change (Erickson et al., 2011)
   node_type: narrative
   synthesis: 'Comparison of 4 items. Aerobic exercise is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9321388888888889
+  energy: 0.168
+  stability: 0.939
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:exercise_neuroplasticity_erickson_2011_source
@@ -79,7 +80,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:exercise_neuroplasticity_erickson_2011_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -166,7 +167,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:exercise_neuroplasticity_erickson_2011_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:exercise_neuroplasticity_erickson_2011_length_channel
   node_b: narrative:exercise_neuroplasticity_erickson_2011_comparison
   weight: 0.8
   affinity: 1.0

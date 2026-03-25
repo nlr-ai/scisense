@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.70
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:concrete_co2_alternatives_2023_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:concrete_co2_alternatives_2023_geopolymer** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:concrete_co2_alternatives_2023_lc3** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:concrete_co2_alternatives_2023_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.83/1.0) — supports accurate S9a comprehension measurement.
+- **space:concrete_co2_alternatives_2023_domain** — Solide (w=0.7825833333333333, s=0.8300000000000001) — bien établi dans la littérature ou le design.
+- **thing:concrete_co2_alternatives_2023_geopolymer** — Solide (w=0.95, s=0.958) — bien établi dans la littérature ou le design.
+- **thing:concrete_co2_alternatives_2023_lc3** — Solide (w=0.64, s=0.9) — bien établi dans la littérature ou le design.
+- **narrative:concrete_co2_alternatives_2023_comparison** — Solide (w=0.9325833333333333, s=0.94) — bien établi dans la littérature ou le design.
 - **moment:concrete_co2_alternatives_2023_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:concrete_co2_alternatives_2023_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

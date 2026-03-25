@@ -3,7 +3,8 @@
 # Domain: agriculture | Type: control | Channel: pie/bubble chart
 # Products: Precision farming, Conservation, Integrated, Organic
 # Correct: Precision farming
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.625 | Hierarchy clarity: 0.919
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:crop_yield_ponisio_2015_control_domain
@@ -11,18 +12,18 @@ nodes:
   node_type: space
   synthesis: 'Domain: agriculture. Pie/bubble chart comparing 4 items. Paper: Diversification practices reduce the yield gap
     (Ponisio et al., Proc. R. Soc. B 2015).'
-  weight: 0.7
+  weight: 0.7624583333333332
   energy: 0.2
-  stability: 0.75
+  stability: 0.71
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:crop_yield_ponisio_2015_control_precision_farming
   name: Precision farming
   node_type: thing
   synthesis: Precision farming. Correct answer — Rank 1/4 in pie/bubble chart.
-  weight: 0.9
-  energy: 0.3
-  stability: 0.65
+  weight: 0.942
+  energy: 0.356
+  stability: 0.68
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -31,9 +32,9 @@ nodes:
   name: Conservation
   node_type: thing
   synthesis: Conservation. Rank 2/4 in pie/bubble chart.
-  weight: 0.65
-  energy: 0.35
-  stability: 0.6
+  weight: 0.636
+  energy: 0.416
+  stability: 0.624
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -42,9 +43,9 @@ nodes:
   name: Integrated
   node_type: thing
   synthesis: Integrated. Rank 3/4 in pie/bubble chart.
-  weight: 0.6
-  energy: 0.35
-  stability: 0.6
+  weight: 0.576
+  energy: 0.436
+  stability: 0.612
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -53,9 +54,9 @@ nodes:
   name: Organic
   node_type: thing
   synthesis: Organic. Rank 4/4 in pie/bubble chart.
-  weight: 0.55
-  energy: 0.35
-  stability: 0.6
+  weight: 0.516
+  energy: 0.456
+  stability: 0.598
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -65,9 +66,9 @@ nodes:
   node_type: narrative
   synthesis: 'Comparison of 4 items. Precision farming is the correct answer. Area encoding (beta=0.7) compresses perceived
     differences. Channel: pie/bubble chart.'
-  weight: 0.9
-  energy: 0.4
-  stability: 0.65
+  weight: 0.9124583333333334
+  energy: 0.406
+  stability: 0.526
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:crop_yield_ponisio_2015_control_source
@@ -80,13 +81,13 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:area_channel
+- id: thing:crop_yield_ponisio_2015_control_area_channel
   name: Area Channel (beta=0.7)
   node_type: thing
   synthesis: 'Primary visual channel: pie/bubble chart. Stevens beta = 0.7.'
   weight: 0.8
-  energy: 0.5
-  stability: 0.6
+  energy: 0.488
+  stability: 0.612
   permanence: 1.0
   ambivalence: 0.0
 links:
@@ -167,7 +168,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:crop_yield_ponisio_2015_control_channel_to_narr
-  node_a: thing:area_channel
+  node_a: thing:crop_yield_ponisio_2015_control_area_channel
   node_b: narrative:crop_yield_ponisio_2015_control_comparison
   weight: 0.8
   affinity: 0.5

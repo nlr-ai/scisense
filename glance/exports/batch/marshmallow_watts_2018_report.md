@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.70
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:marshmallow_watts_2018_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:marshmallow_watts_2018_academic_achievement** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:marshmallow_watts_2018_behavioral_problems** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:marshmallow_watts_2018_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.88/1.0) — supports accurate S9a comprehension measurement.
+- **space:marshmallow_watts_2018_domain** — Solide (w=0.7878888888888889, s=0.81) — bien établi dans la littérature ou le design.
+- **thing:marshmallow_watts_2018_academic_achievement** — Solide (w=0.95, s=0.954) — bien établi dans la littérature ou le design.
+- **thing:marshmallow_watts_2018_behavioral_problems** — Solide (w=0.64, s=0.903) — bien établi dans la littérature ou le design.
+- **narrative:marshmallow_watts_2018_comparison** — Solide (w=0.9378888888888889, s=0.928) — bien établi dans la littérature ou le design.
 - **moment:marshmallow_watts_2018_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:marshmallow_watts_2018_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

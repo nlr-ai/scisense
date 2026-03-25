@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.70
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:exercise_neuroplasticity_erickson_2011_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:exercise_neuroplasticity_erickson_2011_aerobic_exercise** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:exercise_neuroplasticity_erickson_2011_walking** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:exercise_neuroplasticity_erickson_2011_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.82/1.0) — supports accurate S9a comprehension measurement.
+- **space:exercise_neuroplasticity_erickson_2011_domain** — Solide (w=0.7821388888888888, s=0.8300000000000001) — bien établi dans la littérature ou le design.
+- **thing:exercise_neuroplasticity_erickson_2011_aerobic_exercise** — Solide (w=0.945, s=0.965) — bien établi dans la littérature ou le design.
+- **thing:exercise_neuroplasticity_erickson_2011_walking** — Solide (w=0.638, s=0.904) — bien établi dans la littérature ou le design.
+- **narrative:exercise_neuroplasticity_erickson_2011_comparison** — Solide (w=0.9321388888888889, s=0.939) — bien établi dans la littérature ou le design.
 - **moment:exercise_neuroplasticity_erickson_2011_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:exercise_neuroplasticity_erickson_2011_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

@@ -1,9 +1,19 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.53
+**Overall Score:** 0.51
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
+
+### 1. [HIGH] encoding_channel
+**Problème:** Area encoding (Stevens beta=0.7) compresses perceived differences by 30%
+**Fix:** Replace pie/bubble chart with bar chart (length encoding, beta=1.0). Horizontal bars sharing a common baseline allow direct magnitude comparison.
+**Impact:** Expected +20-30% improvement on S9b comprehension accuracy.
+
+### 2. [MEDIUM] hierarchy_clarity
+**Problème:** Hierarchy clarity is low (0.26/1.0) — correct answer not prominently positioned
+**Fix:** Place the correct/best product first in the visual hierarchy. Use visual prominence (position, size, color) to guide attention.
+**Impact:** Expected +10-15% improvement on S9b.
 
 ## Strengths
 

@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.69
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:pollinator_decline_potts_2010_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:pollinator_decline_potts_2010_habitat_loss** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:pollinator_decline_potts_2010_pesticides** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:pollinator_decline_potts_2010_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.80/1.0) — supports accurate S9a comprehension measurement.
+- **space:pollinator_decline_potts_2010_domain** — Solide (w=0.7796388888888889, s=0.81) — bien établi dans la littérature ou le design.
+- **thing:pollinator_decline_potts_2010_habitat_loss** — Solide (w=0.932, s=0.938) — bien établi dans la littérature ou le design.
+- **thing:pollinator_decline_potts_2010_pesticides** — Solide (w=0.631, s=0.886) — bien établi dans la littérature ou le design.
+- **narrative:pollinator_decline_potts_2010_comparison** — Solide (w=0.9296388888888889, s=0.917) — bien établi dans la littérature ou le design.
 - **moment:pollinator_decline_potts_2010_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:pollinator_decline_potts_2010_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

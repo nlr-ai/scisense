@@ -3,7 +3,8 @@
 # Domain: psychology | Type: control | Channel: pie/bubble chart
 # Products: Academic achievement, Behavioral problems, SAT scores, BMI
 # Correct: Academic achievement
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.631 | Hierarchy clarity: 1.000
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:marshmallow_watts_2018_control_domain
@@ -11,18 +12,18 @@ nodes:
   node_type: space
   synthesis: 'Domain: psychology. Pie/bubble chart comparing 4 items. Paper: Revisiting the Marshmallow Test (Watts et al.,
     Psych Science 2018).'
-  weight: 0.7
+  weight: 0.7631388888888888
   energy: 0.2
-  stability: 0.75
+  stability: 0.71
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:marshmallow_watts_2018_control_academic_achievement
   name: Academic achievement
   node_type: thing
   synthesis: Academic achievement. Correct answer — Rank 1/4 in pie/bubble chart.
-  weight: 0.9
-  energy: 0.3
-  stability: 0.65
+  weight: 0.95
+  energy: 0.355
+  stability: 0.685
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -31,9 +32,9 @@ nodes:
   name: Behavioral problems
   node_type: thing
   synthesis: Behavioral problems. Rank 2/4 in pie/bubble chart.
-  weight: 0.65
-  energy: 0.35
-  stability: 0.6
+  weight: 0.64
+  energy: 0.415
+  stability: 0.633
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -42,9 +43,9 @@ nodes:
   name: SAT scores
   node_type: thing
   synthesis: SAT scores. Rank 3/4 in pie/bubble chart.
-  weight: 0.6
-  energy: 0.35
-  stability: 0.6
+  weight: 0.58
+  energy: 0.435
+  stability: 0.613
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -53,9 +54,9 @@ nodes:
   name: BMI
   node_type: thing
   synthesis: BMI. Rank 4/4 in pie/bubble chart.
-  weight: 0.55
-  energy: 0.35
-  stability: 0.6
+  weight: 0.52
+  energy: 0.455
+  stability: 0.594
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -65,9 +66,9 @@ nodes:
   node_type: narrative
   synthesis: 'Comparison of 4 items. Academic achievement is the correct answer. Area encoding (beta=0.7) compresses perceived
     differences. Channel: pie/bubble chart.'
-  weight: 0.9
-  energy: 0.4
-  stability: 0.65
+  weight: 0.9131388888888888
+  energy: 0.405
+  stability: 0.527
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:marshmallow_watts_2018_control_source
@@ -80,13 +81,13 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:area_channel
+- id: thing:marshmallow_watts_2018_control_area_channel
   name: Area Channel (beta=0.7)
   node_type: thing
   synthesis: 'Primary visual channel: pie/bubble chart. Stevens beta = 0.7.'
   weight: 0.8
-  energy: 0.5
-  stability: 0.6
+  energy: 0.487
+  stability: 0.613
   permanence: 1.0
   ambivalence: 0.0
 links:
@@ -167,7 +168,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:marshmallow_watts_2018_control_channel_to_narr
-  node_a: thing:area_channel
+  node_a: thing:marshmallow_watts_2018_control_area_channel
   node_b: narrative:marshmallow_watts_2018_control_comparison
   weight: 0.8
   affinity: 0.5

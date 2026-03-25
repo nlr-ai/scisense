@@ -3,25 +3,26 @@
 # Domain: psychology | Type: VEC | Channel: bar chart
 # Products: Baseline, Remote feedback, Touch proximity, Experimenter absent
 # Correct: Baseline
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.869 | Hierarchy clarity: 0.893
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:obedience_milgram_1963_domain
   name: PSYCHOLOGY — Obedience to Authority — Milgram Experiment (1963)
   node_type: space
   synthesis: 'Domain: psychology. Bar chart comparing 4 items. Paper: Behavioral Study of Obedience (Milgram, JASP 1963).'
-  weight: 0.7
+  weight: 0.786875
   energy: 0.1
-  stability: 0.85
+  stability: 0.81
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:obedience_milgram_1963_baseline
   name: Baseline
   node_type: thing
   synthesis: Baseline. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.939
+  energy: 0.063
+  stability: 0.939
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -30,9 +31,9 @@ nodes:
   name: Remote feedback
   node_type: thing
   synthesis: Remote feedback. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.635
+  energy: 0.123
+  stability: 0.897
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -41,9 +42,9 @@ nodes:
   name: Touch proximity
   node_type: thing
   synthesis: Touch proximity. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.575
+  energy: 0.143
+  stability: 0.887
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -52,9 +53,9 @@ nodes:
   name: Experimenter absent
   node_type: thing
   synthesis: Experimenter absent. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.515
+  energy: 0.163
+  stability: 0.882
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -63,9 +64,9 @@ nodes:
   name: Obedience to Authority — Milgram Experiment (1963)
   node_type: narrative
   synthesis: 'Comparison of 4 items. Baseline is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.936875
+  energy: 0.163
+  stability: 0.926
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:obedience_milgram_1963_source
@@ -78,7 +79,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:obedience_milgram_1963_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -165,7 +166,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:obedience_milgram_1963_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:obedience_milgram_1963_length_channel
   node_b: narrative:obedience_milgram_1963_comparison
   weight: 0.8
   affinity: 1.0

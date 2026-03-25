@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.69
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:renewable_lcoe_lazard_2023_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:renewable_lcoe_lazard_2023_solar_utility** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:renewable_lcoe_lazard_2023_wind_onshore** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:renewable_lcoe_lazard_2023_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.75/1.0) — supports accurate S9a comprehension measurement.
+- **space:renewable_lcoe_lazard_2023_domain** — Solide (w=0.7749583333333333, s=0.8200000000000001) — bien établi dans la littérature ou le design.
+- **thing:renewable_lcoe_lazard_2023_solar_utility** — Solide (w=0.935, s=0.946) — bien établi dans la littérature ou le design.
+- **thing:renewable_lcoe_lazard_2023_wind_onshore** — Solide (w=0.632, s=0.894) — bien établi dans la littérature ou le design.
+- **narrative:renewable_lcoe_lazard_2023_comparison** — Solide (w=0.9249583333333333, s=0.921) — bien établi dans la littérature ou le design.
 - **moment:renewable_lcoe_lazard_2023_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:renewable_lcoe_lazard_2023_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

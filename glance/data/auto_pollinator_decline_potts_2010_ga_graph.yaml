@@ -3,7 +3,8 @@
 # Domain: ecology | Type: VEC | Channel: bar chart
 # Products: Habitat loss, Pesticides, Climate change, Invasive species
 # Correct: Habitat loss
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.796 | Hierarchy clarity: 0.819
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:pollinator_decline_potts_2010_domain
@@ -11,18 +12,18 @@ nodes:
   node_type: space
   synthesis: 'Domain: ecology. Bar chart comparing 4 items. Paper: Global pollinator declines (Potts et al., Trends in Ecology
     & Evolution 2010).'
-  weight: 0.7
+  weight: 0.7796388888888889
   energy: 0.1
-  stability: 0.85
+  stability: 0.81
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:pollinator_decline_potts_2010_habitat_loss
   name: Habitat loss
   node_type: thing
   synthesis: Habitat loss. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.932
+  energy: 0.07
+  stability: 0.938
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -31,9 +32,9 @@ nodes:
   name: Pesticides
   node_type: thing
   synthesis: Pesticides. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.631
+  energy: 0.13
+  stability: 0.886
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -42,9 +43,9 @@ nodes:
   name: Climate change
   node_type: thing
   synthesis: Climate change. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.571
+  energy: 0.15
+  stability: 0.881
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -53,9 +54,9 @@ nodes:
   name: Invasive species
   node_type: thing
   synthesis: Invasive species. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.511
+  energy: 0.17
+  stability: 0.873
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -64,9 +65,9 @@ nodes:
   name: Pollinator Decline Drivers — Relative Impact (Potts et al., 2010)
   node_type: narrative
   synthesis: 'Comparison of 4 items. Habitat loss is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9296388888888889
+  energy: 0.17
+  stability: 0.917
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:pollinator_decline_potts_2010_source
@@ -79,7 +80,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:pollinator_decline_potts_2010_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -166,7 +167,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:pollinator_decline_potts_2010_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:pollinator_decline_potts_2010_length_channel
   node_b: narrative:pollinator_decline_potts_2010_comparison
   weight: 0.8
   affinity: 1.0

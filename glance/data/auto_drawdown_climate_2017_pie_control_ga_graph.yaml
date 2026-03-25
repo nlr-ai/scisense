@@ -3,25 +3,26 @@
 # Domain: climate | Type: control | Channel: pie/bubble chart
 # Products: Reduced food waste, Plant-rich diets, Solar farms, Electric vehicles
 # Correct: Reduced food waste
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.643 | Hierarchy clarity: 0.820
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:drawdown_climate_2017_pie_control_domain
   name: CLIMATE — Project Drawdown — Pie chart (contrôle)
   node_type: space
   synthesis: 'Domain: climate. Pie/bubble chart comparing 4 items. Paper: Drawdown: top climate solutions (Hawken, 2017).'
-  weight: 0.7
+  weight: 0.7643472222222222
   energy: 0.2
-  stability: 0.75
+  stability: 0.73
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:drawdown_climate_2017_pie_control_reduced_food_waste
   name: Reduced food waste
   node_type: thing
   synthesis: Reduced food waste. Correct answer — Rank 1/4 in pie/bubble chart.
-  weight: 0.9
-  energy: 0.3
-  stability: 0.65
+  weight: 0.932
+  energy: 0.353
+  stability: 0.703
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -30,9 +31,9 @@ nodes:
   name: Plant-rich diets
   node_type: thing
   synthesis: Plant-rich diets. Rank 2/4 in pie/bubble chart.
-  weight: 0.65
-  energy: 0.35
-  stability: 0.6
+  weight: 0.631
+  energy: 0.413
+  stability: 0.651
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -41,9 +42,9 @@ nodes:
   name: Solar farms
   node_type: thing
   synthesis: Solar farms. Rank 3/4 in pie/bubble chart.
-  weight: 0.6
-  energy: 0.35
-  stability: 0.6
+  weight: 0.571
+  energy: 0.433
+  stability: 0.635
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -52,9 +53,9 @@ nodes:
   name: Electric vehicles
   node_type: thing
   synthesis: Electric vehicles. Rank 4/4 in pie/bubble chart.
-  weight: 0.55
-  energy: 0.35
-  stability: 0.6
+  weight: 0.511
+  energy: 0.453
+  stability: 0.632
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -64,9 +65,9 @@ nodes:
   node_type: narrative
   synthesis: 'Comparison of 4 items. Reduced food waste is the correct answer. Area encoding (beta=0.7) compresses perceived
     differences. Channel: pie/bubble chart.'
-  weight: 0.9
-  energy: 0.4
-  stability: 0.65
+  weight: 0.9143472222222222
+  energy: 0.403
+  stability: 0.543
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:drawdown_climate_2017_pie_control_source
@@ -79,13 +80,13 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:area_channel
+- id: thing:drawdown_climate_2017_pie_control_area_channel
   name: Area Channel (beta=0.7)
   node_type: thing
   synthesis: 'Primary visual channel: pie/bubble chart. Stevens beta = 0.7.'
   weight: 0.8
-  energy: 0.5
-  stability: 0.6
+  energy: 0.486
+  stability: 0.614
   permanence: 1.0
   ambivalence: 0.0
 links:
@@ -166,7 +167,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:drawdown_climate_2017_pie_control_channel_to_narr
-  node_a: thing:area_channel
+  node_a: thing:drawdown_climate_2017_pie_control_area_channel
   node_b: narrative:drawdown_climate_2017_pie_control_comparison
   weight: 0.8
   affinity: 0.5

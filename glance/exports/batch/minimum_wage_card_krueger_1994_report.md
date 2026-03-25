@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.69
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:minimum_wage_card_krueger_1994_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:minimum_wage_card_krueger_1994_nj_fast_food** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:minimum_wage_card_krueger_1994_nj_full_service** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:minimum_wage_card_krueger_1994_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.83/1.0) — supports accurate S9a comprehension measurement.
+- **space:minimum_wage_card_krueger_1994_domain** — Solide (w=0.7829583333333333, s=0.8200000000000001) — bien établi dans la littérature ou le design.
+- **thing:minimum_wage_card_krueger_1994_nj_fast_food** — Solide (w=0.928, s=0.951) — bien établi dans la littérature ou le design.
+- **thing:minimum_wage_card_krueger_1994_nj_full_service** — Solide (w=0.629, s=0.904) — bien établi dans la littérature ou le design.
+- **narrative:minimum_wage_card_krueger_1994_comparison** — Solide (w=0.9329583333333333, s=0.931) — bien établi dans la littérature ou le design.
 - **moment:minimum_wage_card_krueger_1994_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:minimum_wage_card_krueger_1994_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

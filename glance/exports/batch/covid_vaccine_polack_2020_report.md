@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.70
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:covid_vaccine_polack_2020_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:covid_vaccine_polack_2020_16_55_years** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:covid_vaccine_polack_2020_>55_years** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:covid_vaccine_polack_2020_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.81/1.0) — supports accurate S9a comprehension measurement.
+- **space:covid_vaccine_polack_2020_domain** — Solide (w=0.7809583333333333, s=0.8400000000000001) — bien établi dans la littérature ou le design.
+- **thing:covid_vaccine_polack_2020_16_55_years** — Solide (w=0.931, s=0.968) — bien établi dans la littérature ou le design.
+- **thing:covid_vaccine_polack_2020_gt55_years** — Solide (w=0.63, s=0.916) — bien établi dans la littérature ou le design.
+- **narrative:covid_vaccine_polack_2020_comparison** — Solide (w=0.9309583333333333, s=0.948) — bien établi dans la littérature ou le design.
 - **moment:covid_vaccine_polack_2020_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:covid_vaccine_polack_2020_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

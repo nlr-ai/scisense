@@ -3,25 +3,26 @@
 # Domain: education | Type: VEC | Channel: bar chart
 # Products: Feedback, Direct instruction, Peer tutoring, Homework
 # Correct: Feedback
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.856 | Hierarchy clarity: 0.944
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:hattie_visible_learning_2009_domain
   name: EDUCATION — Visible Learning — Educational Interventions by Effect Size
   node_type: space
   synthesis: 'Domain: education. Bar chart comparing 4 items. Paper: Visible Learning meta-analysis (Hattie, 2009).'
-  weight: 0.7
+  weight: 0.7855694444444444
   energy: 0.1
-  stability: 0.85
+  stability: 0.8200000000000001
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:hattie_visible_learning_2009_feedback
   name: Feedback
   node_type: thing
   synthesis: Feedback. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.944
+  energy: 0.064
+  stability: 0.948
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -30,9 +31,9 @@ nodes:
   name: Direct instruction
   node_type: thing
   synthesis: Direct instruction. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.637
+  energy: 0.124
+  stability: 0.91
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -41,9 +42,9 @@ nodes:
   name: Peer tutoring
   node_type: thing
   synthesis: Peer tutoring. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.577
+  energy: 0.144
+  stability: 0.894
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -52,9 +53,9 @@ nodes:
   name: Homework
   node_type: thing
   synthesis: Homework. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.517
+  energy: 0.164
+  stability: 0.878
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -63,9 +64,9 @@ nodes:
   name: Visible Learning — Educational Interventions by Effect Size
   node_type: narrative
   synthesis: 'Comparison of 4 items. Feedback is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9355694444444445
+  energy: 0.164
+  stability: 0.934
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:hattie_visible_learning_2009_source
@@ -78,7 +79,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:hattie_visible_learning_2009_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -165,7 +166,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:hattie_visible_learning_2009_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:hattie_visible_learning_2009_length_channel
   node_b: narrative:hattie_visible_learning_2009_comparison
   weight: 0.8
   affinity: 1.0

@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.70
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:sugar_tax_teng_2019_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:sugar_tax_teng_2019_philadelphia** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:sugar_tax_teng_2019_berkeley** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:sugar_tax_teng_2019_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.82/1.0) — supports accurate S9a comprehension measurement.
+- **space:sugar_tax_teng_2019_domain** — Solide (w=0.7823472222222222, s=0.8200000000000001) — bien établi dans la littérature ou le design.
+- **thing:sugar_tax_teng_2019_philadelphia** — Solide (w=0.95, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:sugar_tax_teng_2019_berkeley** — Solide (w=0.64, s=0.895) — bien établi dans la littérature ou le design.
+- **narrative:sugar_tax_teng_2019_comparison** — Solide (w=0.9323472222222222, s=0.93) — bien établi dans la littérature ou le design.
 - **moment:sugar_tax_teng_2019_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:sugar_tax_teng_2019_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

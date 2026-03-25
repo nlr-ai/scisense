@@ -3,7 +3,8 @@
 # Domain: nutrition | Type: VEC | Channel: bar chart
 # Products: Med + EVOO, Med + Nuts, Low-fat diet, Control diet
 # Correct: Med + EVOO
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.836 | Hierarchy clarity: 0.763
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:predimed_estruch_2018_domain
@@ -11,18 +12,18 @@ nodes:
   node_type: space
   synthesis: 'Domain: nutrition. Bar chart comparing 4 items. Paper: Primary Prevention of CVD with Mediterranean Diet (Estruch
     et al., NEJM 2018).'
-  weight: 0.7
+  weight: 0.7835972222222222
   energy: 0.1
-  stability: 0.85
+  stability: 0.8200000000000001
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:predimed_estruch_2018_med_plus_evoo
   name: Med + EVOO
   node_type: thing
   synthesis: Med + EVOO. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.926
+  energy: 0.066
+  stability: 0.949
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -31,9 +32,9 @@ nodes:
   name: Med + Nuts
   node_type: thing
   synthesis: Med + Nuts. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.628
+  energy: 0.126
+  stability: 0.899
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -42,9 +43,9 @@ nodes:
   name: Low-fat diet
   node_type: thing
   synthesis: Low-fat diet. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.568
+  energy: 0.146
+  stability: 0.891
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -53,9 +54,9 @@ nodes:
   name: Control diet
   node_type: thing
   synthesis: Control diet. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.508
+  energy: 0.166
+  stability: 0.881
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -64,9 +65,9 @@ nodes:
   name: Mediterranean Diet and Cardiovascular Risk — PREDIMED (Estruch et al., 2018)
   node_type: narrative
   synthesis: 'Comparison of 4 items. Med + EVOO is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9335972222222222
+  energy: 0.166
+  stability: 0.932
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:predimed_estruch_2018_source
@@ -79,7 +80,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:predimed_estruch_2018_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -166,7 +167,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:predimed_estruch_2018_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:predimed_estruch_2018_length_channel
   node_b: narrative:predimed_estruch_2018_comparison
   weight: 0.8
   affinity: 1.0

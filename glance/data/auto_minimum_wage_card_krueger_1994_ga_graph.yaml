@@ -3,25 +3,26 @@
 # Domain: economics | Type: VEC | Channel: bar chart
 # Products: NJ fast food, NJ full-service, PA full-service, PA fast food
 # Correct: NJ fast food
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.830 | Hierarchy clarity: 0.777
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:minimum_wage_card_krueger_1994_domain
   name: ECONOMICS — Minimum Wage and Employment — Card & Krueger (1994)
   node_type: space
   synthesis: 'Domain: economics. Bar chart comparing 4 items. Paper: Minimum Wages and Employment (Card & Krueger, AER 1994).'
-  weight: 0.7
+  weight: 0.7829583333333333
   energy: 0.1
-  stability: 0.85
+  stability: 0.8200000000000001
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:minimum_wage_card_krueger_1994_nj_fast_food
   name: NJ fast food
   node_type: thing
   synthesis: NJ fast food. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.928
+  energy: 0.067
+  stability: 0.951
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -30,9 +31,9 @@ nodes:
   name: NJ full-service
   node_type: thing
   synthesis: NJ full-service. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.629
+  energy: 0.127
+  stability: 0.904
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -41,9 +42,9 @@ nodes:
   name: PA full-service
   node_type: thing
   synthesis: PA full-service. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.569
+  energy: 0.147
+  stability: 0.894
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -52,9 +53,9 @@ nodes:
   name: PA fast food
   node_type: thing
   synthesis: PA fast food. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.509
+  energy: 0.167
+  stability: 0.881
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -63,9 +64,9 @@ nodes:
   name: Minimum Wage and Employment — Card & Krueger (1994)
   node_type: narrative
   synthesis: 'Comparison of 4 items. NJ fast food is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9329583333333333
+  energy: 0.167
+  stability: 0.931
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:minimum_wage_card_krueger_1994_source
@@ -78,7 +79,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:minimum_wage_card_krueger_1994_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -165,7 +166,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:minimum_wage_card_krueger_1994_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:minimum_wage_card_krueger_1994_length_channel
   node_b: narrative:minimum_wage_card_krueger_1994_comparison
   weight: 0.8
   affinity: 1.0

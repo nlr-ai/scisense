@@ -1,608 +1,413 @@
-# GLANCE Batch — Outreach Templates
+# GLANCE Batch — Outreach Suggestions
 
-*Generated: 2026-03-25 05:54*
+*Generated: 2026-03-25 06:07*
 
-For each domain, the weakest GA is identified with a templated improvement suggestion.
+For each domain, the weakest GA is identified with a templated outreach message.
 
 ---
 
 
 ## AGRICULTURE — Weakest: `crop_yield_ponisio_2015_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
+**Score:** 0.5081 / 1.00 (domain best: 0.6902)
 **Paper:** Diversification practices reduce the yield gap (Ponisio et al., Proc. R. Soc. B 
-**Type:** Control (area)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Organic
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your agriculture graphical abstract
+Subject: Your agriculture GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Diversification practices reduce the yield gap (Ponisio et a..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Diversification practices reduce the yield gap (Ponisio et a..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.51/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
 ## CLIMATE — Weakest: `drawdown_climate_2017_pie_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
+**Score:** 0.5190 / 1.00 (domain best: 0.7001)
 **Paper:** Drawdown: top climate solutions (Hawken, 2017)
-**Type:** Control (area)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Electric vehicles
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your climate graphical abstract
+Subject: Your climate GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Drawdown: top climate solutions (Hawken, 2017)..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Drawdown: top climate solutions (Hawken, 2017)..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.52/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
 ## ECOLOGY — Weakest: `pollinator_decline_potts_2010_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
+**Score:** 0.5046 / 1.00 (domain best: 0.6894)
 **Paper:** Global pollinator declines (Potts et al., Trends in Ecology & Evolution 2010)
-**Type:** Control (area)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Invasive species
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your ecology graphical abstract
+Subject: Your ecology GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Global pollinator declines (Potts et al., Trends in Ecology..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Global pollinator declines (Potts et al., Trends in Ecology ..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.50/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
-## ECONOMICS — Weakest: `minimum_wage_card_krueger_1994_control`
+## ECONOMICS — Weakest: `microfinance_banerjee_2015_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
-**Paper:** Minimum Wages and Employment (Card & Krueger, AER 1994)
-**Type:** Control (area)
+**Score:** 0.5083 / 1.00 (domain best: 0.6917)
+**Paper:** Six Randomized Evaluations of Microcredit (Banerjee et al., AEJ:Applied 2015)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Ethiopia
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your economics graphical abstract
+Subject: Your economics GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Six Randomized Evaluations of Microcredit (Banerjee et al.,..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Minimum Wages and Employment (Card & Krueger, AER 1994)..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.51/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
 ## EDUCATION — Weakest: `hattie_visible_learning_2009_bubble_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
+**Score:** 0.5140 / 1.00 (domain best: 0.6972)
 **Paper:** Visible Learning meta-analysis (Hattie, 2009)
-**Type:** Control (area)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Homework
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your education graphical abstract
+Subject: Your education GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Visible Learning meta-analysis (Hattie, 2009)..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Visible Learning meta-analysis (Hattie, 2009)..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.51/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
-## ENERGY — Weakest: `battery_energy_density_2023_control`
+## ENERGY — Weakest: `renewable_lcoe_lazard_2023_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
-**Paper:** Battery Technologies Energy Density Comparison (DOE/industry benchmarks 2023)
-**Type:** Control (area)
+**Score:** 0.5079 / 1.00 (domain best: 0.6905)
+**Paper:** Lazard's Levelized Cost of Energy Analysis v16.0 (2023)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Nuclear
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your energy graphical abstract
+Subject: Your energy GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Lazard's Levelized Cost of Energy Analysis v16.0 (2023)..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Battery Technologies Energy Density Comparison (DOE/industry..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.51/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
 ## EPIDEMIOLOGY — Weakest: `covid_vaccine_polack_2020_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
+**Score:** 0.5186 / 1.00 (domain best: 0.7047)
 **Paper:** Safety and Efficacy of BNT162b2 (Polack et al., NEJM 2020)
-**Type:** Control (area)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Asymptomatic
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your epidemiology graphical abstract
+Subject: Your epidemiology GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Safety and Efficacy of BNT162b2 (Polack et al., NEJM 2020)..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Safety and Efficacy of BNT162b2 (Polack et al., NEJM 2020)..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.52/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
 ## MATERIALS — Weakest: `concrete_co2_alternatives_2023_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
-**Paper:** Concrete alternatives COâ‚‚ reduction (IEA Cement Roadmap & lit. 2023)
-**Type:** Control (area)
+**Score:** 0.5188 / 1.00 (domain best: 0.7020)
+**Paper:** Concrete alternatives CO₂ reduction (IEA Cement Roadmap & lit. 2023)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Standard Portland
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your materials graphical abstract
+Subject: Your materials GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Concrete alternatives CO₂ reduction (IEA Cement Roadmap & li..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Concrete alternatives COâ‚‚ reduction (IEA Cement Roadmap & ..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.52/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
 ## MED — Weakest: `immunomod_v10_area_control`
 
-**Score:** 0.5138 (domain best: 0.6172)
-**Paper:** Immunomodulateurs RTIs pÃ©diatriques (MDPI Children, Inchauspe 2026)
-**Type:** Control (area)
+**Score:** 0.5277 / 1.00 (domain best: 0.6172)
+**Paper:** Immunomodulateurs RTIs pédiatriques (MDPI Children, Inchauspe 2026)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** CRL1505
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your med graphical abstract
+Subject: Your med GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Immunomodulateurs RTIs pédiatriques (MDPI Children, Inchausp..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Immunomodulateurs RTIs pÃ©diatriques (MDPI Children, Inchaus..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.53/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
-## NEUROSCIENCE — Weakest: `sleep_memory_walker_2009_control`
+## NEUROSCIENCE — Weakest: `exercise_neuroplasticity_erickson_2011_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
-**Paper:** The Role of Sleep in Cognition and Emotion (Walker, ANYAS 2009)
-**Type:** Control (area)
+**Score:** 0.5179 / 1.00 (domain best: 0.7036)
+**Paper:** Exercise training increases hippocampal volume (Erickson et al., PNAS 2011)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Control
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your neuroscience graphical abstract
+Subject: Your neuroscience GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Exercise training increases hippocampal volume (Erickson et..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "The Role of Sleep in Cognition and Emotion (Walker, ANYAS 20..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.52/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
 ## NUTRITION — Weakest: `predimed_estruch_2018_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
+**Score:** 0.5093 / 1.00 (domain best: 0.6953)
 **Paper:** Primary Prevention of CVD with Mediterranean Diet (Estruch et al., NEJM 2018)
-**Type:** Control (area)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Control diet
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your nutrition graphical abstract
+Subject: Your nutrition GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Primary Prevention of CVD with Mediterranean Diet (Estruch e..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Primary Prevention of CVD with Mediterranean Diet (Estruch e..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.51/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
 ## POLICY — Weakest: `oregon_health_experiment_2012_pie_control`
 
-**Score:** 0.5175 (domain best: 0.7314)
+**Score:** 0.5179 / 1.00 (domain best: 0.7314)
 **Paper:** The Oregon Health Insurance Experiment (Finkelstein et al., QJE 2012)
-**Type:** Control (area)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Physical health
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your policy graphical abstract
+Subject: Your policy GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "The Oregon Health Insurance Experiment (Finkelstein et al.,..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "The Oregon Health Insurance Experiment (Finkelstein et al., ..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.52/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.52/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
-## PSYCHOLOGY — Weakest: `obedience_milgram_1963_control`
+## PSYCHOLOGY — Weakest: `cbt_depression_cuijpers_2020_control`
 
-**Score:** 0.5138 (domain best: 0.6644)
-**Paper:** Behavioral Study of Obedience (Milgram, JASP 1963)
-**Type:** Control (area)
+**Score:** 0.5063 / 1.00 (domain best: 0.6961)
+**Paper:** Meta-analysis of CBT for depression (Cuijpers et al., 2020)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Placebo
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your psychology graphical abstract
+Subject: Your psychology GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Meta-analysis of CBT for depression (Cuijpers et al., 2020)..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Behavioral Study of Obedience (Milgram, JASP 1963)..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.51/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.51/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
 ## TECH — Weakest: `attention_transformer_2017_pie_control`
 
-**Score:** 0.5597 (domain best: 0.7441)
+**Score:** 0.5597 / 1.00 (domain best: 0.7441)
 **Paper:** Attention Is All You Need (Vaswani et al., 2017)
-**Type:** Control (area)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** GNMT+RL
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your tech graphical abstract
+Subject: Your tech GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Attention Is All You Need (Vaswani et al., 2017)..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Attention Is All You Need (Vaswani et al., 2017)..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.56/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.56/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---
 
 ## TRANSPORT — Weakest: `modal_emissions_itf_2021_control`
 
-**Score:** 0.5250 (domain best: 0.6803)
-**Paper:** Transport COâ‚‚ and the Paris Agreement (ITF, 2021)
-**Type:** Control (area)
+**Score:** 0.5097 / 1.00 (domain best: 0.6907)
+**Paper:** Transport CO₂ and the Paris Agreement (ITF, 2021)
+**Type:** Control (area encoding)
 **Products:** 4
-
-### Recommended improvement
-This GA uses **area encoding** (pie/bubble chart) with Stevens beta=0.7.
-Perceived differences are compressed to 70% of actual values.
-
-**Action:** Replace with bar chart (length encoding, beta=1.0).
-**Expected improvement:** +20-30% on comprehension scores (S9b metric).
-**Specific fix:** Convert pie slices to horizontal bars sharing a common baseline.
+**Weakest node:** Train
 
 ### Outreach template
+
 ```
-Subject: Improving visual clarity of your transport graphical abstract
+Subject: Your transport GA could improve comprehension by +20-30%
 
-Dear [Author],
+We analyzed "Transport CO₂ and the Paris Agreement (ITF, 2021)..." using GLANCE, the first standardized
+comprehension benchmark for scientific graphics.
 
-We analyzed the graphical abstract from "Transport COâ‚‚ and the Paris Agreement (ITF, 2021)..."
-using the GLANCE protocol (Graphical Literacy Assessment for
-Normative Communication Evaluation).
+Your GA scores 0.51/1.0 on evidence hierarchy perception.
+The main issue: area encoding compresses perceived differences by ~30%
 
-Current score: 0.53/1.00
-Main finding: The pie/bubble chart format compresses perceived
-differences by ~30% (Stevens power law, beta=0.7). Switching to
-a bar chart would allow readers to perceive 100% of the data
-differences in the 5-second glance window.
+Fix: Replace pie/bubble chart with horizontal bar chart (length encoding, Stevens beta=1.0)
+Expected improvement: +20-30% on S9b
 
-We can provide a detailed redesign recommendation.
-Would you be interested in a 15-minute call?
-
-Best regards,
-SciSense — Making Science Make Sense
+[Try GLANCE free] [Get full audit report for 99 EUR]
 ```
 
 ---

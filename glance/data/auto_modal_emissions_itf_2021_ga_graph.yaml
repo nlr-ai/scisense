@@ -3,25 +3,26 @@
 # Domain: transport | Type: VEC | Channel: bar chart
 # Products: Car, Bus, Train, Bicycle
 # Correct: Bicycle
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.750 | Hierarchy clarity: 0.255
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:modal_emissions_itf_2021_domain
   name: TRANSPORT — CO₂ Emissions per Passenger-km by Transport Mode (ITF, 2021)
   node_type: space
-  synthesis: 'Domain: transport. Bar chart comparing 4 items. Paper: Transport COâ‚‚ and the Paris Agreement (ITF, 2021).'
-  weight: 0.7
+  synthesis: 'Domain: transport. Bar chart comparing 4 items. Paper: Transport CO₂ and the Paris Agreement (ITF, 2021).'
+  weight: 0.7750138888888889
   energy: 0.1
-  stability: 0.85
+  stability: 0.8200000000000001
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:modal_emissions_itf_2021_car
   name: Car
   node_type: thing
   synthesis: Car. Rank 1/4 in bar chart.
-  weight: 0.7
-  energy: 0.1
-  stability: 0.85
+  weight: 0.663
+  energy: 0.115
+  stability: 0.894
   hierarchy: 1.0
   trust: 0.85
   permanence: 1.0
@@ -30,9 +31,9 @@ nodes:
   name: Bus
   node_type: thing
   synthesis: Bus. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.603
+  energy: 0.135
+  stability: 0.884
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -41,9 +42,9 @@ nodes:
   name: Train
   node_type: thing
   synthesis: Train. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.543
+  energy: 0.155
+  stability: 0.876
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -52,9 +53,9 @@ nodes:
   name: Bicycle
   node_type: thing
   synthesis: Bicycle. Correct answer — Rank 4/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.876
+  energy: 0.075
+  stability: 0.938
   hierarchy: 0.5
   trust: 0.95
   permanence: 1.0
@@ -63,22 +64,22 @@ nodes:
   name: CO₂ Emissions per Passenger-km by Transport Mode (ITF, 2021)
   node_type: narrative
   synthesis: 'Comparison of 4 items. Bicycle is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9250138888888889
+  energy: 0.175
+  stability: 0.921
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:modal_emissions_itf_2021_source
-  name: Transport COâ‚‚ and the Paris Agreement (ITF, 2021)
+  name: Transport CO₂ and the Paris Agreement (ITF, 2021)
   node_type: moment
-  synthesis: 'Source paper: Transport COâ‚‚ and the Paris Agreement (ITF, 2021).'
+  synthesis: 'Source paper: Transport CO₂ and the Paris Agreement (ITF, 2021).'
   weight: 0.9
   energy: 0.05
   stability: 0.95
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:modal_emissions_itf_2021_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -165,7 +166,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:modal_emissions_itf_2021_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:modal_emissions_itf_2021_length_channel
   node_b: narrative:modal_emissions_itf_2021_comparison
   weight: 0.8
   affinity: 1.0

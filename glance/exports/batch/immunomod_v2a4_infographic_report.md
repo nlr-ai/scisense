@@ -7,6 +7,8 @@
 
 ## Strengths
 
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.82/1.0) — supports accurate S9a comprehension measurement.
 - **space:immuno:zone_sick** — Solide (w=0.85, s=1.0) — bien établi dans la littérature ou le design.
 - **space:immuno:zone_healthy** — Solide (w=0.9, s=1.0) — bien établi dans la littérature ou le design.
 - **space:immuno:bronchus** — Solide (w=1.0, s=1.0) — bien établi dans la littérature ou le design.

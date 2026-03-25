@@ -3,25 +3,26 @@
 # Domain: climate | Type: VEC | Channel: bar chart
 # Products: Reduced food waste, Plant-rich diets, Solar farms, Electric vehicles
 # Correct: Reduced food waste
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.842 | Hierarchy clarity: 0.820
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:drawdown_climate_2017_domain
   name: CLIMATE — Project Drawdown — Top Climate Solutions by CO₂ Reduction
   node_type: space
   synthesis: 'Domain: climate. Bar chart comparing 4 items. Paper: Drawdown: top climate solutions (Hawken, 2017).'
-  weight: 0.7
+  weight: 0.7842222222222222
   energy: 0.1
-  stability: 0.85
+  stability: 0.8300000000000001
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:drawdown_climate_2017_reduced_food_waste
   name: Reduced food waste
   node_type: thing
   synthesis: Reduced food waste. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.932
+  energy: 0.066
+  stability: 0.969
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -30,9 +31,9 @@ nodes:
   name: Plant-rich diets
   node_type: thing
   synthesis: Plant-rich diets. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.631
+  energy: 0.126
+  stability: 0.917
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -41,9 +42,9 @@ nodes:
   name: Solar farms
   node_type: thing
   synthesis: Solar farms. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.571
+  energy: 0.146
+  stability: 0.901
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -52,9 +53,9 @@ nodes:
   name: Electric vehicles
   node_type: thing
   synthesis: Electric vehicles. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.511
+  energy: 0.166
+  stability: 0.898
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -63,9 +64,9 @@ nodes:
   name: Project Drawdown — Top Climate Solutions by CO₂ Reduction
   node_type: narrative
   synthesis: 'Comparison of 4 items. Reduced food waste is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9342222222222222
+  energy: 0.166
+  stability: 0.942
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:drawdown_climate_2017_source
@@ -78,7 +79,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:drawdown_climate_2017_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -165,7 +166,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:drawdown_climate_2017_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:drawdown_climate_2017_length_channel
   node_b: narrative:drawdown_climate_2017_comparison
   weight: 0.8
   affinity: 1.0

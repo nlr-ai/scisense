@@ -7,6 +7,8 @@
 
 ## Strengths
 
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.86/1.0) — supports accurate S9a comprehension measurement.
 - **thing:transformer_big** — Solide (w=1.0, s=0.95) — bien établi dans la littérature ou le design.
 - **thing:transformer_base** — Solide (w=0.85, s=0.95) — bien établi dans la littérature ou le design.
 - **thing:convs2s** — Solide (w=0.65, s=0.95) — bien établi dans la littérature ou le design.

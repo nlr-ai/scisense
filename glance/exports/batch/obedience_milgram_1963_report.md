@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.69
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:obedience_milgram_1963_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:obedience_milgram_1963_baseline** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:obedience_milgram_1963_remote_feedback** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:obedience_milgram_1963_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.87/1.0) — supports accurate S9a comprehension measurement.
+- **space:obedience_milgram_1963_domain** — Solide (w=0.786875, s=0.81) — bien établi dans la littérature ou le design.
+- **thing:obedience_milgram_1963_baseline** — Solide (w=0.939, s=0.939) — bien établi dans la littérature ou le design.
+- **thing:obedience_milgram_1963_remote_feedback** — Solide (w=0.635, s=0.897) — bien établi dans la littérature ou le design.
+- **narrative:obedience_milgram_1963_comparison** — Solide (w=0.936875, s=0.926) — bien établi dans la littérature ou le design.
 - **moment:obedience_milgram_1963_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:obedience_milgram_1963_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

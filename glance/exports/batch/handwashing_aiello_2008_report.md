@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.70
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:handwashing_aiello_2008_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:handwashing_aiello_2008_soap_and_water** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:handwashing_aiello_2008_hand_sanitizer** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:handwashing_aiello_2008_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.82/1.0) — supports accurate S9a comprehension measurement.
+- **space:handwashing_aiello_2008_domain** — Solide (w=0.7824861111111111, s=0.8400000000000001) — bien établi dans la littérature ou le design.
+- **thing:handwashing_aiello_2008_soap_and_water** — Solide (w=0.937, s=0.973) — bien établi dans la littérature ou le design.
+- **thing:handwashing_aiello_2008_hand_sanitizer** — Solide (w=0.634, s=0.923) — bien établi dans la littérature ou le design.
+- **narrative:handwashing_aiello_2008_comparison** — Solide (w=0.9324861111111111, s=0.949) — bien établi dans la littérature ou le design.
 - **moment:handwashing_aiello_2008_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:handwashing_aiello_2008_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

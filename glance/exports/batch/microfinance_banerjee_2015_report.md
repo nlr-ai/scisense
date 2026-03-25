@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.69
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:microfinance_banerjee_2015_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:microfinance_banerjee_2015_india** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:microfinance_banerjee_2015_mexico** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:microfinance_banerjee_2015_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.80/1.0) — supports accurate S9a comprehension measurement.
+- **space:microfinance_banerjee_2015_domain** — Solide (w=0.7796805555555555, s=0.8200000000000001) — bien établi dans la littérature ou le design.
+- **thing:microfinance_banerjee_2015_india** — Solide (w=0.933, s=0.94) — bien établi dans la littérature ou le design.
+- **thing:microfinance_banerjee_2015_mexico** — Solide (w=0.632, s=0.891) — bien établi dans la littérature ou le design.
+- **narrative:microfinance_banerjee_2015_comparison** — Solide (w=0.9296805555555555, s=0.927) — bien établi dans la littérature ou le design.
 - **moment:microfinance_banerjee_2015_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:microfinance_banerjee_2015_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

@@ -7,6 +7,8 @@
 
 ## Strengths
 
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.87/1.0) — supports accurate S9a comprehension measurement.
 - **thing:emergency_visits** — Solide (w=0.85, s=0.85) — bien établi dans la littérature ou le design.
 - **thing:depression_screening** — Solide (w=1.0, s=0.9) — bien établi dans la littérature ou le design.
 - **thing:financial_strain** — Solide (w=0.8, s=0.85) — bien établi dans la littérature ou le design.

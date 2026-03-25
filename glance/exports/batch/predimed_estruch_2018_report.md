@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.69
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:predimed_estruch_2018_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:predimed_estruch_2018_med_plus_evoo** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:predimed_estruch_2018_med_plus_nuts** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:predimed_estruch_2018_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.84/1.0) — supports accurate S9a comprehension measurement.
+- **space:predimed_estruch_2018_domain** — Solide (w=0.7835972222222222, s=0.8200000000000001) — bien établi dans la littérature ou le design.
+- **thing:predimed_estruch_2018_med_plus_evoo** — Solide (w=0.926, s=0.949) — bien établi dans la littérature ou le design.
+- **thing:predimed_estruch_2018_med_plus_nuts** — Solide (w=0.628, s=0.899) — bien établi dans la littérature ou le design.
+- **narrative:predimed_estruch_2018_comparison** — Solide (w=0.9335972222222222, s=0.932) — bien établi dans la littérature ou le design.
 - **moment:predimed_estruch_2018_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:predimed_estruch_2018_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

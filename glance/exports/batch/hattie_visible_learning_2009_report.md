@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.70
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:hattie_visible_learning_2009_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:hattie_visible_learning_2009_feedback** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:hattie_visible_learning_2009_direct_instruction** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:hattie_visible_learning_2009_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.86/1.0) — supports accurate S9a comprehension measurement.
+- **space:hattie_visible_learning_2009_domain** — Solide (w=0.7855694444444444, s=0.8200000000000001) — bien établi dans la littérature ou le design.
+- **thing:hattie_visible_learning_2009_feedback** — Solide (w=0.944, s=0.948) — bien établi dans la littérature ou le design.
+- **thing:hattie_visible_learning_2009_direct_instruction** — Solide (w=0.637, s=0.91) — bien établi dans la littérature ou le design.
+- **narrative:hattie_visible_learning_2009_comparison** — Solide (w=0.9355694444444445, s=0.934) — bien établi dans la littérature ou le design.
 - **moment:hattie_visible_learning_2009_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:hattie_visible_learning_2009_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

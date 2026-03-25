@@ -3,26 +3,27 @@
 # Domain: materials | Type: VEC | Channel: bar chart
 # Products: Geopolymer, LC3, Fly ash blend, Standard Portland
 # Correct: Geopolymer
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.826 | Hierarchy clarity: 1.000
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:concrete_co2_alternatives_2023_domain
   name: MATERIALS — Concrete Alternatives — CO₂ Reduction vs Portland Cement (2023)
   node_type: space
-  synthesis: 'Domain: materials. Bar chart comparing 4 items. Paper: Concrete alternatives COâ‚‚ reduction (IEA Cement Roadmap
+  synthesis: 'Domain: materials. Bar chart comparing 4 items. Paper: Concrete alternatives CO₂ reduction (IEA Cement Roadmap
     & lit. 2023).'
-  weight: 0.7
+  weight: 0.7825833333333333
   energy: 0.1
-  stability: 0.85
+  stability: 0.8300000000000001
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:concrete_co2_alternatives_2023_geopolymer
   name: Geopolymer
   node_type: thing
   synthesis: Geopolymer. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.95
+  energy: 0.067
+  stability: 0.958
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -31,9 +32,9 @@ nodes:
   name: LC3
   node_type: thing
   synthesis: LC3. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.64
+  energy: 0.127
+  stability: 0.9
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -42,9 +43,9 @@ nodes:
   name: Fly ash blend
   node_type: thing
   synthesis: Fly ash blend. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.58
+  energy: 0.147
+  stability: 0.902
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -53,9 +54,9 @@ nodes:
   name: Standard Portland
   node_type: thing
   synthesis: Standard Portland. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.52
+  energy: 0.167
+  stability: 0.896
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -64,22 +65,22 @@ nodes:
   name: Concrete Alternatives — CO₂ Reduction vs Portland Cement (2023)
   node_type: narrative
   synthesis: 'Comparison of 4 items. Geopolymer is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9325833333333333
+  energy: 0.167
+  stability: 0.94
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:concrete_co2_alternatives_2023_source
-  name: Concrete alternatives COâ‚‚ reduction (IEA Cement Roadmap & lit. 2023)
+  name: Concrete alternatives CO₂ reduction (IEA Cement Roadmap & lit. 2023)
   node_type: moment
-  synthesis: 'Source paper: Concrete alternatives COâ‚‚ reduction (IEA Cement Roadmap & lit. 2023).'
+  synthesis: 'Source paper: Concrete alternatives CO₂ reduction (IEA Cement Roadmap & lit. 2023).'
   weight: 0.9
   energy: 0.05
   stability: 0.95
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:concrete_co2_alternatives_2023_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -166,7 +167,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:concrete_co2_alternatives_2023_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:concrete_co2_alternatives_2023_length_channel
   node_b: narrative:concrete_co2_alternatives_2023_comparison
   weight: 0.8
   affinity: 1.0

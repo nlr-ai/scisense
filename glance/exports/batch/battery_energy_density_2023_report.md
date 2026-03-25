@@ -1,18 +1,20 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.66
+**Overall Score:** 0.69
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
 ## Strengths
 
-- **space:battery_energy_density_2023_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:battery_energy_density_2023_solid_state** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **thing:battery_energy_density_2023_lithium_ion** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **narrative:battery_energy_density_2023_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.84/1.0) — supports accurate S9a comprehension measurement.
+- **space:battery_energy_density_2023_domain** — Solide (w=0.7836527777777778, s=0.8200000000000001) — bien établi dans la littérature ou le design.
+- **thing:battery_energy_density_2023_solid_state** — Solide (w=0.926, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:battery_energy_density_2023_lithium_ion** — Solide (w=0.628, s=0.9) — bien établi dans la littérature ou le design.
+- **narrative:battery_energy_density_2023_comparison** — Solide (w=0.9336527777777778, s=0.932) — bien établi dans la littérature ou le design.
 - **moment:battery_energy_density_2023_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:battery_energy_density_2023_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 

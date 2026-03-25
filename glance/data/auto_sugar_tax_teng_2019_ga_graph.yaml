@@ -3,7 +3,8 @@
 # Domain: nutrition | Type: VEC | Channel: bar chart
 # Products: Philadelphia, Berkeley, UK, Mexico
 # Correct: Philadelphia
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.823 | Hierarchy clarity: 1.000
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:sugar_tax_teng_2019_domain
@@ -11,18 +12,18 @@ nodes:
   node_type: space
   synthesis: 'Domain: nutrition. Bar chart comparing 4 items. Paper: Impact of sugar-sweetened beverage taxes (Teng et al.,
     BMJ 2019).'
-  weight: 0.7
+  weight: 0.7823472222222222
   energy: 0.1
-  stability: 0.85
+  stability: 0.8200000000000001
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:sugar_tax_teng_2019_philadelphia
   name: Philadelphia
   node_type: thing
   synthesis: Philadelphia. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.95
+  energy: 0.068
+  stability: 0.95
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -31,9 +32,9 @@ nodes:
   name: Berkeley
   node_type: thing
   synthesis: Berkeley. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.64
+  energy: 0.128
+  stability: 0.895
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -42,9 +43,9 @@ nodes:
   name: UK
   node_type: thing
   synthesis: UK. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.58
+  energy: 0.148
+  stability: 0.878
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -53,9 +54,9 @@ nodes:
   name: Mexico
   node_type: thing
   synthesis: Mexico. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.52
+  energy: 0.168
+  stability: 0.873
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -64,9 +65,9 @@ nodes:
   name: Sugar Tax Effects on Consumption — Meta-analysis (Teng et al., 2019)
   node_type: narrative
   synthesis: 'Comparison of 4 items. Philadelphia is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9323472222222222
+  energy: 0.168
+  stability: 0.93
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:sugar_tax_teng_2019_source
@@ -79,7 +80,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:sugar_tax_teng_2019_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -166,7 +167,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:sugar_tax_teng_2019_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:sugar_tax_teng_2019_length_channel
   node_b: narrative:sugar_tax_teng_2019_comparison
   weight: 0.8
   affinity: 1.0

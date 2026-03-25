@@ -3,7 +3,8 @@
 # Domain: energy | Type: VEC | Channel: bar chart
 # Products: Solid-state, Lithium-ion, Sodium-ion, Lead-acid
 # Correct: Solid-state
-# Generated: 2026-03-25 05:54
+# Semantic richness: 0.837 | Hierarchy clarity: 0.756
+# Generated: 2026-03-25 06:07
 
 nodes:
 - id: space:battery_energy_density_2023_domain
@@ -11,18 +12,18 @@ nodes:
   node_type: space
   synthesis: 'Domain: energy. Bar chart comparing 4 items. Paper: Battery Technologies Energy Density Comparison (DOE/industry
     benchmarks 2023).'
-  weight: 0.7
+  weight: 0.7836527777777778
   energy: 0.1
-  stability: 0.85
+  stability: 0.8200000000000001
   permanence: 1.0
   ambivalence: 0.0
 - id: thing:battery_energy_density_2023_solid_state
   name: Solid-state
   node_type: thing
   synthesis: Solid-state. Correct answer — Rank 1/4 in bar chart.
-  weight: 0.9
-  energy: 0.05
-  stability: 0.9
+  weight: 0.926
+  energy: 0.066
+  stability: 0.95
   hierarchy: 1.0
   trust: 0.95
   permanence: 1.0
@@ -31,9 +32,9 @@ nodes:
   name: Lithium-ion
   node_type: thing
   synthesis: Lithium-ion. Rank 2/4 in bar chart.
-  weight: 0.65
-  energy: 0.1
-  stability: 0.85
+  weight: 0.628
+  energy: 0.126
+  stability: 0.9
   hierarchy: 0.83
   trust: 0.85
   permanence: 1.0
@@ -42,9 +43,9 @@ nodes:
   name: Sodium-ion
   node_type: thing
   synthesis: Sodium-ion. Rank 3/4 in bar chart.
-  weight: 0.6
-  energy: 0.1
-  stability: 0.85
+  weight: 0.568
+  energy: 0.146
+  stability: 0.889
   hierarchy: 0.67
   trust: 0.85
   permanence: 1.0
@@ -53,9 +54,9 @@ nodes:
   name: Lead-acid
   node_type: thing
   synthesis: Lead-acid. Rank 4/4 in bar chart.
-  weight: 0.55
-  energy: 0.1
-  stability: 0.85
+  weight: 0.508
+  energy: 0.166
+  stability: 0.878
   hierarchy: 0.5
   trust: 0.85
   permanence: 1.0
@@ -64,9 +65,9 @@ nodes:
   name: Battery Technologies — Energy Density Comparison (2023)
   node_type: narrative
   synthesis: 'Comparison of 4 items. Solid-state is the correct answer. Channel: bar chart.'
-  weight: 0.9
-  energy: 0.15
-  stability: 0.85
+  weight: 0.9336527777777778
+  energy: 0.166
+  stability: 0.932
   permanence: 1.0
   ambivalence: 0.0
 - id: moment:battery_energy_density_2023_source
@@ -79,7 +80,7 @@ nodes:
   trust: 0.95
   permanence: 1.0
   ambivalence: 0.0
-- id: thing:length_channel
+- id: thing:battery_energy_density_2023_length_channel
   name: Length Channel (beta=1.0)
   node_type: thing
   synthesis: 'Primary visual channel: bar chart. Stevens beta = 1.0.'
@@ -166,7 +167,7 @@ links:
   trust: 0.95
   synthesis: Source paper provides the data for this comparison.
 - id: link:battery_energy_density_2023_channel_to_narr
-  node_a: thing:length_channel
+  node_a: thing:battery_energy_density_2023_length_channel
   node_b: narrative:battery_energy_density_2023_comparison
   weight: 0.8
   affinity: 1.0

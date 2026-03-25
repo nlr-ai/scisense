@@ -1,19 +1,26 @@
 # GLANCE GA Analysis Report
 
-**Overall Score:** 0.68
+**Overall Score:** 0.69
 **Nodes:** 8 | **Links:** 13
 
 ## Recommendations (prioritized)
 
+### 1. [MEDIUM] hierarchy_clarity
+**Problème:** Hierarchy clarity is low (0.26/1.0) — correct answer not prominently positioned
+**Fix:** Place the correct/best product first in the visual hierarchy. Use visual prominence (position, size, color) to guide attention.
+**Impact:** Expected +10-15% improvement on S9b.
+
 ## Strengths
 
-- **space:modal_emissions_itf_2021_domain** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:modal_emissions_itf_2021_car** — Solide (w=0.7, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:modal_emissions_itf_2021_bus** — Solide (w=0.65, s=0.85) — bien établi dans la littérature ou le design.
-- **thing:modal_emissions_itf_2021_bicycle** — Solide (w=0.9, s=0.9) — bien établi dans la littérature ou le design.
-- **narrative:modal_emissions_itf_2021_comparison** — Solide (w=0.9, s=0.85) — bien établi dans la littérature ou le design.
+- **encoding_channel** — Length encoding (beta=1.0) — optimal quantitative channel. Perceived magnitude matches actual magnitude with no compression.
+- **semantic_depth** — Rich semantic references (0.75/1.0) — supports accurate S9a comprehension measurement.
+- **space:modal_emissions_itf_2021_domain** — Solide (w=0.7750138888888889, s=0.8200000000000001) — bien établi dans la littérature ou le design.
+- **thing:modal_emissions_itf_2021_car** — Solide (w=0.663, s=0.894) — bien établi dans la littérature ou le design.
+- **thing:modal_emissions_itf_2021_bus** — Solide (w=0.603, s=0.884) — bien établi dans la littérature ou le design.
+- **thing:modal_emissions_itf_2021_bicycle** — Solide (w=0.876, s=0.938) — bien établi dans la littérature ou le design.
+- **narrative:modal_emissions_itf_2021_comparison** — Solide (w=0.9250138888888889, s=0.921) — bien établi dans la littérature ou le design.
 - **moment:modal_emissions_itf_2021_source** — Solide (w=0.9, s=0.95) — bien établi dans la littérature ou le design.
-- **thing:length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
+- **thing:modal_emissions_itf_2021_length_channel** — Solide (w=0.8, s=0.95) — bien établi dans la littérature ou le design.
 
 ## Accessibility Warnings
 
