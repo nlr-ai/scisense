@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Résultat — Premier Regard{% endblock %}
+{% block title %}Résultat — S2b{% endblock %}
 
 {% block content %}
 {# Dark overlay #}
@@ -10,21 +10,42 @@
         <div class="reveal-countdown" id="revealCountdown">5</div>
 
         {% if s10_hit == false %}
-        {# ── MODE A: S10 Miss — user didn't notice the target ── #}
+        {# ── MODE A: S10 Miss — Rejection Autopsy ── #}
         <div class="reveal-body reveal-miss">
-            <p class="reveal-headline">Cette image était dans le feed</p>
+            <p class="reveal-headline">Cette image etait dans le feed.</p>
 
             <div class="reveal-thumb-wrap">
-                <img src="/ga/{{ test.filename }}" alt="GA" class="reveal-thumb">
+                <img src="/ga/{{ test.filename }}" alt="GA" class="reveal-thumb" style="width:300px">
             </div>
-            {% if test.title %}
-            <p class="reveal-image-title">{{ test.title }}</p>
-            {% endif %}
 
-            <p class="reveal-miss-text">
-                Vous ne l'avez pas remarquée.<br>
-                C'est normal — c'est ce qu'on mesure.
-            </p>
+            <p class="reveal-miss-text">Vous ne l'avez pas remarquee.</p>
+
+            <p class="reveal-miss-why">Pourquoi, a votre avis ?</p>
+            <div class="rejection-choices" id="rejection-choices">
+                <button class="btn btn-choice rejection-btn" data-reason="too_dense">
+                    Trop chargee — je ne sais pas ou regarder
+                </button>
+                <button class="btn btn-choice rejection-btn" data-reason="looks_amateur">
+                    Fait amateur / clip-art
+                </button>
+                <button class="btn btn-choice rejection-btn" data-reason="text_heavy">
+                    C'est du texte deguise en image
+                </button>
+                <button class="btn btn-choice rejection-btn" data-reason="boring">
+                    Pas interessant / deja vu
+                </button>
+                <button class="btn btn-choice rejection-btn" data-reason="didnt_see">
+                    Je ne l'ai tout simplement pas vue
+                </button>
+                <button class="btn btn-choice rejection-btn" data-reason="other">
+                    Autre raison
+                </button>
+            </div>
+
+            <div class="rejection-thanks hidden" id="rejection-thanks">
+                <p>Merci — cette donnee aide a ameliorer le design scientifique.</p>
+                <a href="/test" class="btn btn-primary btn-large reveal-btn-continue">Continuer</a>
+            </div>
         </div>
 
         {% else %}
@@ -69,7 +90,8 @@
         </div>
         {% endif %}
 
-        {# CTA #}
+        {# CTA — only for hits; misses have CTA inside rejection-thanks #}
+        {% if s10_hit != false %}
         <div class="reveal-cta">
             {% if has_more %}
             <a href="/test" class="btn btn-primary reveal-btn-continue">Continuer à explorer</a>
@@ -78,6 +100,7 @@
             <a href="/dashboard" class="btn btn-primary reveal-btn-continue">Voir le dashboard</a>
             {% endif %}
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
@@ -89,6 +112,7 @@
     const card = document.getElementById('revealCard');
     const countdownEl = document.getElementById('revealCountdown');
     const hasMore = {{ 'true' if has_more else 'false' }};
+    const isS10Miss = {{ 'true' if s10_hit == false else 'false' }};
     let seconds = 5;
     let timer;
 
@@ -99,21 +123,25 @@
         // If no more images, don't auto-navigate — let them click
     }
 
-    // Countdown timer
-    timer = setInterval(function() {
-        seconds--;
-        if (seconds <= 0) {
-            clearInterval(timer);
-            countdownEl.textContent = '';
-            autoContinue();
-        } else {
-            countdownEl.textContent = seconds;
-        }
-    }, 1000);
+    // Countdown timer — disabled for S10 misses (we need their rejection answer)
+    if (!isS10Miss) {
+        timer = setInterval(function() {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(timer);
+                countdownEl.textContent = '';
+                autoContinue();
+            } else {
+                countdownEl.textContent = seconds;
+            }
+        }, 1000);
+    } else {
+        countdownEl.textContent = '';
+    }
 
-    // Click overlay (outside card) to continue
+    // Click overlay (outside card) to continue — disabled for S10 misses
     overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) {
+        if (e.target === overlay && !isS10Miss) {
             clearInterval(timer);
             autoContinue();
         }
@@ -123,9 +151,33 @@
     card.addEventListener('click', function(e) {
         // Don't stop countdown if they clicked the CTA link
         if (e.target.closest('.reveal-btn-continue')) return;
-        clearInterval(timer);
-        countdownEl.textContent = '';
+        if (timer) {
+            clearInterval(timer);
+            countdownEl.textContent = '';
+        }
     });
+
+    // ── Rejection Autopsy (S10 miss) ──
+    if (isS10Miss) {
+        var testId = {{ test.id }};
+        var choicesDiv = document.getElementById('rejection-choices');
+        var thanksDiv = document.getElementById('rejection-thanks');
+        var buttons = choicesDiv.querySelectorAll('.rejection-btn');
+
+        buttons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var reason = btn.getAttribute('data-reason');
+
+                // POST rejection reason to server
+                fetch('/reject/' + testId + '?reason=' + encodeURIComponent(reason))
+                    .catch(function() { /* silent — data already in flight */ });
+
+                // Hide choices, show thanks
+                choicesDiv.classList.add('hidden');
+                thanksDiv.classList.remove('hidden');
+            });
+        });
+    }
 
     // Trigger slide-up animation
     requestAnimationFrame(function() {

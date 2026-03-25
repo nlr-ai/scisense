@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Test — Premier Regard{% endblock %}
+{% block title %}Test — S2b{% endblock %}
 
 {% block head %}
 <style>
@@ -229,6 +229,19 @@
         height: auto;
         display: block;
     }
+    /* Text-only posts: hide image entirely */
+    .flux-card[data-type="text_only"] img { display: none; }
+    .flux-card[data-type="text_only"] .flux-card-title {
+        font-size: 0.95rem;
+        padding: 0.8rem 1rem 1rem;
+        min-height: 80px;
+    }
+    /* Video: constrain to 16:9 */
+    .flux-card[data-type="video"] img { max-height: 200px; object-fit: cover; }
+    /* Link preview: smaller image */
+    .flux-card[data-type="link_preview"] img { max-height: 150px; object-fit: cover; }
+    /* Carousel: square-ish */
+    .flux-card[data-type="carousel"] img { max-height: 250px; object-fit: cover; }
     .flux-card-actions {
         display: flex;
         justify-content: space-around;
@@ -423,7 +436,7 @@
           <div class="flux-feed-inner" id="feed-inner">
             {% for item in feed_items %}
             <div class="flux-feed-item" data-index="{{ loop.index0 }}" data-filename="{{ item.filename }}">
-                <div class="flux-card">
+                <div class="flux-card" data-type="{{ item.content_type or 'paper' }}">
                     <div class="flux-card-header">
                         {% if item.pfp %}
                         <img class="flux-avatar" src="/ga/leurres/{{ item.pfp }}" alt="">

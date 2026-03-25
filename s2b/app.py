@@ -402,6 +402,17 @@ def reveal(request: Request, test_id: int):
     })
 
 
+@app.get("/reject/{test_id}")
+def reject_reason(test_id: int, reason: str = ""):
+    """Store the rejection reason for an S10 miss — first-class B2B metric."""
+    if reason:
+        db = get_db()
+        db.execute("UPDATE tests SET rejection_reason = ? WHERE id = ?", (reason, test_id))
+        db.commit()
+        db.close()
+    return RedirectResponse(url="/test", status_code=303)
+
+
 @app.get("/spin", response_class=HTMLResponse)
 def spin_page(request: Request):
     """Proposition C landing: zero-friction spin reveal.

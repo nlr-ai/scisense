@@ -519,6 +519,29 @@ textarea::placeholder {
     margin-bottom: 0;
 }
 
+/* ── Mode A: Rejection Autopsy ── */
+.reveal-miss-why {
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: var(--sp-4);
+}
+.rejection-choices {
+    text-align: left;
+    margin-bottom: var(--sp-4);
+}
+.rejection-btn {
+    font-size: var(--text-sm) !important;
+    min-height: 44px;
+    text-align: left;
+    justify-content: flex-start;
+}
+.rejection-thanks p {
+    font-size: var(--text-sm);
+    color: var(--pass);
+    margin-bottom: var(--sp-4);
+}
+
 /* ── Mode B: Hit — score bar ── */
 .reveal-score-bar-wrap {
     display: flex;

@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS tests (
     stream_target_dwell_ms INTEGER,
     q1_filtered_text TEXT,
     q1_filter_ratio REAL,
+    rejection_reason TEXT,
     FOREIGN KEY (participant_id) REFERENCES participants(id),
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id),
     UNIQUE(participant_id, ga_image_id)
@@ -247,6 +248,7 @@ def get_all_tests():
                   t.exposure_mode, t.stream_position, t.stream_length,
                   t.stream_selected_id, t.s10_hit,
                   t.q1_input_mode, t.q1_raw_transcript,
+                  t.rejection_reason,
                   p.clinical_domain, p.data_literacy,
                   g.title, g.domain, g.version, g.correct_product, g.is_control
            FROM tests t
