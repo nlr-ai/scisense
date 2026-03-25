@@ -1,0 +1,38 @@
+channel_delta:
+  fixes: []
+  layout_adjustments:
+  - current: 0.45
+    param: panels.evidence.height_pct
+    proposed: 0.55
+    reason: Increase vertical space for evidence section to draw more attention.
+  - current: 0.25
+    param: panels.top.height_pct
+    proposed: 0.18
+    reason: Reduce vertical space for the top panel, allowing more room for evidence.
+  - current: 0.25
+    param: panels.evidence.y_pct
+    proposed: 0.18
+    reason: Adjust Y position of evidence panel to start immediately after the smaller
+      top panel.
+  - current: 0.7
+    param: panels.bottom.y_pct
+    proposed: 0.73
+    reason: Adjust Y position of bottom panel to start immediately after the larger
+      evidence panel.
+  - current: 0.3
+    param: panels.bottom.height_pct
+    proposed: 0.27
+    reason: Adjust bottom panel height to fill remaining space after top and evidence
+      panels.
+  - current: 30
+    param: bronchus.glow_blur
+    proposed: 10
+    reason: Reduce blur of the bronchus glow to make it less dominant.
+  - current: 0.08
+    param: bronchus.glow_opacity
+    proposed: 0.03
+    reason: Decrease glow opacity of the bronchus to reduce its visual weight.
+  - current: 72
+    param: evidence.title_font_size
+    proposed: 85
+    reason: Increase font size of the evidence title to make it more prominent.

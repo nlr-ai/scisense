@@ -1,0 +1,42 @@
+channel_delta:
+  fixes: []
+  layout_adjustments:
+  - current: 0.3
+    param: panels.top.height_pct
+    proposed: 0.25
+    reason: Reduces the visual dominance of the top panel to shift focus to evidence.
+  - current: 0.28
+    param: bronchus.y_end_pct
+    proposed: 0.25
+    reason: Adjusts the bronchus diagram's vertical extent to fit within the reduced
+      top panel height.
+  - current: true
+    param: bronchus.glow_enabled
+    proposed: false
+    reason: Disables the glow effect to reduce the visual 'pop' and attention drawn
+      to the top panel.
+  - current: 0.12
+    param: child_sick.y_pct
+    proposed: 0.15
+    reason: Repositions the child icon within the now shorter top panel to maintain
+      visual balance.
+  - current: 0.12
+    param: child_healthy.y_pct
+    proposed: 0.15
+    reason: Repositions the child icon within the now shorter top panel to maintain
+      visual balance.
+  - current: 0.38
+    param: panels.evidence.height_pct
+    proposed: 0.45
+    reason: Directly increases the height of the evidence panel, making it physically
+      larger and more prominent.
+  - current: 0.31
+    param: panels.evidence.y_pct
+    proposed: 0.25
+    reason: Adjusts the evidence panel's starting Y position to be immediately below
+      the reduced top panel.
+  - current: 52
+    param: evidence.title_font_size
+    proposed: 60
+    reason: Increases the font size of the evidence title, emphasizing its importance
+      and drawing attention.
