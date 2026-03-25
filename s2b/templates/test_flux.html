@@ -218,11 +218,11 @@
         color: #6b7280;
     }
     .flux-card-title {
-        padding: 0 1rem 0.6rem;
-        font-size: 0.9rem;
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
         color: #1a1a1a;
-        line-height: 1.4;
-        font-weight: 400;
+        line-height: 1.35;
+        font-weight: 700;
     }
     .flux-feed-item img {
         width: 100%;
@@ -435,10 +435,10 @@
                             <div class="flux-journal">{{ item.journal or 'Journal' }} · {{ ['2h', '4h', '6h', '1d', '3d'] | random }}</div>
                         </div>
                     </div>
+                    <img src="{{ item.path }}" alt="Content">
                     {% if item.title %}
                     <div class="flux-card-title">{{ item.title }}</div>
                     {% endif %}
-                    <img src="{{ item.path }}" alt="Content">
                     <div class="flux-card-actions">
                         <span class="flux-action">&#9825; {{ item.likes or 0 }}</span>
                         <span class="flux-action">&#128172; {{ item.comments or 0 }}</span>
