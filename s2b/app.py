@@ -94,10 +94,12 @@ def onboard_submit(
     data_literacy: str = Form(...),
     grade_familiar: int = Form(0),
     colorblind_status: str = Form("unknown"),
+    input_mode: str = Form("text"),
 ):
     token = str(uuid.uuid4())
     create_participant(token, clinical_domain, experience_years,
-                       data_literacy, grade_familiar, colorblind_status)
+                       data_literacy, grade_familiar, colorblind_status,
+                       input_mode=input_mode)
     response = RedirectResponse(url="/test", status_code=303)
     response.set_cookie("s2b_token", token, httponly=True,
                         max_age=get_constant("cookie_max_age_seconds", 2592000))
@@ -105,13 +107,21 @@ def onboard_submit(
 
 
 def _load_leurres():
-    """Load leurre filenames from ga_library/leurres/leurres.json."""
+    """Load leurre metadata from ga_library/leurres/leurres.json."""
     leurres_path = os.path.join(BASE, "ga_library", "leurres", "leurres.json")
     if not os.path.exists(leurres_path):
         return []
     with open(leurres_path, encoding="utf-8") as f:
         data = json.load(f)
-    return data.get("leurres", [])
+    leurres = data.get("leurres", [])
+    # Handle both old format (list of strings) and new format (list of dicts)
+    result = []
+    for item in leurres:
+        if isinstance(item, str):
+            result.append({"filename": item, "title": "", "author": "", "journal": "", "likes": 0, "comments": 0})
+        else:
+            result.append(item)
+    return result
 
 
 def _build_flux_feed(target_image, flux_config):
@@ -132,14 +142,27 @@ def _build_flux_feed(target_image, flux_config):
 
     # Build leurre items (served from /ga/leurres/)
     leurre_items = [
-        {"filename": fname, "path": f"/ga/leurres/{fname}"}
-        for fname in selected
+        {
+            "filename": l["filename"],
+            "path": f"/ga/leurres/{l['filename']}",
+            "title": l.get("title", ""),
+            "author": l.get("author", ""),
+            "journal": l.get("journal", ""),
+            "likes": l.get("likes", 0),
+            "comments": l.get("comments", 0),
+        }
+        for l in selected
     ]
 
     # Target item (served from /ga/)
     target_item = {
         "filename": target_image["filename"],
         "path": f"/ga/{target_image['filename']}",
+        "title": target_image.get("title", ""),
+        "author": "Research Team",
+        "journal": "Scientific Journal",
+        "likes": random.randint(30, 200),
+        "comments": random.randint(5, 40),
     }
 
     # Determine target position
@@ -169,6 +192,16 @@ def test_page(request: Request):
     domain = image["domain"]
     questions = CONFIG["domains"].get(domain, CONFIG["domains"]["generic"])
     products = json.loads(image["products"]) if image["products"] else []
+
+    # Check if this is the participant's first test (for briefing skip)
+    from db import get_db
+    _db = get_db()
+    test_count = _db.execute(
+        "SELECT COUNT(*) as c FROM tests WHERE participant_id = ?",
+        (participant["id"],)
+    ).fetchone()["c"]
+    _db.close()
+    first_test = test_count == 0
 
     # Check if flux mode is enabled
     flux_config = CONFIG.get("flux", {})
@@ -203,6 +236,8 @@ def test_page(request: Request):
             "item_duration_ms": flux_config.get("item_duration_ms", 4000),
             "scroll_transition_ms": flux_config.get("scroll_transition_ms", 300),
             "selection_thumbs": selection_thumbs,
+            "input_mode": participant.get("input_mode", "text"),
+            "first_test": first_test,
         })
 
     # Focused mode (original)
@@ -213,6 +248,7 @@ def test_page(request: Request):
         "products": products,
         "timer_ms": CONFIG["timer"]["exposure_ms"],
         "countdown_s": CONFIG["timer"]["countdown_seconds"],
+        "input_mode": participant.get("input_mode", "text"),
     })
 
 
@@ -236,6 +272,8 @@ def submit_test(
     stream_length: int = Form(0),
     stream_selected_id: str = Form(""),
     target_filename: str = Form(""),
+    q1_input_mode: str = Form("text"),
+    q1_raw_transcript: str = Form(""),
 ):
     participant = _get_participant(request)
     if not participant:
@@ -290,6 +328,8 @@ def submit_test(
         stream_length=stream_length or None,
         stream_selected_id=stream_selected_id or None,
         s10_hit=s10_hit,
+        q1_input_mode=q1_input_mode,
+        q1_raw_transcript=q1_raw_transcript or None,
     )
     return RedirectResponse(url=f"/reveal/{test_id}", status_code=303)
 

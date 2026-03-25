@@ -152,6 +152,74 @@ où N = nombre de participants valides ayant testé ce GA.
 
 **Justification du choix (paper)** : Le rappel libre (free recall) est la mesure standard de la rétention en psychologie cognitive depuis Tulving (1962). Nous préférons le rappel libre au rappel indicé (cued recall) car il mesure ce que le participant a spontanément encodé, sans indice qui pourrait reconstruire une mémoire absente. L'utilisation d'embeddings plutôt que de mots-clés pour le scoring automatisé suit la méthodologie de Cer et al. (2018, *SemEval*) qui montre que la similarité cosinus de sentence embeddings corrèle à r=0.78-0.86 avec le jugement humain de similarité sémantique, contre r=0.40-0.55 pour les méthodes lexicales (BLEU, keyword overlap). Le seuil θ est calibré empiriquement par courbe ROC sur un sous-ensemble annoté humainement, suivant la pratique standard en NLP appliqué (Manning et al., 2008).
 
+### Le biais de la modalité de production (Q1) — Voice vs Texte
+
+**Le problème** : Le rappel libre tapé au clavier ne mesure pas la compréhension. Il mesure l'intersection de la compréhension avec la motivation à taper. Un participant qui a parfaitement compris le GA mais écrit "un truc de poumon" par flemme produit un S9a_raw faible — le scoring punit la laziness, pas l'ignorance.
+
+Ce biais a un nom : le **production bottleneck** (Levelt, 1989). La production écrite requiert trois étapes coûteuses que la production orale court-circuite :
+
+1. **Formulation lexicale** — trouver le mot juste ("immunomodulateurs" vs "trucs pour le système immunitaire"). À l'oral, le locuteur utilise des approximations et des périphrases sans friction. À l'écrit, il s'autocensure ("je ne suis pas sûr de l'orthographe, je vais mettre un mot plus simple").
+2. **Encodage moteur** — taper sur un clavier est 3-5× plus lent que parler (frappe ~40 mots/minute vs parole ~150 mots/minute, Wobbrock et al., 2006). Le participant optimise inconsciemment le ratio information/effort et coupe du contenu.
+3. **Auto-édition** — le texte tapé est visible, relu, corrigé. Le locuteur oral produit un stream of consciousness non filtré, plus proche de la trace mnésique brute.
+
+**La conséquence mesurable** : En condition texte, le rappel Q1 est typiquement 5-15 mots. En condition voice, les études sur le rappel libre verbal montrent des productions de 30-80 mots (Anderson & Conway, 1993, *Memory*). Le scoring sémantique reçoit un input 3-5× plus riche, ce qui augmente mécaniquement la qualité du matching : un vecteur d'embedding calculé sur 50 mots est plus discriminant qu'un vecteur sur 5 mots (la loi des grands nombres s'applique aux dimensions d'embedding).
+
+**Le protocole** : Q1 propose un choix de modalité :
+
+```
+"Que venez-vous de voir ?"
+    [🎤 Parler]    [⌨️ Taper]
+```
+
+Si voice :
+1. Enregistrement audio (`MediaRecorder API` → blob webm)
+2. Transcription temps réel (SpeechRecognition API browser-native, ou Whisper server-side en V2)
+3. Affichage du transcript — le participant voit le texte et peut corriger les erreurs STT
+4. Bouton "Valider" — le transcript corrigé devient `q1_text`
+5. L'audio est stocké pour traçabilité (`data/audio/{test_id}_q1.webm`)
+
+**Whisper avec vocabulaire guidé (V2)** : L'API Whisper accepte un `initial_prompt` qui biaise la reconnaissance vers un vocabulaire technique. Chaque GA metadata fournit un champ `whisper_prompt` contenant les termes techniques du paper ("immunomodulateurs OM-85 PMBL MV130 CRL1505 épithélium IgA RTI"). La reconnaissance des termes spécialisés passe de ~60% à ~95% avec ce seeding (Radford et al., 2022, *Robust Speech Recognition via Large-Scale Weak Supervision*).
+
+**Variables stockées** :
+
+```
+q1_input_mode,          -- 'text' | 'voice'
+q1_raw_transcript,      -- STT output AVANT édition utilisateur (null si text)
+q1_edit_distance,       -- Levenshtein(raw_transcript, q1_text) — mesure l'erreur STT
+q1_audio_path,          -- chemin vers le fichier audio (null si text)
+q1_text,                -- texte FINAL (tapé ou transcript validé) — scoré par embedding
+```
+
+`q1_text` reste le champ unique d'entrée du scoring sémantique. Que le participant ait tapé ou parlé, `embed(q1_text)` est calculé sur le texte final validé. Le scoring ne change pas. Seul l'input change — il est plus riche en voice.
+
+**Adaptation de la chronométrie keystroke** :
+
+En mode voice, les métriques keystroke (`q1_first_keystroke_ms`, `q1_last_keystroke_ms`) sont remplacées par leurs équivalents vocaux :
+
+| Métrique texte | Équivalent voice | Comment |
+|---|---|---|
+| `q1_first_keystroke_ms` | `q1_first_utterance_ms` | Temps entre apparition Q1 et début de la première détection vocale (SpeechRecognition `onresult` timestamp) |
+| `q1_last_keystroke_ms` | `q1_last_utterance_ms` | Timestamp de la fin du dernier segment vocal détecté |
+| `q1_rt` (soumission) | `q1_rt` (clic "Valider") | Identique — mesure le délai de validation post-production |
+
+La latence d'accès (`q1_first_utterance_ms`) est l'**exact analogue** du Voice Onset Time (VOT) en psycholinguistique — le temps entre le stimulus et le début de la production verbale. C'est un proxy encore plus pur de la vitesse de récupération mnésique que le first keystroke, car il ne contient pas la latence motrice du clavier (Levelt, 1989, ch. 12).
+
+**Hypothèse testable (H5)** :
+
+```
+H5 : S9a_raw(voice) > S9a_raw(text)
+```
+
+Si la voice produit des scores sémantiques systématiquement plus élevés, ça confirme que le bottleneck en condition texte est la production, pas la compréhension. Les deux populations (voice et text) sont marquées par `q1_input_mode` et ne doivent pas être agrégées sans contrôle : la modalité est une covariable dans la régression de phase 4.
+
+```
+logit(S9b) = ... + β₇·q1_input_mode
+```
+
+Si β₇ est non significatif, la modalité de Q1 n'affecte pas Q2 — les deux modes sont interchangeables pour le scoring. Si β₇ est significatif, la richesse du rappel vocal prédit un meilleur S9b — ce qui suggère que la qualité de l'encodage en mémoire (capturée par Q1) et la lecture de la hiérarchie (Q2) sont couplées.
+
+**Justification du choix (paper)** : La supériorité du rappel oral sur le rappel écrit en termes de volume et de fidélité est documentée depuis Rubin (1977, *Memory & Cognition*) et confirmée par Kvavilashvili & Fisher (2007). Le bottleneck de production écrite a été formalisé par Grabowski (2008, *Written Language & Literacy*) qui montre que la transcription manuelle réduit le contenu du rappel de 30-40% par rapport à la dictée. L'approche bimodale (choix texte/voice) suit le principe d'accessibilité universelle et évite le biais d'exclusion des participants moins à l'aise avec le clavier (personnes âgées, cliniciens sur mobile, locuteurs non-natifs). Le stockage de l'audio brut garantit la traçabilité et permet une ré-analyse future avec des modèles STT améliorés. L'utilisation d'un `initial_prompt` Whisper pour le vocabulaire technique suit la recommandation de Radford et al. (2022) pour les domaines spécialisés.
+
 ### S9b — Hiérarchie Perceptive (Q2)
 
 **Définition** : Le participant a-t-il identifié l'élément le mieux documenté ?
@@ -353,6 +421,7 @@ Les 2 axes du profil créent 4 quadrants :
 | H2 : La littératie data aide | Taux_S9b(Q2) > Taux_S9b(Q1) | Les profils analytiques décodent mieux les barres (attendu) |
 | H3 : L'expertise clinique court-circuite | Taux_S9b(Q4) > Taux_S9b(Q2) | La connaissance du domaine ajoute un canal (reconnaissance vs décodage) |
 | H4 : Le daltonisme casse le signal | Taux_S9b(colorblind) < Taux_S9b(normal) | V14 n'est pas résolu |
+| H5 : La voice capture mieux | S9a_raw(voice) > S9a_raw(text) | Le bottleneck est la production écrite, pas la compréhension |
 
 **Test statistique** : Chi² d'indépendance (S9b binaire × quadrant catégoriel). Requiert N≥5 par cellule = N≥20 minimum. Fisher exact si N<5 par cellule.
 
@@ -440,11 +509,14 @@ Régression logistique :
 ```
 logit(S9b) = β₀ + β₁·clinical_domain + β₂·data_literacy + β₃·grade_familiar 
            + β₄·color_vision + β₅·ga_version + β₆·log(q1_first_keystroke_ms)
+           + β₇·q1_input_mode
 ```
 
 β₅ est le coefficient du VEC : son effet net sur la compréhension, contrôlé pour toutes les covariables du profil.
 
 β₆ teste si la latence d'accès mémoire (Q1) prédit indépendamment le succès sur Q2. Si β₆ est significatif et négatif (accès rapide → meilleure hiérarchie), cela confirme que l'ancrage PH1 et le décodage P32 sont couplés : un bon choc cognitif en Zone 1 prédit une bonne lecture de la Zone 3.
+
+β₇ teste si la modalité de production (voice vs texte) affecte S9b. Si non significatif → les deux modes sont interchangeables. Si significatif et positif → la richesse du rappel vocal prédit un meilleur décodage hiérarchique — ce qui suggère que Q1 et Q2 mesurent des facettes couplées du même encodage mnésique.
 
 **Justification du choix (paper)** : La régression logistique est le modèle standard pour les variables dépendantes binaires en recherche clinique (Hosmer & Lemeshow, 2013, *Applied Logistic Regression*). La log-transformation de la latence Q1 (`log(q1_first_keystroke_ms)`) est nécessaire car les temps de réaction sont log-normalement distribués (Luce, 1986) — inclure la valeur brute violerait l'hypothèse de linéarité du logit. L'inclusion simultanée des covariables de profil et de la version du GA dans un modèle unique permet de tester l'effet du VEC *contrôlé pour* les différences individuelles — c'est l'équivalent statistique de la question "le design fait-il la différence, à profil constant ?". Si β₅ est significatif après contrôle, l'effet est attribuable au design, pas à la composition de l'échantillon. L'ajout de β₆ teste une hypothèse mécaniste (le couplage ancrage-décodage) qui, si confirmée, fournit une explication causale de l'efficacité du VEC, pas seulement une corrélation.
 
@@ -599,20 +671,22 @@ La justification des 5000ms tient pour les deux modes :
 
 ### Métriques Temporelles
 
-| Métrique | Formule | Ce qu'elle mesure | Seuil |
-|----------|---------|------------------|-------|
-| Médiane_RT₂ | median(q2_rt) | Fluence de la décision hiérarchique | <3000ms |
-| Latence_Q1 | q1_first_keystroke_ms | Vitesse d'accès mémoire | <1500ms = ancrage fort |
-| Production_Q1 | q1_last_ks - q1_first_ks | Richesse du souvenir encodé | informatif (pas de seuil) |
-| Validation_Q1 | q1_rt - q1_last_ks | Confiance subjective | informatif (pas de seuil) |
+| Métrique | Formule | Ce qu'elle mesure | Seuil | Mode |
+|----------|---------|------------------|-------|------|
+| Médiane_RT₂ | median(q2_rt) | Fluence de la décision hiérarchique | <3000ms | tous |
+| Latence_Q1 | q1_first_keystroke_ms / q1_first_utterance_ms | Vitesse d'accès mémoire | <1500ms = ancrage fort | text / voice |
+| Production_Q1 | q1_last - q1_first | Richesse du souvenir encodé | informatif | text / voice |
+| Validation_Q1 | q1_rt - q1_last | Confiance subjective | informatif | text / voice |
+| **Word_count_Q1** | **len(q1_text.split())** | **Volume du rappel** | **voice > text attendu** | **tous** |
 
-### Métriques d'Intégrité et de Saillance
+### Métriques d'Intégrité, Saillance et Modalité
 
 | Métrique | Formule | Ce qu'elle mesure | Seuil |
 |----------|---------|------------------|-------|
 | Taux_invalidation | Σ tab_switched / N_total | Fiabilité du flux de test | <0.20 |
 | **S10 (stream only)** | **P(sélection GA cible)** | **Capture attentionnelle en flux** | **>0.70** |
 | S10 × S9b | Saillance × Hiérarchie | Chaîne complète attention→compréhension | >0.56 |
+| **Δ_modalité** | **S9a_raw(voice) - S9a_raw(text)** | **La voice capture-t-elle mieux le rappel ?** | **>0 attendu (H5)** |
 
 ---
 
@@ -632,9 +706,18 @@ ALTER TABLE test_results ADD COLUMN stimulus_image_width INTEGER;               
 ALTER TABLE test_results ADD COLUMN tab_switched INTEGER DEFAULT 0;                -- 0|1
 ALTER TABLE test_results ADD COLUMN exposure_actual_ms INTEGER;                     -- ≤5000
 
--- Keystroke dynamics (Q1)
+-- Keystroke dynamics (Q1) — mode text
 ALTER TABLE test_results ADD COLUMN q1_first_keystroke_ms INTEGER;                  -- ms
 ALTER TABLE test_results ADD COLUMN q1_last_keystroke_ms INTEGER;                   -- ms
+
+-- Voice input (Q1) — mode voice
+ALTER TABLE test_results ADD COLUMN q1_input_mode TEXT DEFAULT 'text';              -- 'text' | 'voice'
+ALTER TABLE test_results ADD COLUMN q1_raw_transcript TEXT;                         -- STT avant édition user (null si text)
+ALTER TABLE test_results ADD COLUMN q1_edit_distance INTEGER;                       -- Levenshtein(raw, validated) — mesure erreur STT
+ALTER TABLE test_results ADD COLUMN q1_audio_path TEXT;                             -- chemin audio blob (null si text)
+ALTER TABLE test_results ADD COLUMN q1_first_utterance_ms INTEGER;                  -- voice: onset de la première détection vocale
+ALTER TABLE test_results ADD COLUMN q1_last_utterance_ms INTEGER;                   -- voice: fin du dernier segment vocal
+ALTER TABLE test_results ADD COLUMN q1_word_count INTEGER;                          -- nombre de mots dans q1_text final
 
 -- Stream mode
 ALTER TABLE test_results ADD COLUMN stream_position INTEGER;                        -- position GA cible dans le flux

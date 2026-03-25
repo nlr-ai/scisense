@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS participants (
     experience_years TEXT,
     data_literacy TEXT NOT NULL,
     grade_familiar INTEGER DEFAULT 0,
-    colorblind_status TEXT DEFAULT 'unknown'
+    colorblind_status TEXT DEFAULT 'unknown',
+    input_mode TEXT DEFAULT 'text'
 );
 
 CREATE TABLE IF NOT EXISTS ga_images (
@@ -60,6 +61,8 @@ CREATE TABLE IF NOT EXISTS tests (
     stream_length INTEGER,
     stream_selected_id TEXT,
     s10_hit INTEGER,
+    q1_input_mode TEXT DEFAULT 'text',
+    q1_raw_transcript TEXT,
     stimulus_condition TEXT DEFAULT 'nude',
     stimulus_text TEXT,
     FOREIGN KEY (participant_id) REFERENCES participants(id),
@@ -85,13 +88,13 @@ def init_db():
     conn.close()
 
 
-def create_participant(token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status):
+def create_participant(token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode="text"):
     db = get_db()
     db.execute(
         """INSERT INTO participants
-           (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status)
-           VALUES (?, ?, ?, ?, ?, ?)""",
-        (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status),
+           (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (token, clinical_domain, experience_years, data_literacy, grade_familiar, colorblind_status, input_mode),
     )
     db.commit()
     pid = db.execute("SELECT id FROM participants WHERE token = ?", (token,)).fetchone()["id"]
@@ -148,7 +151,8 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
               tab_switched=0, exposure_actual_ms=None,
               q1_first_keystroke_ms=None, q1_last_keystroke_ms=None,
               exposure_mode="spotlight", stream_position=None,
-              stream_length=None, stream_selected_id=None, s10_hit=None):
+              stream_length=None, stream_selected_id=None, s10_hit=None,
+              q1_input_mode="text", q1_raw_transcript=None):
     db = get_db()
     cursor = db.execute(
         """INSERT INTO tests
@@ -159,8 +163,9 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
             tab_switched, exposure_actual_ms,
             q1_first_keystroke_ms, q1_last_keystroke_ms,
             exposure_mode, stream_position, stream_length,
-            stream_selected_id, s10_hit)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            stream_selected_id, s10_hit,
+            q1_input_mode, q1_raw_transcript)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (participant_id, ga_image_id, q1_text, q1_time_ms,
          q2_choice, q2_time_ms, q3_choice, q3_time_ms,
          int(s9a_pass), float(s9a_score), int(s9b_pass), int(s9c_pass),
@@ -168,7 +173,8 @@ def save_test(participant_id, ga_image_id, q1_text, q1_time_ms,
          int(tab_switched), exposure_actual_ms,
          q1_first_keystroke_ms, q1_last_keystroke_ms,
          exposure_mode, stream_position, stream_length,
-         stream_selected_id, s10_hit),
+         stream_selected_id, s10_hit,
+         q1_input_mode, q1_raw_transcript),
     )
     test_id = cursor.lastrowid
     db.commit()
@@ -223,6 +229,7 @@ def get_all_tests():
                   t.q1_first_keystroke_ms, t.q1_last_keystroke_ms,
                   t.exposure_mode, t.stream_position, t.stream_length,
                   t.stream_selected_id, t.s10_hit,
+                  t.q1_input_mode, t.q1_raw_transcript,
                   p.clinical_domain, p.data_literacy,
                   g.title, g.domain, g.version, g.correct_product, g.is_control
            FROM tests t

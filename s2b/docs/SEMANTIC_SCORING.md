@@ -1,8 +1,8 @@
-# Semantic Scoring Architecture — S9a Subject Identification
+# Semantic Scoring Architecture -- S9a Subject Identification
 
 ## Problem
 
-S9a measures whether a participant can identify the subject of a Graphical Abstract from a brief (5s) exposure. The current implementation uses naive keyword matching (`score_s9a` in `scoring.py`): if the user's free-recall text contains any substring from a keyword list, S9a passes.
+S9a measures whether a participant can identify the subject of a Graphical Abstract from a brief (5s) exposure. The original implementation used naive keyword matching (`score_s9a` in `scoring.py`): if the user's free-recall text contains any substring from a keyword list, S9a passes.
 
 This is brittle. Example: "un truc d'immunologie" fails because "immunologie" does not contain the substring "immunomodulat". The participant clearly identified the broad domain, yet the test incorrectly scores FAIL.
 
@@ -33,16 +33,17 @@ This is brittle. Example: "un truc d'immunologie" fails because "immunologie" do
 
 | Model | Params | Dim | French quality | Load time | Encode (1 text) | Notes |
 |-------|--------|-----|----------------|-----------|-----------------|-------|
-| **paraphrase-multilingual-MiniLM-L12-v2** | 118M | 384 | Excellent | ~15s first, ~2s cached | ~40ms | Best speed/quality ratio |
+| paraphrase-multilingual-MiniLM-L12-v2 | 118M | 384 | Excellent | ~15s first, ~2s cached | ~40ms | Good speed/quality but smaller embeddings |
 | multilingual-e5-large | 560M | 1024 | Excellent | ~45s | ~120ms | Overkill for our text lengths |
-| paraphrase-multilingual-mpnet-base-v2 | 278M | 768 | Excellent | ~25s | ~80ms | Better quality but 2x slower |
+| **paraphrase-multilingual-mpnet-base-v2** | **278M** | **768** | **Excellent** | **~25s** | **~80ms** | **Best quality at acceptable speed** |
 | distiluse-base-multilingual-cased-v2 | 135M | 512 | Good | ~18s | ~50ms | Older, less accurate |
 
 **Decision factors:**
 1. **Offline-only:** Model runs locally via `sentence-transformers`, no API calls. Downloaded once to `~/.cache/huggingface/`, works permanently offline.
-2. **French accuracy:** Benchmarked on our exact use case (see calibration below). Correctly scores "un truc d'immunologie" at 0.92 similarity to immunology references -- the exact failure case that motivated this work.
-3. **Speed:** 40ms per encoding on CPU (Windows, i7). Total scoring path (encode user text + cosine similarity against cached refs) under 50ms. Well within the 500ms budget.
-4. **Disk/memory footprint:** 470MB on disk, ~500MB RAM. Acceptable for a desktop research platform.
+2. **French accuracy:** Benchmarked on our exact use case (see calibration below). Correctly scores "un truc d'immunologie" at 0.92 similarity to immunology references.
+3. **Speed:** ~80ms per encoding on CPU (Windows, i7). Total scoring path (encode user text + cosine similarity against cached refs) under 100ms. Well within the 500ms budget.
+4. **Disk/memory footprint:** ~470MB on disk, ~500MB RAM. Acceptable for a desktop research platform.
+5. **Quality:** MPNet architecture (full Transformer) produces higher-quality 768-dim embeddings than MiniLM's 384-dim distilled representations, providing better separation between correct and incorrect answers.
 
 ### Calibration data (measured)
 
@@ -64,11 +65,11 @@ Reference: "immunomodulateurs pour les infections respiratoires recurrentes chez
 
 ---
 
-## 2. Segmentation Strategy — Reference Answer Levels
+## 2. Segmentation Strategy -- Reference Answer Levels
 
 ### Structure
 
-Each GA image's JSON metadata gains a `semantic_references` object containing reference texts at three levels of specificity. The scoring function computes similarity against ALL references and takes the maximum.
+Each GA image's JSON metadata contains a `semantic_references` object with reference texts at three levels of specificity. The scoring function computes similarity against ALL references and takes the maximum.
 
 ```json
 {
@@ -80,12 +81,11 @@ Each GA image's JSON metadata gains a `semantic_references` object containing re
     ],
     "L2_specific": [
       "immunomodulateurs pour les infections respiratoires recurrentes pediatriques",
-      "comparaison de traitements immunomodulateurs pour les RTIs chez les enfants",
-      "prevention des infections respiratoires recurrentes par immunomodulation"
+      "comparaison de traitements immunomodulateurs pour les RTIs chez les enfants"
     ],
     "L3_detailed": [
-      "OM-85 possede le plus haut niveau de preuve parmi les immunomodulateurs pour les infections respiratoires recurrentes pediatriques",
-      "le lysat bacterien OM-85 est le mieux documente pour reduire les episodes de RTI chez les enfants"
+      "OM-85 possede le plus haut niveau de preuve parmi les immunomodulateurs",
+      "le lysat bacterien OM-85 est le mieux documente pour reduire les episodes de RTI"
     ]
   }
 }
@@ -93,27 +93,29 @@ Each GA image's JSON metadata gains a `semantic_references` object containing re
 
 ### Level definitions
 
-| Level | What it captures | Example (immunomod GA) | Typical sim for correct answer |
-|-------|-----------------|------------------------|-------------------------------|
-| **L1 (broad topic)** | The domain/field. A participant who says "something about immunology" has broadly identified the subject. | "immunologie", "infections respiratoires" | 0.5-0.9 |
-| **L2 (specific subject)** | The actual subject of the GA. A participant who identifies the comparison being shown. | "comparaison d'immunomodulateurs pour les RTIs pediatriques" | 0.6-0.9 |
-| **L3 (mechanism + hierarchy)** | The key finding or hierarchy. A participant who identifies the main conclusion. | "OM-85 a le plus de preuves cliniques" | 0.7-0.9 |
+| Level | What it captures | Typical sim for correct answer |
+|-------|-----------------|-------------------------------|
+| **L1 (broad topic)** | The domain/field. "something about immunology" | 0.5-0.9 |
+| **L2 (specific subject)** | What the GA is comparing | 0.6-0.9 |
+| **L3 (mechanism + hierarchy)** | The key finding or hierarchy winner | 0.7-0.9 |
 
 ### Why multiple levels?
 
 S9a is a PASS/FAIL gate, not a graded score. But using multi-level references means the system can:
-1. **Credit vague-but-correct answers** by matching L1 references ("un truc d'immunologie" matches L1 at 0.92)
+1. **Credit vague-but-correct answers** by matching L1 references
 2. **Provide richer float scores** for analysis (a 0.92 vs 0.55 tells us about comprehension depth even though both pass)
 3. **Resist false positives** from wrong-domain answers that might coincidentally share vocabulary
 
 ### Reference text guidelines
 
 When writing reference texts for a new GA:
-- **L1:** 2-4 short phrases. Use broad domain terms. Include French and abbreviated forms.
+- **L1:** 2-5 short phrases. Use broad domain terms. Include French, English, and abbreviations.
 - **L2:** 2-4 sentences. Describe what the GA shows without naming the conclusion.
 - **L3:** 1-3 sentences. State the main finding/hierarchy explicitly.
 - **No accents required.** The model handles accented and unaccented French equivalently.
 - **Avoid product names in L1/L2.** Product names alone ("OM-85") carry little semantic signal. They belong in L3 where they're embedded in context.
+
+All 47 images in the library have complete semantic_references in their sidecar JSON files.
 
 ---
 
@@ -128,7 +130,7 @@ score = max( cos_sim(embed(user_text), embed(ref_i)) for ref_i in all_references
 Where:
 - `all_references` = L1 + L2 + L3 texts concatenated into a single list
 - `cos_sim` = cosine similarity, range [-1, 1] (in practice [0, 1] for same-language text)
-- `embed()` = `paraphrase-multilingual-MiniLM-L12-v2` encoding, normalized to unit length
+- `embed()` = `paraphrase-multilingual-mpnet-base-v2` encoding, L2-normalized to unit length
 
 ### Why max-over-all-references?
 
@@ -155,8 +157,8 @@ S9A_PASS_THRESHOLD = 0.40
 | Case | Behavior |
 |------|----------|
 | **Empty answer** (`""`, whitespace) | Return score=0.0, pass=False immediately. No model call. |
-| **Very short answer** (`"oui"`, `"non"`) | Model encodes it; will naturally score low against domain refs. No special handling needed. |
-| **Very long answer** (multiple sentences) | Model truncates at 128 tokens (MiniLM default). For free-recall text after 5s exposure, this is never a constraint. |
+| **Very short answer** (`"oui"`, `"non"`) | Model encodes it; will naturally score low against domain refs. |
+| **Very long answer** (multiple sentences) | Model truncates at 128 tokens. For free-recall text after 5s exposure, this is never a constraint. |
 | **Mixed language** (French + English) | Model is multilingual; handles code-switching naturally. |
 | **Product name only** (`"OM-85"`) | Scores ~0.53 against L3 refs that mention it in context. Passes correctly. |
 
@@ -165,7 +167,6 @@ S9A_PASS_THRESHOLD = 0.40
 ```python
 def score_s9a_semantic(user_text: str, ga_metadata: dict) -> tuple[float, bool]:
     """Returns (float_score, bool_pass).
-
     float_score: 0.0 to 1.0 (cosine similarity, max over all references)
     bool_pass: True if float_score >= S9A_PASS_THRESHOLD
     """
@@ -179,29 +180,29 @@ The float score is preserved in the database for analysis even though S9a is bin
 
 ### Reference embedding precomputation
 
-Reference texts are embedded once per GA image and cached. This avoids re-encoding the same 8-10 reference strings on every test submission.
+Reference texts are embedded once per GA image and cached. This avoids re-encoding the same reference strings on every test submission.
 
 ```
-GA JSON file  -->  load_references()  -->  embed()  -->  cache (in-memory dict)
-                                                              |
-                                                         key: ga_image_id
-                                                         value: np.ndarray (N_refs x 384)
+GA JSON file  -->  _collect_references()  -->  embed_batch()  -->  cache (in-memory dict)
+                                                                         |
+                                                                    key: version string
+                                                                    value: np.ndarray (N_refs x 768)
 ```
 
 ### Cache strategy
 
-**In-memory dict**, keyed by `ga_image_id`. Rationale:
-- There are very few GA images (currently 2, likely < 50 in any study)
-- Each image's reference embeddings are ~8 refs x 384 floats = 12 KB
-- Total cache for 50 images: ~600 KB. Negligible.
-- No need for SQLite BLOBs or separate files. The cache rebuilds on first access in < 1 second.
+**In-memory dict**, keyed by GA `version` string. Rationale:
+- There are 47 GA images (likely < 100 in any study)
+- Each image's reference embeddings are ~8-12 refs x 768 floats = ~24-36 KB
+- Total cache for 100 images: ~3.6 MB. Negligible.
+- No need for SQLite BLOBs or separate files. The cache rebuilds on first access in < 2 seconds.
 
 ```python
-_ref_cache: dict[str, np.ndarray] = {}  # ga_image_id -> (N, 384) array
+_ref_cache: dict[str, np.ndarray] = {}  # version -> (N, 768) array
 
 def _get_ref_embeddings(ga_metadata: dict) -> np.ndarray:
     """Get or compute reference embeddings for a GA image."""
-    cache_key = f"{ga_metadata.get('version', 'unknown')}"
+    cache_key = ga_metadata.get('version', 'unknown')
     if cache_key not in _ref_cache:
         refs = _collect_references(ga_metadata)
         _ref_cache[cache_key] = embed_batch(refs)
@@ -214,7 +215,7 @@ The cache is invalidated when:
 1. **Process restarts** (it's in-memory, not persisted)
 2. **`clear_cache()` is called explicitly** (exposed for testing/development)
 
-Since reference texts change only when a GA's JSON metadata is edited (rare, manual action), this is sufficient. There is no automatic file-watch mechanism -- that would add complexity without value.
+Since reference texts change only when a GA's JSON metadata is edited (rare, manual action), this is sufficient.
 
 ### User answer embedding
 
@@ -222,31 +223,22 @@ Computed at scoring time, not cached. Each user answer is unique and seen exactl
 
 ```
 user free-recall text  -->  embed(text)  -->  cos_sim(user_emb, ref_embs)  -->  max  -->  score
-       ~40ms                                        <1ms                                 total ~41ms
+       ~80ms                                        <1ms                                 total ~81ms
 ```
-
-### Updating reference texts
-
-To update reference texts for a GA image:
-1. Edit the `semantic_references` field in the GA's JSON file
-2. Restart the server (or call `clear_cache()` from a debug endpoint)
-3. New reference embeddings are computed on next scoring call
-
-No migration needed. No database changes. The JSON files are the source of truth.
 
 ### Model loading
 
 The embedding model is loaded lazily on first call to `embed()`. This avoids:
-- Slowing down server startup by 15s
+- Slowing down server startup by ~25s
 - Loading the model when no tests are submitted (e.g., dashboard-only access)
 
 ```python
 _model = None
 
-def _load_model():
+def load_model():
     global _model
     if _model is None:
-        _model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
+        _model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-mpnet-base-v2')
     return _model
 ```
 
@@ -254,13 +246,12 @@ def _load_model():
 
 ```
 s2b/
-  semantic.py          <-- this module (all embedding + scoring logic)
-  scoring.py           <-- existing keyword scoring (untouched, remains as fallback)
+  semantic.py          <-- all embedding + scoring logic
+  scoring.py           <-- S9b, S9c scoring + S9a stub (backward compat, always returns False)
   ga_library/
-    immunomod_v10_wireframe.json      <-- gains semantic_references field
-    immunomod_v2a4_infographic.json   <-- gains semantic_references field
+    *.json             <-- 47 sidecar files, each with semantic_references
   docs/
-    SEMANTIC_SCORING.md               <-- this document
+    SEMANTIC_SCORING.md  <-- this document
 ```
 
 ---
@@ -273,7 +264,8 @@ Semantic scoring is fully wired into the app:
 2. `app.py` `submit_test()` loads GA metadata from the sidecar JSON file and passes it through
 3. The float `s9a_score` is stored in the `tests` table (`s9a_score REAL` column)
 4. `reveal.html` displays the semantic similarity as a percentage next to the S9a pass/fail icon
-5. Falls back gracefully (s9a=False, s9a_score=0.0) if `sentence-transformers` is not installed
+5. `dashboard.html` shows aggregate S9a pass rates
+6. Falls back gracefully (s9a=False, s9a_score=0.0) if `sentence-transformers` is not installed
 
 ---
 
@@ -289,13 +281,16 @@ All hardcoded constants across the S2b Python codebase, classified per Mind Prot
 | S2b composite weights | 0.2, 0.5, 0.3 | scoring.py | PHENOMENON | S2b_Mathematics.md section 7: S9b=50% (primary metric), S9c=30% (end goal), S9a=20% (noisy recall) |
 | S9c graduated scale | 0, 0.5, 1.0 | scoring.py | PHENOMENON | S2b_Mathematics.md section 2: ordinal actionability (no/maybe/yes) |
 | McNemar chi2 critical | 3.84 | analytics.py | PHENOMENON | Chi-squared distribution, p=0.05, 1 degree of freedom |
-| `s9a_pass_threshold` | 0.40 | semantic.py | CALIBRATED | Gap analysis: off-topic <0.37, correct >0.52. Sample: 9 phrases, 2 GAs |
-| `semantic_model_name` | mpnet-base-v2 | semantic.py | CALIBRATED | Benchmarked in SEMANTIC_SCORING.md section 1. 4 models compared |
-| `rt2_fast_slow_ms` | 3000 | scoring.py | CALIBRATED | S2b_Mathematics.md section 3. Cognitive RT literature: pre-attentive <250ms, full decision 1-3s |
-| `rt2_hesitant_lost_ms` | 8000 | scoring.py | CALIBRATED | S2b_Mathematics.md section 3. Beyond 8s = no perceptual guidance |
-| `s2b_pass_threshold` | 0.70 | app.py | CALIBRATED | S2b_Mathematics.md section 7. Display boundary |
-| `mcnemar_min_pairs` | 10 | analytics.py | CALIBRATED | Statistical convention: chi2 approximation unreliable below N=10 pairs |
-| `cookie_max_age_seconds` | 2592000 | app.py | ARBITRARY | 30-day participant session. No scientific basis |
+| Embedding dimension | 768 | semantic.py | PHENOMENON | Determined by mpnet-base-v2 architecture, not a free constant |
+| S10 chance level | 1/3 = 0.33 | analytics.py | PHENOMENON | 3 thumbnails, uniform prior |
+| S10 threshold | 0.70 | analytics.py | CALIBRATED | S2b_Mathematics.md section 8: scroll-stopping validated |
+| `s9a_pass_threshold` | 0.40 | config.yaml | CALIBRATED | Gap analysis: off-topic <0.37, correct >0.52. Sample: 9 phrases |
+| `semantic_model_name` | mpnet-base-v2 | config.yaml | CALIBRATED | Benchmarked in this document section 1. 4 models compared |
+| `rt2_fast_slow_ms` | 3000 | config.yaml | CALIBRATED | S2b_Mathematics.md section 3. Cognitive RT literature |
+| `rt2_hesitant_lost_ms` | 8000 | config.yaml | CALIBRATED | S2b_Mathematics.md section 3. Beyond 8s = no perceptual guidance |
+| `s2b_pass_threshold` | 0.70 | config.yaml | CALIBRATED | S2b_Mathematics.md section 7. Display boundary |
+| `mcnemar_min_pairs` | 10 | config.yaml | CALIBRATED | Statistical convention: chi2 approximation unreliable below N=10 |
+| `cookie_max_age_seconds` | 2592000 | config.yaml | ARBITRARY | 30-day participant session. No scientific basis |
 
 ### Where they live
 

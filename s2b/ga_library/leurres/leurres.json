@@ -1,14 +1,84 @@
 {
   "leurres": [
-    "leurre_title_oncology.png",
-    "leurre_title_neuroscience.png",
-    "leurre_title_epidemiology.png",
-    "leurre_title_cardiology.png",
-    "leurre_figure_scatter.png",
-    "leurre_figure_line_pfs.png",
-    "leurre_figure_heatmap.png",
-    "leurre_ga_bar_comparison.png",
-    "leurre_ga_infographic_meta.png",
-    "leurre_ga_flowchart_prisma.png"
+    {
+      "filename": "leurre_title_oncology.png",
+      "title": "Pembrolizumab plus Chemotherapy in Advanced Non-Small-Cell Lung Cancer",
+      "author": "Dr. M. Reck et al.",
+      "journal": "NEJM",
+      "likes": 142,
+      "comments": 23
+    },
+    {
+      "filename": "leurre_title_neuroscience.png",
+      "title": "Hippocampal Sharp-Wave Ripples and Memory Consolidation During Sleep",
+      "author": "Dr. G. Buzsaki et al.",
+      "journal": "Nature Neuroscience",
+      "likes": 87,
+      "comments": 12
+    },
+    {
+      "filename": "leurre_title_epidemiology.png",
+      "title": "Global Burden of Disease Study 2019: Trends in Mortality",
+      "author": "GBD 2019 Collaborators",
+      "journal": "The Lancet",
+      "likes": 234,
+      "comments": 45
+    },
+    {
+      "filename": "leurre_title_cardiology.png",
+      "title": "SGLT2 Inhibitors and Cardiovascular Outcomes in Heart Failure",
+      "author": "Dr. J. McMurray et al.",
+      "journal": "NEJM",
+      "likes": 198,
+      "comments": 31
+    },
+    {
+      "filename": "leurre_figure_scatter.png",
+      "title": "Dose-Response Relationship in Phase III Immunotherapy Trials",
+      "author": "Dr. A. Ribas et al.",
+      "journal": "JCO",
+      "likes": 56,
+      "comments": 8
+    },
+    {
+      "filename": "leurre_figure_line_pfs.png",
+      "title": "Progression-Free Survival with Combined Checkpoint Inhibition",
+      "author": "Dr. J. Larkin et al.",
+      "journal": "NEJM",
+      "likes": 112,
+      "comments": 19
+    },
+    {
+      "filename": "leurre_figure_heatmap.png",
+      "title": "Transcriptomic Signatures of Treatment Response in Melanoma",
+      "author": "Dr. W. Hugo et al.",
+      "journal": "Cell",
+      "likes": 73,
+      "comments": 11
+    },
+    {
+      "filename": "leurre_ga_bar_comparison.png",
+      "title": "Comparative Efficacy of Biologic Therapies in Moderate-to-Severe Psoriasis",
+      "author": "Dr. K. Reich et al.",
+      "journal": "JAMA Dermatology",
+      "likes": 91,
+      "comments": 14
+    },
+    {
+      "filename": "leurre_ga_infographic_meta.png",
+      "title": "Physical Activity and Risk of Depression: Umbrella Review",
+      "author": "Dr. F. Schuch et al.",
+      "journal": "JAMA Psychiatry",
+      "likes": 167,
+      "comments": 28
+    },
+    {
+      "filename": "leurre_ga_flowchart_prisma.png",
+      "title": "Antibiotic Stewardship in Pediatric Acute Respiratory Infections",
+      "author": "Dr. C. Gerber et al.",
+      "journal": "Pediatrics",
+      "likes": 44,
+      "comments": 6
+    }
   ]
 }

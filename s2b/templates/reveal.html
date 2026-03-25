@@ -92,7 +92,11 @@
         <h2>Vos réponses</h2>
         <table class="result-table">
             <tr>
-                <td class="label">Rappel libre</td>
+                <td class="label">Rappel libre
+                    {% if test.q1_input_mode == 'voice' %}
+                    <span class="input-mode-tag input-mode-voice">voix</span>
+                    {% endif %}
+                </td>
                 <td>{{ test.q1_text or '(vide)' }}</td>
                 <td class="time">{{ (test.q1_time_ms / 1000) | round(1) }}s</td>
             </tr>

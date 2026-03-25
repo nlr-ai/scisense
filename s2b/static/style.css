@@ -787,6 +787,76 @@ textarea::placeholder {
     .question-text { font-size: var(--text-md); }
 }
 
+/* ─── Voice Input ─── */
+.voice-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-3);
+    padding: var(--sp-6) 0;
+    color: var(--text-muted);
+    font-size: var(--text-md);
+}
+.voice-pulse {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--fail);
+    animation: voice-pulse-anim 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+@keyframes voice-pulse-anim {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.5; }
+}
+.voice-transcript {
+    text-align: left;
+    max-width: 480px;
+    margin: 0 auto;
+}
+.transcript-text {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: var(--sp-4);
+    margin-bottom: var(--sp-4);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+    font-style: italic;
+    min-height: 2rem;
+    line-height: 1.5;
+}
+.voice-actions {
+    display: flex;
+    gap: var(--sp-3);
+    justify-content: center;
+    margin-top: var(--sp-4);
+}
+.voice-unsupported {
+    max-width: 480px;
+    margin: 0 auto;
+}
+.voice-unsupported p {
+    color: var(--fail);
+    font-size: var(--text-sm);
+    margin-bottom: var(--sp-4);
+}
+/* Input mode tag in reveal results */
+.input-mode-tag {
+    display: inline-block;
+    font-size: var(--text-xs);
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+    margin-left: var(--sp-2);
+    vertical-align: middle;
+    font-weight: 600;
+}
+.input-mode-voice {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--primary);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
 /* ─── Scrollbar (dark theme consistency) ─── */
 ::-webkit-scrollbar {
     width: 6px;

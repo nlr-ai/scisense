@@ -36,8 +36,33 @@
     <div class="state-panel hidden" id="panel-q1">
         <h2>Question 1/3</h2>
         <p class="question-text">{{ questions.q1 }}</p>
+        {% if input_mode == 'voice' %}
+        <div id="voice-panel">
+            <div id="voice-unsupported" class="voice-unsupported hidden">
+                <p>Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.</p>
+                <textarea id="q1-input" rows="3" placeholder="Decrivez ce que vous avez vu..." autofocus></textarea>
+                <button class="btn btn-primary" id="btn-q1">Suivant</button>
+            </div>
+            <div id="voice-supported">
+                <button class="btn btn-primary" id="btn-record">Parler</button>
+                <div id="voice-status" class="voice-status hidden">
+                    <div class="voice-pulse"></div>
+                    <span>Ecoute en cours...</span>
+                </div>
+                <div id="voice-transcript" class="voice-transcript hidden">
+                    <p id="transcript-text" class="transcript-text"></p>
+                    <textarea id="q1-input-voice" rows="3" placeholder="Transcript — corrigez si necessaire"></textarea>
+                    <div class="voice-actions">
+                        <button class="btn btn-secondary" id="btn-re-record">Recommencer</button>
+                        <button class="btn btn-primary" id="btn-q1">Valider</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
         <textarea id="q1-input" rows="3" placeholder="Décrivez ce que vous avez vu..." autofocus></textarea>
         <button class="btn btn-primary" id="btn-q1">Suivant</button>
+        {% endif %}
     </div>
 
     <!-- Q2: Product hierarchy -->
@@ -92,6 +117,8 @@
         <input type="hidden" name="exposure_actual_ms" id="f-exposure-actual" value="0">
         <input type="hidden" name="q1_first_keystroke_ms" id="f-q1-first-ks" value="0">
         <input type="hidden" name="q1_last_keystroke_ms" id="f-q1-last-ks" value="0">
+        <input type="hidden" name="q1_input_mode" id="f-q1-input-mode" value="text">
+        <input type="hidden" name="q1_raw_transcript" id="f-q1-raw-transcript" value="">
     </form>
 </div>
 {% endblock %}
@@ -100,6 +127,7 @@
 <script>
     const TIMER_MS = {{ timer_ms }};
     const COUNTDOWN_S = {{ countdown_s }};
+    const INPUT_MODE = "{{ input_mode }}";
 
     const panels = {
         briefing: document.getElementById('panel-briefing'),
@@ -120,6 +148,7 @@
         q1_text: '', q1_time: 0, q2_choice: '', q2_time: 0, q3_choice: '', q3_time: 0,
         tab_switched: false, exposure_actual_ms: 0,
         q1_first_keystroke_ms: 0, q1_last_keystroke_ms: 0,
+        q1_input_mode: 'text', q1_raw_transcript: '',
     };
 
     // Tab switch detection — silent flag per S2b_Mathematics.md
@@ -186,26 +215,133 @@
             showPanel('q1');
             q1Start = performance.now();
             questionStart = performance.now();
-            document.getElementById('q1-input').focus();
+            // Focus the appropriate input
+            const textInput = document.getElementById('q1-input');
+            if (textInput) textInput.focus();
         }, TIMER_MS);
     }
 
-    // Keystroke timing on Q1 textarea
-    document.getElementById('q1-input').addEventListener('keydown', () => {
-        const elapsed = Math.round(performance.now() - q1Start);
-        if (!responses.q1_first_keystroke_ms) {
-            responses.q1_first_keystroke_ms = elapsed;
-        }
-        responses.q1_last_keystroke_ms = elapsed;
-    });
+    // ── Voice mode setup ──
+    if (INPUT_MODE === 'voice') {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            // Browser doesn't support Web Speech API — show fallback
+            document.getElementById('voice-unsupported').classList.remove('hidden');
+            document.getElementById('voice-supported').classList.add('hidden');
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.continuous = true;
+            recognition.interimResults = true;
 
-    // Q1: free text
-    document.getElementById('btn-q1').addEventListener('click', () => {
-        responses.q1_text = document.getElementById('q1-input').value;
-        responses.q1_time = Math.round(performance.now() - questionStart);
-        showPanel('q2');
-        questionStart = performance.now();
-    });
+            let rawTranscript = '';
+            let isRecording = false;
+
+            const btnRecord = document.getElementById('btn-record');
+            const voiceStatus = document.getElementById('voice-status');
+            const voiceTranscript = document.getElementById('voice-transcript');
+            const transcriptText = document.getElementById('transcript-text');
+            const q1InputVoice = document.getElementById('q1-input-voice');
+            const btnReRecord = document.getElementById('btn-re-record');
+
+            btnRecord.addEventListener('click', () => {
+                recognition.start();
+                isRecording = true;
+                btnRecord.classList.add('hidden');
+                voiceStatus.classList.remove('hidden');
+                voiceTranscript.classList.add('hidden');
+            });
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                rawTranscript = transcript;
+                transcriptText.textContent = transcript;
+                q1InputVoice.value = transcript;
+                // Record first speech result as first "keystroke" equivalent
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                voiceStatus.classList.add('hidden');
+                voiceTranscript.classList.remove('hidden');
+            };
+
+            recognition.onerror = (event) => {
+                isRecording = false;
+                voiceStatus.classList.add('hidden');
+                if (event.error === 'not-allowed') {
+                    transcriptText.textContent = 'Acces au microphone refuse. Tapez votre reponse.';
+                }
+                voiceTranscript.classList.remove('hidden');
+            };
+
+            // Re-record button
+            btnReRecord.addEventListener('click', () => {
+                rawTranscript = '';
+                transcriptText.textContent = '';
+                q1InputVoice.value = '';
+                responses.q1_first_keystroke_ms = 0;
+                responses.q1_last_keystroke_ms = 0;
+                voiceTranscript.classList.add('hidden');
+                recognition.start();
+                isRecording = true;
+                voiceStatus.classList.remove('hidden');
+            });
+
+            // Track edits on transcript textarea
+            q1InputVoice.addEventListener('keydown', () => {
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            });
+
+            // Override Q1 button to capture voice data
+            document.getElementById('btn-q1').addEventListener('click', () => {
+                // Stop recognition if still running
+                if (isRecording) {
+                    recognition.stop();
+                }
+                responses.q1_text = q1InputVoice.value;
+                responses.q1_time = Math.round(performance.now() - questionStart);
+                responses.q1_input_mode = 'voice';
+                responses.q1_raw_transcript = rawTranscript;
+                showPanel('q2');
+                questionStart = performance.now();
+            });
+        }
+    }
+
+    // ── Text mode: keystroke timing + Q1 handler ──
+    if (INPUT_MODE === 'text' || !window.SpeechRecognition && !window.webkitSpeechRecognition) {
+        const q1Input = document.getElementById('q1-input');
+        if (q1Input) {
+            q1Input.addEventListener('keydown', () => {
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            });
+
+            document.getElementById('btn-q1').addEventListener('click', () => {
+                responses.q1_text = q1Input.value;
+                responses.q1_time = Math.round(performance.now() - questionStart);
+                responses.q1_input_mode = 'text';
+                showPanel('q2');
+                questionStart = performance.now();
+            });
+        }
+    }
 
     // Q2: product choice buttons
     document.querySelectorAll('#q2-choices .btn-choice').forEach(btn => {
@@ -249,6 +385,8 @@
         document.getElementById('f-exposure-actual').value = responses.exposure_actual_ms;
         document.getElementById('f-q1-first-ks').value = responses.q1_first_keystroke_ms;
         document.getElementById('f-q1-last-ks').value = responses.q1_last_keystroke_ms;
+        document.getElementById('f-q1-input-mode').value = responses.q1_input_mode;
+        document.getElementById('f-q1-raw-transcript').value = responses.q1_raw_transcript;
         document.getElementById('submit-form').submit();
     }
 </script>

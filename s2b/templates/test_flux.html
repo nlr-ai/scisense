@@ -27,6 +27,9 @@
         overflow: hidden;
         background: #111;
         border-radius: 8px;
+        /* Cards with chrome are taller than raw images. Min-height ensures visibility. */
+        min-height: 350px;
+        aspect-ratio: 1100 / 700;
     }
     .flux-feed-item {
         position: absolute;
@@ -47,10 +50,67 @@
         opacity: 0;
         transform: translateY(-40px);
     }
+    .flux-card {
+        background: #1e293b;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #334155;
+    }
+    .flux-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 0.75rem;
+    }
+    .flux-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #3b82f6;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    .flux-card-meta {
+        min-width: 0;
+    }
+    .flux-author {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .flux-journal {
+        font-size: 0.7rem;
+        color: #64748b;
+    }
+    .flux-card-title {
+        padding: 0 0.75rem 0.5rem;
+        font-size: 0.82rem;
+        color: #94a3b8;
+        line-height: 1.3;
+    }
     .flux-feed-item img {
         width: 100%;
         height: auto;
         display: block;
+    }
+    .flux-card-actions {
+        display: flex;
+        gap: 1.5rem;
+        padding: 0.5rem 0.75rem;
+        border-top: 1px solid #334155;
+    }
+    .flux-action {
+        font-size: 0.75rem;
+        color: #64748b;
+        cursor: default;
     }
     .flux-progress {
         display: flex;
@@ -124,8 +184,8 @@
 {% block content %}
 <div class="arena" id="arena">
 
-    <!-- BRIEFING — no countdown, no timing mention, no priming -->
-    <div class="state-panel" id="panel-briefing">
+    <!-- BRIEFING — only shown on first test, then auto-skipped -->
+    <div class="state-panel {% if not first_test %}hidden{% endif %}" id="panel-briefing">
         <div class="flux-briefing">
             <h1>Contenu scientifique</h1>
             <p>Vous allez voir defiler du contenu scientifique. Parcourez-le naturellement, comme vous le feriez sur une revue en ligne.</p>
@@ -138,7 +198,24 @@
         <div class="flux-feed-container" id="feed-container">
             {% for item in feed_items %}
             <div class="flux-feed-item" data-index="{{ loop.index0 }}" data-filename="{{ item.filename }}">
-                <img src="{{ item.path }}" alt="Content">
+                <div class="flux-card">
+                    <div class="flux-card-header">
+                        <div class="flux-avatar">{{ item.author[:1] if item.author else 'R' }}</div>
+                        <div class="flux-card-meta">
+                            <div class="flux-author">{{ item.author or 'Research Team' }}</div>
+                            <div class="flux-journal">{{ item.journal or 'Journal' }} · {{ ['2h', '4h', '6h', '1d', '3d'] | random }}</div>
+                        </div>
+                    </div>
+                    {% if item.title %}
+                    <div class="flux-card-title">{{ item.title }}</div>
+                    {% endif %}
+                    <img src="{{ item.path }}" alt="Content">
+                    <div class="flux-card-actions">
+                        <span class="flux-action">&#9825; {{ item.likes or 0 }}</span>
+                        <span class="flux-action">&#128172; {{ item.comments or 0 }}</span>
+                        <span class="flux-action">&#8599; Share</span>
+                    </div>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -167,8 +244,33 @@
     <div class="state-panel hidden" id="panel-q1">
         <h2>Question 1/4</h2>
         <p class="question-text">{{ questions.q1 }}</p>
+        {% if input_mode == 'voice' %}
+        <div id="voice-panel">
+            <div id="voice-unsupported" class="voice-unsupported hidden">
+                <p>Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome ou Edge.</p>
+                <textarea id="q1-input" rows="3" placeholder="Decrivez ce que vous avez vu..." autofocus></textarea>
+                <button class="btn btn-primary" id="btn-q1">Suivant</button>
+            </div>
+            <div id="voice-supported">
+                <button class="btn btn-primary" id="btn-record">Parler</button>
+                <div id="voice-status" class="voice-status hidden">
+                    <div class="voice-pulse"></div>
+                    <span>Ecoute en cours...</span>
+                </div>
+                <div id="voice-transcript" class="voice-transcript hidden">
+                    <p id="transcript-text" class="transcript-text"></p>
+                    <textarea id="q1-input-voice" rows="3" placeholder="Transcript — corrigez si necessaire"></textarea>
+                    <div class="voice-actions">
+                        <button class="btn btn-secondary" id="btn-re-record">Recommencer</button>
+                        <button class="btn btn-primary" id="btn-q1">Valider</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
         <textarea id="q1-input" rows="3" placeholder="Decrivez ce que vous avez vu..." autofocus></textarea>
         <button class="btn btn-primary" id="btn-q1">Suivant</button>
+        {% endif %}
     </div>
 
     <!-- Q2: Product hierarchy -->
@@ -228,6 +330,8 @@
         <input type="hidden" name="stream_length" id="f-stream-length">
         <input type="hidden" name="stream_selected_id" id="f-stream-selected-id">
         <input type="hidden" name="target_filename" id="f-target-filename">
+        <input type="hidden" name="q1_input_mode" id="f-q1-input-mode" value="text">
+        <input type="hidden" name="q1_raw_transcript" id="f-q1-raw-transcript" value="">
     </form>
 </div>
 {% endblock %}
@@ -239,6 +343,7 @@
     const TARGET_POSITION = {{ target_position }};  // 0-indexed
     const TARGET_FILENAME = "{{ target_filename }}";
     const FEED_COUNT = {{ feed_items | length }};
+    const INPUT_MODE = "{{ input_mode }}";
 
     const panels = {
         briefing: document.getElementById('panel-briefing'),
@@ -260,6 +365,7 @@
         tab_switched: false, exposure_actual_ms: 0,
         q1_first_keystroke_ms: 0, q1_last_keystroke_ms: 0,
         stream_selected_id: '',
+        q1_input_mode: 'text', q1_raw_transcript: '',
     };
 
     // Tab switch detection during feed
@@ -298,11 +404,17 @@
     setContainerHeight();
     window.addEventListener('resize', setContainerHeight);
 
-    // ── Start button ──
+    // ── Start button or auto-start ──
+    const firstTest = {{ 'true' if first_test else 'false' }};
     document.getElementById('btn-start').addEventListener('click', () => {
         showPanel('feed');
         startFeed();
     });
+    if (!firstTest) {
+        // Skip briefing — auto-start feed
+        showPanel('feed');
+        startFeed();
+    }
 
     // ── Feed auto-scroll ──
     function startFeed() {
@@ -365,26 +477,133 @@
             showPanel('q1');
             q1Start = performance.now();
             questionStart = performance.now();
-            document.getElementById('q1-input').focus();
+            // Focus the appropriate input
+            const textInput = document.getElementById('q1-input');
+            if (textInput) textInput.focus();
         });
     });
 
-    // ── Keystroke timing on Q1 ──
-    document.getElementById('q1-input').addEventListener('keydown', () => {
-        const elapsed = Math.round(performance.now() - q1Start);
-        if (!responses.q1_first_keystroke_ms) {
-            responses.q1_first_keystroke_ms = elapsed;
-        }
-        responses.q1_last_keystroke_ms = elapsed;
-    });
+    // ── Voice mode setup ──
+    if (INPUT_MODE === 'voice') {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            // Browser doesn't support Web Speech API — show fallback
+            document.getElementById('voice-unsupported').classList.remove('hidden');
+            document.getElementById('voice-supported').classList.add('hidden');
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'fr-FR';
+            recognition.continuous = true;
+            recognition.interimResults = true;
 
-    // ── Q1: free text ──
-    document.getElementById('btn-q1').addEventListener('click', () => {
-        responses.q1_text = document.getElementById('q1-input').value;
-        responses.q1_time = Math.round(performance.now() - questionStart);
-        showPanel('q2');
-        questionStart = performance.now();
-    });
+            let rawTranscript = '';
+            let isRecording = false;
+
+            const btnRecord = document.getElementById('btn-record');
+            const voiceStatus = document.getElementById('voice-status');
+            const voiceTranscript = document.getElementById('voice-transcript');
+            const transcriptText = document.getElementById('transcript-text');
+            const q1InputVoice = document.getElementById('q1-input-voice');
+            const btnReRecord = document.getElementById('btn-re-record');
+
+            btnRecord.addEventListener('click', () => {
+                recognition.start();
+                isRecording = true;
+                btnRecord.classList.add('hidden');
+                voiceStatus.classList.remove('hidden');
+                voiceTranscript.classList.add('hidden');
+            });
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                rawTranscript = transcript;
+                transcriptText.textContent = transcript;
+                q1InputVoice.value = transcript;
+                // Record first speech result as first "keystroke" equivalent
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                voiceStatus.classList.add('hidden');
+                voiceTranscript.classList.remove('hidden');
+            };
+
+            recognition.onerror = (event) => {
+                isRecording = false;
+                voiceStatus.classList.add('hidden');
+                if (event.error === 'not-allowed') {
+                    transcriptText.textContent = 'Acces au microphone refuse. Tapez votre reponse.';
+                }
+                voiceTranscript.classList.remove('hidden');
+            };
+
+            // Re-record button
+            btnReRecord.addEventListener('click', () => {
+                rawTranscript = '';
+                transcriptText.textContent = '';
+                q1InputVoice.value = '';
+                responses.q1_first_keystroke_ms = 0;
+                responses.q1_last_keystroke_ms = 0;
+                voiceTranscript.classList.add('hidden');
+                recognition.start();
+                isRecording = true;
+                voiceStatus.classList.remove('hidden');
+            });
+
+            // Track edits on transcript textarea
+            q1InputVoice.addEventListener('keydown', () => {
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            });
+
+            // Override Q1 button to capture voice data
+            document.getElementById('btn-q1').addEventListener('click', () => {
+                // Stop recognition if still running
+                if (isRecording) {
+                    recognition.stop();
+                }
+                responses.q1_text = q1InputVoice.value;
+                responses.q1_time = Math.round(performance.now() - questionStart);
+                responses.q1_input_mode = 'voice';
+                responses.q1_raw_transcript = rawTranscript;
+                showPanel('q2');
+                questionStart = performance.now();
+            });
+        }
+    }
+
+    // ── Text mode: keystroke timing + Q1 handler ──
+    if (INPUT_MODE === 'text' || !window.SpeechRecognition && !window.webkitSpeechRecognition) {
+        const q1Input = document.getElementById('q1-input');
+        if (q1Input) {
+            q1Input.addEventListener('keydown', () => {
+                const elapsed = Math.round(performance.now() - q1Start);
+                if (!responses.q1_first_keystroke_ms) {
+                    responses.q1_first_keystroke_ms = elapsed;
+                }
+                responses.q1_last_keystroke_ms = elapsed;
+            });
+
+            document.getElementById('btn-q1').addEventListener('click', () => {
+                responses.q1_text = q1Input.value;
+                responses.q1_time = Math.round(performance.now() - questionStart);
+                responses.q1_input_mode = 'text';
+                showPanel('q2');
+                questionStart = performance.now();
+            });
+        }
+    }
 
     // ── Q2: product choice ──
     document.querySelectorAll('#q2-choices .btn-choice').forEach(btn => {
@@ -429,6 +648,8 @@
         document.getElementById('f-exposure-actual').value = responses.exposure_actual_ms;
         document.getElementById('f-q1-first-ks').value = responses.q1_first_keystroke_ms;
         document.getElementById('f-q1-last-ks').value = responses.q1_last_keystroke_ms;
+        document.getElementById('f-q1-input-mode').value = responses.q1_input_mode;
+        document.getElementById('f-q1-raw-transcript').value = responses.q1_raw_transcript;
         // Stream metadata
         document.getElementById('f-exposure-mode').value = 'stream';
         document.getElementById('f-stream-position').value = TARGET_POSITION + 1;  // 1-indexed for storage
