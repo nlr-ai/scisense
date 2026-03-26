@@ -1,0 +1,251 @@
+# Layout V13 — Restore clarity + hierarchy from V12 regression
+# V12 lesson: cutting mechanism box labels below comprehension threshold
+#   destroyed hierarchy. Word budget is SOFT (~35-40 OK). Hierarchy > parsimony.
+# V13 strategy: restore meaningful phrases, add mechanism icons, boost evidence prominence
+# All positions in fractions of canvas (0.0-1.0)
+
+canvas:
+  width: 3600          # same as V12
+  height: 2000         # same as V12
+  delivery_width: 1200
+  delivery_height: 667
+
+zones:
+  margin_left:
+    x_pct: 0.0
+    width_pct: 0.18
+  bronchus:
+    x_pct: 0.18
+    width_pct: 0.58
+  margin_right:
+    x_pct: 0.76
+    width_pct: 0.24
+
+# Bronchus vertical bounds — same as V12
+bronchus:
+  y_start_pct: 0.12
+  y_end_pct: 0.64
+  corner_radius: 22
+  border_width: 4
+  border_color: "#6B7280"
+  bands:
+    lumen:
+      height_pct: 0.15
+    epithelium:
+      height_pct: 0.28
+    lamina:
+      height_pct: 0.35
+    muscle:
+      height_pct: 0.22
+  separator_width: 5
+  separator_color: "#6B7280"
+  separator_dash: "12,6"
+
+# Gradient background — same as V12
+gradient:
+  left_color: "#FFE5E5"
+  center_color: "#FFFFFF"
+  right_color: "#E5FFF5"
+
+# Zone headers — MORE prominent (V13: bigger, bolder)
+zone_headers:
+  y_pct: 0.025
+  height: 62            # was 56 — more prominent
+  font_size: 46          # was 42 — more prominent
+  left:
+    bg_color: "#DC2626"
+    text_color: "#FFFFFF"
+    pill_rx: 22
+  center:
+    bg_color: "#E5E7EB"
+    text_color: "#1F2937"
+    pill_rx: 22
+  right:
+    bg_color: "#059669"
+    text_color: "#FFFFFF"
+    pill_rx: 22
+
+# Product pills — same as V12
+product_pills:
+  y_pct: 0.075
+  pill_height: 52
+  pill_rx: 24
+  pill_gap: 28
+  font_size: 34
+  text_color: "#FFFFFF"
+
+# Child silhouettes — keep V12 1.5x scale
+child_sick:
+  x_pct: 0.50
+  y_pct: 0.14
+  scale: 2.7
+
+child_healthy:
+  x_pct: 0.50
+  y_pct: 0.14
+  scale: 2.25
+
+# Disease cascade — keep V12 (short labels worked)
+disease_cascade:
+  y_start_pct: 0.50
+  step_height: 44
+  step_gap: 8
+  step_width_pct: 0.88
+  pill_rx: 12
+  font_size: 30
+  arrow_size: 14
+  bg_color: "#FEE2E2"
+  text_color: "#991B1B"
+  border_color: "#FECACA"
+  arrow_color: "#DC2626"
+
+# Vicious cycle — same as V12
+vicious_cycle:
+  center_x_pct: 0.50
+  center_y_pct: 0.70
+  radius_x: 150
+  radius_y: 118
+  stations:
+    - label: "Viral RTIs"
+      angle_deg: -90
+    - label: "Th2 bias"
+      angle_deg: 0
+    - label: "Remodeling"
+      angle_deg: 90
+    - label: "Re-suscept."
+      angle_deg: 170
+  bottom_label: "Wheezing/Asthma"
+  font_size: 32
+
+# Evidence bars — V13: MORE PROMINENT (key result: OM-85 has most evidence)
+evidence:
+  y_start_pct: 0.35       # was 0.38 — moved UP for more prominence
+  bar_height: 88           # was 80 — slightly taller
+  bar_gap: 24              # was 22 — more breathing room
+  max_width_pct: 0.94      # was 0.92 — slightly wider
+  title: "Clinical evidence"
+  title_font_size: 48      # was 44 — more prominent title
+  title_underline: true     # V13: underline the title
+  items:
+    - product: om85
+      width_pct: 1.0
+      label: "18 RCTs"
+      name: "OM-85"
+    - product: pmbl
+      width_pct: 0.55
+      label: "5 RCTs"
+      name: "PMBL"
+    - product: mv130
+      width_pct: 0.30
+      label: "1 RCT"
+      name: "MV130"
+    - product: crl1505
+      width_pct: 0.15
+      label: "Preclinical"
+      name: "CRL1505"
+
+# Mechanism boxes — V13: RESTORED meaningful labels + icons
+mechanism_boxes:
+  y_start_pct: 0.67
+  box_height: 68           # was 60 — taller to fit icon + restored text
+  box_gap: 12
+  box_rx: 12
+  border_left_width: 8
+  title_font_size: 34      # was 36 — slightly smaller since text is longer
+  subtitle_font_size: 0    # still no subtitle line
+  icon_size: 40            # V13: 40x40 icon left of text
+  icon_gap: 14             # gap between icon and text
+  bg_color: "#FFFFFF"
+  bg_opacity: 0.94
+  border_color: "#D1D5DB"
+
+# V13: connecting arrow from mechanism boxes to evidence bars
+mechanism_to_evidence_arrow:
+  enabled: true
+  stroke_width: 3
+  color: "#9CA3AF"
+  opacity: 0.5
+  dash: "8,4"
+
+# Product legend — same as V12
+legend:
+  y_pct: 0.93
+  square_size: 40
+  gap: 44
+  font_size: 40
+
+# CRL1505 relay arc — same as V12
+crl1505_relay:
+  gut_icon_y_pct: 0.95
+  gut_icon_x_pct: 0.60
+  target_band: "lamina"
+  target_x_pct: 0.75
+  arc_width: 7
+
+# Band content parameters — same as V12
+band_content:
+  lumen:
+    virus_count: 3
+    virus_radius: 28
+    virus_x_range: [0.05, 0.30]
+    iga_count: 4
+    iga_height: 40
+    iga_x_range: [0.70, 0.95]
+  epithelium:
+    cell_count: 24
+    cell_height_pct: 0.60
+    gap_count_sick: 6
+    gap_count_healthy: 0
+    shield_x_pct: 0.55
+    staple_x_range: [0.50, 0.85]
+  lamina:
+    split_pct: 0.45
+    dc_sick_x_pct: 0.20
+    dc_healthy_x_pct: 0.75
+    dc_radius: 48
+    helix_scale: 0.5
+    balance_x_pct: 0.70
+    balance_width: 130
+  muscle:
+    thickness_sick_pct: 1.0
+    thickness_healthy_pct: 0.45
+
+# Band labels — V13: SMALLER (technical noise for 5-second test, experts zoom in)
+band_labels:
+  font_size: 22            # was 28 — reduced (expert detail, not primary hierarchy)
+  color: "#6B7280"         # lighter to recede further
+
+# V10.5 organic density parameters (carried forward from V12)
+density:
+  lumen_stipple_density: 0.0008
+  epithelium_stipple_density: 0.0015
+  lamina_stipple_density: 0.0012
+  stipple_r_min: 1.0
+  stipple_r_max: 2.5
+  lamina_crosshatch_spacing: 28
+  lamina_crosshatch_opacity: 0.06
+  muscle_fiber_count: 16
+  muscle_fiber_opacity: 0.12
+  epithelium_cells: 42
+  tight_junction_n_zigs: 6
+  tight_junction_amplitude: 3
+  nucleus_probability: 0.7
+  cilia_per_cell: 6
+  cilia_wave_amplitude: 2
+  virus_count_extra: 4
+  virus_extra_radius: 16
+  virus_extra_x_range: [0.02, 0.38]
+  macrophage_count_sick: 2
+  macrophage_count_healthy: 3
+  macrophage_radius: 20
+  t_helper_count: 4
+  t_helper_radius: 14
+  treg_count: 2
+  treg_radius: 16
+  immune_scatter_density: 0.0006
+  immune_scatter_r_min: 3
+  immune_scatter_r_max: 6
+
+font:
+  family: "Helvetica, Arial, sans-serif"
+  min_size: 36

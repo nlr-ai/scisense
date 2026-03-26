@@ -1,96 +1,1585 @@
 {% extends "base.html" %}
-{% block title %}GLANCE — SciSense{% endblock %}
+{% from "_ga_score_macros.html" import score_badge, archetype_badge, verdict_label, verdict_color %}
+{% block title %}GLANCE — Testez votre œil scientifique{% endblock %}
 
 {% block head %}
 <style>
-.landing { text-align: center; padding-top: 2rem; }
-.landing-big {
-    font-size: 1.3rem;
-    line-height: 1.6;
-    color: var(--text, #e2e8f0);
+/* ===== GLANCE Landing Page — Self-contained styles =====
+   Professional scientific palette (Nature/PLOS ONE inspired)
+   ======================================================== */
+
+/* --- Break out of the .container wrapper from base.html --- */
+.container:has(.landing-page) {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
 }
-.landing-hook {
-    margin: 2rem auto;
-    max-width: 400px;
+/* Fallback for browsers without :has() — applied via JS */
+.container.landing-container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
 }
-.landing-steps {
+
+/* --- Color Palette --- */
+.landing-page {
+    --lp-navy: #1a2332;
+    --lp-navy-deep: #0f1722;
+    --lp-teal: #0d9488;
+    --lp-teal-light: #14b8a6;
+    --lp-amber: #f59e0b;
+    --lp-bg: #f8fafc;
+    --lp-card: #ffffff;
+    --lp-border: #e2e8f0;
+    --lp-text: #1a2332;
+    --lp-text-dim: #64748b;
+    --lp-text-muted: #94a3b8;
+    --lp-shadow-sm: 0 1px 3px rgba(26,35,50,0.06), 0 1px 2px rgba(26,35,50,0.04);
+    --lp-shadow-md: 0 4px 12px rgba(26,35,50,0.08), 0 2px 4px rgba(26,35,50,0.04);
+    --lp-shadow-hover: 0 8px 24px rgba(26,35,50,0.12), 0 4px 8px rgba(26,35,50,0.06);
+    --lp-radius: 12px;
+    --lp-font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+}
+
+/* ===== SECTION 1: HERO ===== */
+.lp-hero {
+    background: linear-gradient(165deg, var(--lp-navy-deep) 0%, var(--lp-navy) 40%, #1e3a5f 100%);
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.lp-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at 30% 50%, rgba(13,148,136,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 30%, rgba(59,130,246,0.06) 0%, transparent 50%);
+    pointer-events: none;
+}
+.lp-hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.lp-hero-badge {
+    display: inline-block;
+    padding: 0.375rem 1rem;
+    border: 1px solid rgba(13,148,136,0.3);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--lp-teal-light);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    background: rgba(13,148,136,0.08);
+}
+.lp-hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+}
+.lp-hero h1 span {
+    background: linear-gradient(135deg, var(--lp-teal-light), #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.lp-hero-sub {
+    font-size: 1.25rem;
+    color: #94a3b8;
+    font-weight: 300;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.lp-hero-cta {
+    display: inline-block;
+    padding: 1rem 3rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--lp-teal), #0ea5e9);
+    border-radius: 100px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(13,148,136,0.3);
+    letter-spacing: 0.01em;
+}
+.lp-hero-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(13,148,136,0.4);
+}
+
+/* Stats bar */
+.lp-stats-bar {
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-width: 350px;
-    margin: 2rem auto;
-    text-align: left;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2.5rem;
+    flex-wrap: wrap;
 }
-.landing-step {
+.lp-stat-pill {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    font-size: 1rem;
-    color: var(--text-muted, #94a3b8);
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 100px;
+    font-size: 0.875rem;
+    color: #cbd5e1;
 }
-.step-num {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--primary, #3b82f6);
-    color: white;
+.lp-stat-pill strong {
+    color: #ffffff;
+    font-family: var(--lp-font-mono);
+    font-weight: 700;
+}
+
+/* ===== SECTION 2: TOP GAs ===== */
+.lp-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3.5rem 2rem;
+}
+.lp-section-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+.lp-section-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--lp-navy);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+}
+.lp-section-header h2::after {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--lp-teal), var(--lp-amber));
+    border-radius: 2px;
+    margin: 0.75rem auto 0;
+}
+.lp-section-header p {
+    color: var(--lp-text-dim);
+    font-size: 0.9375rem;
+    margin-top: 0.5rem;
+}
+
+.lp-top-gas-bg {
+    background: var(--lp-bg);
+}
+.lp-top-gas-scroll {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+.lp-top-gas-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+.lp-top-gas-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+.lp-top-gas-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.lp-ga-card {
+    flex: 0 0 260px;
+    scroll-snap-align: start;
+    background: linear-gradient(135deg, var(--lp-card) 0%, #f8fafc 100%);
+    border: 1px solid var(--lp-border);
+    border-radius: var(--lp-radius);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--lp-shadow-sm);
+    transition: transform 0.2s, box-shadow 0.25s;
+}
+.lp-ga-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--lp-shadow-hover);
+}
+.lp-ga-card-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    background: #f1f5f9;
+    display: block;
+}
+.lp-ga-card-img.grayscale {
+    filter: grayscale(100%) opacity(0.5);
+}
+.lp-ga-card-body {
+    padding: 1.25rem;
+}
+.lp-ga-domain-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-radius: 4px;
+    background: rgba(13,148,136,0.1);
+    color: var(--lp-teal);
+    margin-bottom: 0.5rem;
+}
+.lp-ga-card-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--lp-text);
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Score bar */
+.lp-score-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.lp-score-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+}
+.lp-score-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s ease-out;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.lp-score-bar-fill.green { background: linear-gradient(90deg, #34d399, #10b981, #059669); }
+.lp-score-bar-fill.yellow { background: linear-gradient(90deg, #fbbf24, #eab308, #ca8a04); }
+.lp-score-bar-fill.orange { background: linear-gradient(90deg, #fb923c, #f97316, #ea580c); }
+.lp-score-bar-fill.red { background: linear-gradient(90deg, #f87171, #ef4444, #dc2626); }
+
+.lp-score-value {
+    font-family: var(--lp-font-mono);
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--lp-navy);
+    min-width: 36px;
+    text-align: right;
+}
+.lp-ga-tests {
+    font-size: 0.6875rem;
+    color: var(--lp-text-muted);
+    margin-top: 0.375rem;
+}
+
+/* GA card score hero area */
+.lp-ga-score-hero {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.lp-ga-score-hero .ga-score-badge {
+    flex-direction: row;
+    gap: 0.5rem;
+}
+.lp-ga-score-hero .ga-score-ring {
+    flex-shrink: 0;
+}
+.lp-ga-card .ga-archetype-badge {
+    margin-top: 0.25rem;
+    font-size: 0.625rem;
+    padding: 0.125rem 0.5rem;
+}
+
+/* Empty state for top GAs */
+.lp-coming-soon {
+    text-align: center;
+    padding: 2rem;
+    color: var(--lp-text-dim);
+    font-size: 0.9375rem;
+}
+.lp-coming-soon-subtitle {
+    font-size: 0.8125rem;
+    color: var(--lp-text-muted);
+    margin-top: 0.25rem;
+}
+
+/* ===== SECTION 3: HOW IT WORKS ===== */
+.lp-how-bg {
+    background: #ffffff;
+}
+.lp-how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+.lp-how-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    border-radius: var(--lp-radius);
+    border: 1px solid var(--lp-border);
+    background: var(--lp-bg);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.lp-how-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--lp-shadow-md);
+}
+.lp-how-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 1.75rem;
+}
+.lp-how-icon-1 { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+.lp-how-icon-2 { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
+.lp-how-icon-3 { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+
+.lp-how-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.lp-how-card h3 {
+    font-size: 1rem;
     font-weight: 700;
-    font-size: 0.9rem;
+    color: var(--lp-navy);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.01em;
+}
+.lp-how-card p {
+    font-size: 0.8125rem;
+    color: var(--lp-text-dim);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ===== SECTION 4: LIVE STATS ===== */
+.lp-live-bg {
+    background: linear-gradient(165deg, var(--lp-navy-deep), var(--lp-navy));
+    color: #ffffff;
+}
+.lp-live-bg .lp-section-header h2 {
+    color: #ffffff;
+}
+.lp-live-bg .lp-section-header p {
+    color: #94a3b8;
+}
+.lp-counters {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+.lp-counter-card {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--lp-radius);
+    transition: background 0.2s;
+}
+.lp-counter-card:hover {
+    background: rgba(255,255,255,0.08);
+}
+.lp-counter-value {
+    font-family: var(--lp-font-mono);
+    font-size: 2rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+.lp-counter-value.teal { color: var(--lp-teal-light); }
+.lp-counter-value.amber { color: var(--lp-amber); }
+.lp-counter-label {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+}
+
+/* ===== SECTION 5: DOMAIN GRID ===== */
+.lp-domains-bg {
+    background: var(--lp-bg);
+}
+.lp-domain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+.lp-domain-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem 1rem;
+    background: var(--lp-card);
+    border: 1px solid var(--lp-border);
+    border-radius: var(--lp-radius);
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--lp-shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    text-align: center;
+    opacity: 0;
+    animation: lpDomainFadeIn 0.4s ease forwards;
+}
+.lp-domain-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--lp-shadow-hover);
+    border-color: var(--lp-teal);
+}
+/* Stagger animation for domain cards */
+.lp-domain-card:nth-child(1) { animation-delay: 0.05s; }
+.lp-domain-card:nth-child(2) { animation-delay: 0.08s; }
+.lp-domain-card:nth-child(3) { animation-delay: 0.11s; }
+.lp-domain-card:nth-child(4) { animation-delay: 0.14s; }
+.lp-domain-card:nth-child(5) { animation-delay: 0.17s; }
+.lp-domain-card:nth-child(6) { animation-delay: 0.20s; }
+.lp-domain-card:nth-child(7) { animation-delay: 0.23s; }
+.lp-domain-card:nth-child(8) { animation-delay: 0.26s; }
+.lp-domain-card:nth-child(9) { animation-delay: 0.29s; }
+.lp-domain-card:nth-child(10) { animation-delay: 0.32s; }
+.lp-domain-card:nth-child(11) { animation-delay: 0.35s; }
+.lp-domain-card:nth-child(12) { animation-delay: 0.38s; }
+.lp-domain-card:nth-child(13) { animation-delay: 0.41s; }
+.lp-domain-card:nth-child(14) { animation-delay: 0.44s; }
+.lp-domain-card:nth-child(15) { animation-delay: 0.47s; }
+
+@keyframes lpDomainFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.lp-domain-card-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--lp-navy);
+    margin-bottom: 0.375rem;
+    line-height: 1.3;
+}
+.lp-domain-card-count {
+    font-family: var(--lp-font-mono);
+    font-size: 0.75rem;
+    color: var(--lp-text-muted);
+    font-weight: 500;
+}
+
+/* Domain accent dots */
+.lp-domain-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-bottom: 0.5rem;
+}
+.lp-domain-card:nth-child(6n+1) .lp-domain-dot { background: #0d9488; }
+.lp-domain-card:nth-child(6n+2) .lp-domain-dot { background: #6366f1; }
+.lp-domain-card:nth-child(6n+3) .lp-domain-dot { background: #f59e0b; }
+.lp-domain-card:nth-child(6n+4) .lp-domain-dot { background: #ec4899; }
+.lp-domain-card:nth-child(6n+5) .lp-domain-dot { background: #8b5cf6; }
+.lp-domain-card:nth-child(6n+6) .lp-domain-dot { background: #06b6d4; }
+
+/* ===== SECTION: EXAMPLE ANALYSIS ===== */
+.lp-example-bg {
+    background: #ffffff;
+}
+.lp-example-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    align-items: start;
+}
+/* Left column: GA image + radar */
+.lp-example-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+.lp-example-ga-wrap {
+    width: 280px;
+    border-radius: var(--lp-radius);
+    overflow: hidden;
+    border: 1px solid var(--lp-border);
+    box-shadow: var(--lp-shadow-md);
+}
+.lp-example-ga-img {
+    width: 100%;
+    display: block;
+}
+.lp-example-ga-label {
+    padding: 0.625rem 0.75rem;
+    background: var(--lp-bg);
+    border-top: 1px solid var(--lp-border);
+}
+.lp-example-ga-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--lp-navy);
+    line-height: 1.3;
+}
+.lp-example-ga-meta {
+    font-size: 0.6875rem;
+    color: var(--lp-text-muted);
+    margin-top: 0.125rem;
+}
+/* Radar chart container */
+.lp-example-radar-wrap {
+    width: 280px;
+    display: flex;
+    justify-content: center;
+}
+.lp-radar-grid { fill: none; stroke: var(--lp-border); stroke-width: 0.5; }
+.lp-radar-axis { stroke: var(--lp-border); stroke-width: 0.5; }
+.lp-radar-shape { fill: rgba(13,148,136,0.15); stroke: var(--lp-teal); stroke-width: 2; }
+.lp-radar-dot { fill: var(--lp-teal); }
+.lp-radar-text { font-size: 10px; fill: var(--lp-text-dim); font-weight: 600; text-anchor: middle; }
+
+/* Right column: score cards + recommendation */
+.lp-example-right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.lp-example-scores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+.lp-ex-score-card {
+    background: var(--lp-bg);
+    border: 1px solid var(--lp-border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: var(--lp-shadow-sm);
+}
+.lp-ex-score-card.highlight {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, var(--lp-navy-deep), var(--lp-navy));
+    border-color: rgba(13,148,136,0.3);
+}
+.lp-ex-score-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--lp-text-muted);
+    font-weight: 600;
+    margin-bottom: 0.375rem;
+}
+.lp-ex-score-card.highlight .lp-ex-score-label {
+    color: #94a3b8;
+}
+.lp-ex-score-value {
+    font-family: var(--lp-font-mono);
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--lp-navy);
+    line-height: 1.1;
+}
+.lp-ex-score-card.highlight .lp-ex-score-value {
+    font-size: 2.25rem;
+    color: #ffffff;
+}
+.lp-ex-score-verdict {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+.lp-ex-score-card.highlight .lp-ex-score-verdict {
+    color: rgba(255,255,255,0.7);
+}
+
+/* Recommendation box */
+.lp-example-reco {
+    background: var(--lp-bg);
+    border: 1px solid var(--lp-border);
+    border-left: 4px solid var(--lp-amber);
+    border-radius: 0 10px 10px 0;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+}
+.lp-example-reco-icon {
+    font-size: 1.25rem;
     flex-shrink: 0;
+    line-height: 1.4;
 }
-.btn-large {
-    padding: 1rem 3rem;
-    font-size: 1.2rem;
+.lp-example-reco-text {
+    font-size: 0.875rem;
+    color: var(--lp-text);
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+/* CTA button */
+.lp-example-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
     font-weight: 700;
-    display: inline-block;
-    margin: 1rem 0;
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--lp-teal), #0ea5e9);
+    border-radius: 100px;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(13,148,136,0.3);
+    align-self: flex-start;
+    margin-top: 0.5rem;
 }
-.landing-footer {
-    margin-top: 2rem;
-    font-size: 0.8rem;
-    color: var(--text-dim, #64748b);
+.lp-example-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(13,148,136,0.4);
 }
-.landing-link {
-    color: var(--text-muted, #94a3b8);
-    text-decoration: underline;
+.lp-example-cta svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lp-example-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .lp-example-left {
+        align-items: center;
+    }
+    .lp-example-right {
+        align-items: center;
+    }
+    .lp-example-cta {
+        align-self: center;
+    }
+    .lp-example-scores {
+        width: 100%;
+        max-width: 400px;
+    }
+    .lp-example-reco {
+        max-width: 400px;
+        width: 100%;
+    }
+}
+@media (max-width: 480px) {
+    .lp-example-ga-wrap {
+        width: 240px;
+    }
+    .lp-example-radar-wrap {
+        width: 240px;
+    }
+    .lp-example-scores {
+        grid-template-columns: 1fr;
+    }
+    .lp-ex-score-card.highlight {
+        grid-column: auto;
+    }
+}
+
+/* ===== SECTION 6: FOOTER ===== */
+.lp-footer {
+    background: var(--lp-navy-deep);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+.lp-footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+.lp-footer-links a {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    transition: color 0.2s;
+}
+.lp-footer-links a:hover {
+    color: var(--lp-teal-light);
+}
+.lp-footer-brand {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+.lp-footer-paper {
+    font-size: 0.6875rem;
+    color: #475569;
+    font-style: italic;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .lp-hero { padding: 3rem 1.25rem 2.5rem; }
+    .lp-hero h1 { font-size: 2.5rem; }
+    .lp-hero-sub { font-size: 1.0625rem; }
+    .lp-stats-bar { gap: 0.75rem; }
+    .lp-stat-pill { font-size: 0.75rem; padding: 0.375rem 0.75rem; }
+
+    .lp-section { padding: 2.5rem 1.25rem; }
+
+    .lp-how-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .lp-how-card { padding: 1.5rem 1.25rem; }
+
+    .lp-counters {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .lp-domain-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .lp-ga-card { flex: 0 0 200px; }
+    .lp-ga-card-img { height: 130px; }
+}
+
+@media (max-width: 480px) {
+    .lp-hero h1 { font-size: 2rem; }
+    .lp-hero-sub { font-size: 0.9375rem; }
+    .lp-hero-cta { padding: 0.875rem 2.25rem; font-size: 1rem; }
+
+    .lp-domain-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .lp-counter-value { font-size: 1.5rem; }
+    .lp-counters { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===== L3 Graph Decorations ===== */
+.graph-decoration {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    overflow: visible;
+}
+/* Hero graph — large, centered behind title */
+.graph-hero {
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    height: 520px;
+    opacity: 0.12;
+}
+/* Stats graph — offset right, behind live counters */
+.graph-stats {
+    top: -30px;
+    right: -100px;
+    width: 550px;
+    height: 420px;
+    opacity: 0.10;
+}
+/* Domain graph — bottom-left behind domain grid */
+.graph-domains {
+    bottom: -20px;
+    left: -80px;
+    width: 480px;
+    height: 360px;
+    opacity: 0.08;
+}
+/* Make sections that need graph BGs position-relative */
+.lp-live-bg,
+.lp-domains-bg {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle node pulse animation (8-10s cycle) */
+@keyframes graphNodePulse {
+    0%, 100% { opacity: 0.65; }
+    50% { opacity: 1; }
+}
+@keyframes graphNodePulseB {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.95; }
+}
+/* Slow dash animation for accent links */
+@keyframes graphLinkDash {
+    to { stroke-dashoffset: -28; }
+}
+
+.gn-pulse   { animation: graphNodePulse  8s ease-in-out infinite; }
+.gn-pulse-b { animation: graphNodePulse 10s ease-in-out 2s infinite; }
+.gn-pulse-c { animation: graphNodePulseB  9s ease-in-out 4s infinite; }
+.gl-dash    { stroke-dasharray: 8 16; animation: graphLinkDash 14s linear infinite; }
+
+/* Responsive: shrink/hide decorations on smaller screens */
+@media (max-width: 768px) {
+    .graph-hero { width: 640px; height: 400px; opacity: 0.09; }
+    .graph-stats { width: 400px; height: 320px; right: -120px; }
+    .graph-domains { width: 360px; height: 280px; left: -100px; }
+}
+@media (max-width: 480px) {
+    .graph-hero { width: 440px; height: 300px; opacity: 0.07; }
+    .graph-stats { display: none; }
+    .graph-domains { display: none; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="landing">
-    <h1>GLANCE</h1>
-    <p class="subtitle">Testez votre oeil scientifique en 2 minutes</p>
+<div class="landing-page">
 
-    <div class="card landing-hook">
-        <p class="landing-big">Un feed scientifique defile.<br>
-        Une image cache un piege.<br>
-        <strong>Saurez-vous la reperer ?</strong></p>
+<!-- ===== SECTION 1: HERO ===== -->
+<div class="lp-hero">
+    {# ── L3 Graph Decoration: Hero ──
+       Inspired by glance_ga_graph.yaml (19 nodes, 38 links).
+       Decorative constellation of interconnected nodes behind the title. #}
+    <svg class="graph-decoration graph-hero" viewBox="0 0 900 520" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+            <filter id="glow-h" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+        </defs>
+        <!-- Structural links (subtle gray) -->
+        <g stroke="#94a3b8" stroke-width="0.8" opacity="0.3">
+            <line x1="130" y1="85"  x2="275" y2="135"/>
+            <line x1="275" y1="135" x2="420" y2="95"/>
+            <line x1="420" y1="95"  x2="570" y2="145"/>
+            <line x1="570" y1="145" x2="720" y2="105"/>
+            <line x1="275" y1="135" x2="325" y2="248"/>
+            <line x1="420" y1="95"  x2="395" y2="218"/>
+            <line x1="570" y1="145" x2="525" y2="268"/>
+            <line x1="130" y1="85"  x2="185" y2="208"/>
+            <line x1="720" y1="105" x2="670" y2="238"/>
+            <line x1="185" y1="208" x2="325" y2="248"/>
+            <line x1="325" y1="248" x2="395" y2="218"/>
+            <line x1="395" y1="218" x2="525" y2="268"/>
+            <line x1="525" y1="268" x2="670" y2="238"/>
+            <line x1="185" y1="208" x2="235" y2="338"/>
+            <line x1="325" y1="248" x2="365" y2="355"/>
+            <line x1="395" y1="218" x2="448" y2="348"/>
+            <line x1="525" y1="268" x2="565" y2="378"/>
+            <line x1="670" y1="238" x2="625" y2="368"/>
+            <line x1="235" y1="338" x2="365" y2="355"/>
+            <line x1="365" y1="355" x2="448" y2="348"/>
+            <line x1="448" y1="348" x2="565" y2="378"/>
+            <line x1="565" y1="378" x2="625" y2="368"/>
+            <line x1="365" y1="355" x2="420" y2="455"/>
+            <line x1="448" y1="348" x2="420" y2="455"/>
+            <line x1="275" y1="135" x2="185" y2="208"/>
+            <line x1="570" y1="145" x2="670" y2="238"/>
+            <line x1="130" y1="85"  x2="420" y2="95"/>
+            <line x1="720" y1="105" x2="570" y2="145"/>
+        </g>
+        <!-- Accent links (teal, animated dash) -->
+        <g stroke="#0d9488" stroke-width="1.1" opacity="0.22">
+            <line x1="420" y1="95"  x2="325" y2="248" class="gl-dash"/>
+            <line x1="395" y1="218" x2="448" y2="348" class="gl-dash" style="animation-delay:-4s"/>
+            <line x1="525" y1="268" x2="365" y2="355" class="gl-dash" style="animation-delay:-9s"/>
+        </g>
+        <!-- Nodes (teal circles, varying size = weight) -->
+        <g filter="url(#glow-h)">
+            <!-- Row 1: top arc -->
+            <circle cx="130" cy="85"  r="11" fill="#0d9488" opacity="0.55" class="gn-pulse"/>
+            <circle cx="275" cy="135" r="17" fill="#0d9488" opacity="0.7"  class="gn-pulse-b"/>
+            <circle cx="420" cy="95"  r="22" fill="#0d9488" opacity="0.8"  class="gn-pulse"/>
+            <circle cx="570" cy="145" r="15" fill="#0d9488" opacity="0.65" class="gn-pulse-c"/>
+            <circle cx="720" cy="105" r="10" fill="#0d9488" opacity="0.5"  class="gn-pulse-b"/>
+            <!-- Row 2: middle band -->
+            <circle cx="185" cy="208" r="12" fill="#0d9488" opacity="0.55" class="gn-pulse-c"/>
+            <circle cx="325" cy="248" r="19" fill="#0d9488" opacity="0.75" class="gn-pulse-b"/>
+            <circle cx="395" cy="218" r="10" fill="#0d9488" opacity="0.5"  class="gn-pulse"/>
+            <circle cx="525" cy="268" r="16" fill="#0d9488" opacity="0.7"  class="gn-pulse-c"/>
+            <circle cx="670" cy="238" r="9"  fill="#0d9488" opacity="0.45" class="gn-pulse-b"/>
+            <!-- Row 3: lower band -->
+            <circle cx="235" cy="338" r="8"  fill="#0d9488" opacity="0.4"  class="gn-pulse"/>
+            <circle cx="365" cy="355" r="14" fill="#0d9488" opacity="0.6"  class="gn-pulse-c"/>
+            <circle cx="448" cy="348" r="11" fill="#0d9488" opacity="0.5"  class="gn-pulse-b"/>
+            <circle cx="565" cy="378" r="9"  fill="#0d9488" opacity="0.45" class="gn-pulse"/>
+            <circle cx="625" cy="368" r="7"  fill="#0d9488" opacity="0.35" class="gn-pulse-c"/>
+            <!-- Central anchor node (GLANCE = highest weight) -->
+            <circle cx="420" cy="455" r="24" fill="#0d9488" opacity="0.45" class="gn-pulse-b"/>
+            <!-- Peripheral dust -->
+            <circle cx="65"  cy="165" r="5" fill="#0d9488" opacity="0.2"/>
+            <circle cx="790" cy="185" r="6" fill="#0d9488" opacity="0.2"/>
+            <circle cx="95"  cy="395" r="4" fill="#0d9488" opacity="0.15"/>
+            <circle cx="760" cy="350" r="5" fill="#0d9488" opacity="0.15"/>
+        </g>
+    </svg>
+
+    <div class="lp-hero-content">
+        <div class="lp-hero-badge">{{ t('hero_badge', lang) }}</div>
+        <h1>{{ t('hero_title', lang) }}</h1>
+        <p class="lp-hero-sub">
+            {{ t('hero_subtitle', lang) }}
+        </p>
+
+        <a href="/analyze" class="lp-hero-cta" style="background:linear-gradient(135deg,#f59e0b,#d97706);font-weight:700;font-size:1.1rem;padding:1rem 2.5rem;">Analyse mon GA</a>
+        <a href="/onboard" class="lp-hero-cta" style="background:transparent;border:2px solid rgba(255,255,255,0.3);margin-left:0.75rem;">{{ t('cta_start', lang) }}</a>
+
+        <div class="lp-stats-bar">
+            <div class="lp-stat-pill">
+                <strong>{{ landing.total_gas }}</strong> figures
+            </div>
+            <div class="lp-stat-pill">
+                <strong>{{ landing.total_domains }}</strong> domaines
+            </div>
+            {# TODO: unhide when N >= 10 — hidden because ~2 participants looks bad #}
+            {# {% if landing.total_participants > 0 %}
+            <div class="lp-stat-pill">
+                <strong class="counter-animate" data-target="{{ landing.total_participants }}">0</strong> participants
+            </div>
+            {% endif %} #}
+        </div>
     </div>
-
-    <div class="landing-steps">
-        <div class="landing-step">
-            <span class="step-num">1</span>
-            <span>Scrollez un feed comme sur LinkedIn</span>
-        </div>
-        <div class="landing-step">
-            <span class="step-num">2</span>
-            <span>Identifiez l'image qui vous a marque</span>
-        </div>
-        <div class="landing-step">
-            <span class="step-num">3</span>
-            <span>Decouvrez si votre cerveau a ete piege</span>
-        </div>
-    </div>
-
-    <a href="/onboard" class="btn btn-primary btn-large">Commencer</a>
-
-    <p class="landing-footer">
-        Gratuit · 2 minutes · Aucune inscription<br>
-        <a href="/dashboard" class="landing-link">Voir les resultats</a>
-    </p>
 </div>
+
+<!-- ===== SECTION 2: TOP GAs DU MOMENT ===== -->
+<div class="lp-top-gas-bg">
+    <div class="lp-section">
+        <div class="lp-section-header">
+            <h2>{{ t('top_gas_title', lang) }}</h2>
+            {% if landing.top_gas %}
+            <p>{{ t('top_gas_subtitle', lang) }}</p>
+            {% else %}
+            <p>{{ t('top_gas_empty', lang) }}</p>
+            {% endif %}
+        </div>
+
+        {% if landing.top_gas %}
+        <div class="lp-top-gas-scroll">
+            {% for ga in landing.top_gas %}
+            <a href="/ga-detail/{{ ga.slug or ga.id }}" class="lp-ga-card">
+                <img src="/ga/{{ ga.filename }}" alt="{{ ga.title }}" class="lp-ga-card-img" loading="lazy">
+                <div class="lp-ga-card-body">
+                    <span class="lp-ga-domain-badge">{{ ga.domain }}</span>
+                    <div class="lp-ga-card-title">{{ ga.title or ga.filename }}</div>
+                    <div class="lp-ga-score-hero">
+                        {{ score_badge(ga.avg_glance, 'sm') }}
+                        {% set pct = (ga.avg_glance * 100) | round(0) | int %}
+                        {% set v_color = verdict_color(ga.avg_glance) | trim %}
+                        <span class="ga-verdict-pill" style="background:{{ v_color }}20;color:{{ v_color }};">{{ verdict_label(ga.avg_glance) }}</span>
+                    </div>
+                    {% set pct = (ga.avg_glance * 100) | round(0) | int %}
+                    <div class="lp-score-row">
+                        <div class="lp-score-bar-bg">
+                            {% if pct >= 80 %}
+                                {% set bar_class = "green" %}
+                            {% elif pct >= 60 %}
+                                {% set bar_class = "yellow" %}
+                            {% elif pct >= 40 %}
+                                {% set bar_class = "orange" %}
+                            {% else %}
+                                {% set bar_class = "red" %}
+                            {% endif %}
+                            <div class="lp-score-bar-fill {{ bar_class }} score-bar-animate" style="width: 0%;" data-width="{{ pct }}%"></div>
+                        </div>
+                        <span class="lp-score-value">{{ pct }}%</span>
+                    </div>
+                    {% if ga.archetype_key and ga.archetype_info %}
+                    {{ archetype_badge({"archetype": ga.archetype_key, "archetype_info": ga.archetype_info, "source": ga.archetype_source}) }}
+                    {% endif %}
+                    <div class="lp-ga-tests">{{ ga.n_tests }} test{{ 's' if ga.n_tests != 1 else '' }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- No test data yet: show GA thumbnails in grayscale -->
+        <div class="lp-top-gas-scroll">
+            {% for fname in ['attention_transformer_2017.png', 'covid_vaccine_polack_2020.png', 'exercise_neuroplasticity_erickson_2011.png', 'mediterranean_diet_estruch_2013.png', 'sleep_memory_walker_2017.png'] %}
+            <div class="lp-ga-card" style="cursor: default;">
+                <img src="/ga/{{ fname }}" alt="GA Preview" class="lp-ga-card-img grayscale" loading="lazy">
+                <div class="lp-ga-card-body">
+                    <span class="lp-ga-domain-badge" style="opacity:0.5;">--</span>
+                    <div class="lp-ga-card-title" style="color: var(--lp-text-muted);">{{ t('ranking_soon', lang) }}</div>
+                    <div class="lp-score-row">
+                        <div class="lp-score-bar-bg">
+                            <div class="lp-score-bar-fill" style="width: 0%;"></div>
+                        </div>
+                        <span class="lp-score-value" style="color: var(--lp-text-muted); font-size: 0.6875rem;">Non &eacute;valu&eacute;</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ===== SECTION 3: COMMENT CA MARCHE ===== -->
+<div class="lp-how-bg">
+    <div class="lp-section">
+        <div class="lp-section-header">
+            <h2>{{ t('how_title', lang) }}</h2>
+            <p>{{ t('how_subtitle', lang) }}</p>
+        </div>
+
+        <div class="lp-how-grid">
+            <div class="lp-how-card">
+                <div class="lp-how-icon lp-how-icon-1">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                        <line x1="12" y1="18" x2="12" y2="18"/>
+                        <path d="M9 6h6M9 10h6M9 14h3" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <h3>{{ t('how_step1_title', lang) }}</h3>
+                <p>{{ t('how_step1_desc', lang) }}</p>
+            </div>
+
+            <div class="lp-how-card">
+                <div class="lp-how-icon lp-how-icon-2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <circle cx="12" cy="12" r="6" stroke-dasharray="3 3"/>
+                        <circle cx="12" cy="12" r="2" fill="#10b981"/>
+                    </svg>
+                </div>
+                <h3>{{ t('how_step2_title', lang) }}</h3>
+                <p>{{ t('how_step2_desc', lang) }}</p>
+            </div>
+
+            <div class="lp-how-card">
+                <div class="lp-how-icon lp-how-icon-3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                </div>
+                <h3>{{ t('how_step3_title', lang) }}</h3>
+                <p>{{ t('how_step3_desc', lang) }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 3a: CAPABILITIES ===== -->
+<div style="background:var(--lp-bg);padding:3rem 2rem;">
+    <div style="max-width:900px;margin:0 auto;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;">
+            <div style="background:var(--lp-card);border:1px solid var(--lp-border);border-radius:12px;padding:1.5rem;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">70</div>
+                <div style="font-size:0.85rem;color:var(--lp-text-dim);">canaux visuels analysés</div>
+                <div style="font-size:0.7rem;color:var(--lp-text-muted);margin-top:0.25rem;">couleur, forme, taille, position, groupement...</div>
+            </div>
+            <div style="background:var(--lp-card);border:1px solid var(--lp-border);border-radius:12px;padding:1.5rem;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">5s</div>
+                <div style="font-size:0.85rem;color:var(--lp-text-dim);">simulation de lecture</div>
+                <div style="font-size:0.7rem;color:var(--lp-text-muted);margin-top:0.25rem;">un lecteur virtuel scanne votre figure</div>
+            </div>
+            <div style="background:var(--lp-card);border:1px solid var(--lp-border);border-radius:12px;padding:1.5rem;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">4</div>
+                <div style="font-size:0.85rem;color:var(--lp-text-dim);">anti-patterns détectés</div>
+                <div style="font-size:0.7rem;color:var(--lp-text-muted);margin-top:0.25rem;">fragile, incohérent, inverse, catégorie manquante</div>
+            </div>
+            <div style="background:var(--lp-card);border:1px solid var(--lp-border);border-radius:12px;padding:1.5rem;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">&infin;</div>
+                <div style="font-size:0.85rem;color:var(--lp-text-dim);">amélioration itérative</div>
+                <div style="font-size:0.7rem;color:var(--lp-text-muted);margin-top:0.25rem;">diagnostic → recommandation → itération</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 3b: EXAMPLE ANALYSIS ===== -->
+<div class="lp-example-bg">
+    <div class="lp-section">
+        <div class="lp-section-header">
+            <h2>Exemple d'analyse</h2>
+            <p>Score de clarté, simulation de lecture, canaux visuels, recommandations — en 30 secondes</p>
+        </div>
+
+        <div class="lp-example-layout">
+            <!-- Left: GA image + Radar chart -->
+            <div class="lp-example-left">
+                <div class="lp-example-ga-wrap">
+                    <img src="/ga/{{ example.ga_filename }}" alt="{{ example.ga_title }}" class="lp-example-ga-img" loading="lazy">
+                    <div class="lp-example-ga-label">
+                        <div class="lp-example-ga-title">{{ example.ga_title }}</div>
+                        <div class="lp-example-ga-meta">
+                            <span class="lp-ga-domain-badge" style="font-size:0.625rem;padding:0.125rem 0.4rem;">{{ example.ga_domain | upper }}</span>
+                            {{ example.n_tests }} test{{ 's' if example.n_tests != 1 else '' }}
+                            {% if not example.has_real_data %} (demo){% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Radar chart -->
+                <div class="lp-example-radar-wrap" id="exampleRadarWrap"></div>
+            </div>
+
+            <!-- Right: Score cards + Recommendation + CTA -->
+            <div class="lp-example-right">
+                <div class="lp-example-scores">
+                    <!-- GLANCE composite — highlight card -->
+                    {% set glance_pct = (example.glance * 100) | round(0) | int %}
+                    {% if glance_pct >= 80 %}{% set glance_color = "#10b981" %}{% set glance_verdict = "Limpide" %}
+                    {% elif glance_pct >= 60 %}{% set glance_color = "#2A9D8F" %}{% set glance_verdict = "Clair" %}
+                    {% elif glance_pct >= 40 %}{% set glance_color = "#eab308" %}{% set glance_verdict = "Ambigu" %}
+                    {% elif glance_pct >= 20 %}{% set glance_color = "#f97316" %}{% set glance_verdict = "Confus" %}
+                    {% elif glance_pct >= 10 %}{% set glance_color = "#ef4444" %}{% set glance_verdict = "Obscur" %}
+                    {% else %}{% set glance_color = "#991B1B" %}{% set glance_verdict = "Incompréhensible" %}{% endif %}
+                    <div class="lp-ex-score-card highlight">
+                        <div class="lp-ex-score-label">Score GLANCE</div>
+                        <div class="lp-ex-score-value" style="color: {{ glance_color }};">{{ glance_pct }}%</div>
+                        <div class="lp-ex-score-verdict" style="color: {{ glance_color }};">{{ glance_verdict }}</div>
+                    </div>
+
+                    <!-- S9a -->
+                    {% set s9a_pct = (example.s9a * 100) | round(0) | int %}
+                    {% if s9a_pct >= 70 %}{% set s9a_verdict = "Sujet identifié" %}{% set s9a_color = "#10b981" %}
+                    {% elif s9a_pct >= 40 %}{% set s9a_verdict = "Partiellement" %}{% set s9a_color = "#eab308" %}
+                    {% else %}{% set s9a_verdict = "Non identifié" %}{% set s9a_color = "#ef4444" %}{% endif %}
+                    <div class="lp-ex-score-card">
+                        <div class="lp-ex-score-label">S9a Recall</div>
+                        <div class="lp-ex-score-value">{{ s9a_pct }}%</div>
+                        <div class="lp-ex-score-verdict" style="color: {{ s9a_color }};">{{ s9a_verdict }}</div>
+                    </div>
+
+                    <!-- S9b -->
+                    {% set s9b_pct = (example.s9b * 100) | round(0) | int %}
+                    {% if s9b_pct >= 70 %}{% set s9b_verdict = "Produit identifié" %}{% set s9b_color = "#10b981" %}
+                    {% elif s9b_pct >= 40 %}{% set s9b_verdict = "Confus" %}{% set s9b_color = "#eab308" %}
+                    {% else %}{% set s9b_verdict = "Non identifié" %}{% set s9b_color = "#ef4444" %}{% endif %}
+                    <div class="lp-ex-score-card">
+                        <div class="lp-ex-score-label">S9b Precision</div>
+                        <div class="lp-ex-score-value">{{ s9b_pct }}%</div>
+                        <div class="lp-ex-score-verdict" style="color: {{ s9b_color }};">{{ s9b_verdict }}</div>
+                    </div>
+
+                    <!-- S9c -->
+                    {% set s9c_pct = (example.s9c * 100) | round(0) | int %}
+                    {% if s9c_pct >= 50 %}{% set s9c_verdict = "Insight compris" %}{% set s9c_color = "#10b981" %}
+                    {% elif s9c_pct >= 20 %}{% set s9c_verdict = "Partiel" %}{% set s9c_color = "#eab308" %}
+                    {% else %}{% set s9c_verdict = "Manque" %}{% set s9c_color = "#ef4444" %}{% endif %}
+                    <div class="lp-ex-score-card">
+                        <div class="lp-ex-score-label">S9c Insight</div>
+                        <div class="lp-ex-score-value">{{ s9c_pct }}%</div>
+                        <div class="lp-ex-score-verdict" style="color: {{ s9c_color }};">{{ s9c_verdict }}</div>
+                    </div>
+                </div>
+
+                <!-- Recommendation -->
+                <div class="lp-example-reco">
+                    <div class="lp-example-reco-icon">&#128161;</div>
+                    <div class="lp-example-reco-text">{{ example.recommendation }}</div>
+                </div>
+
+                <!-- CTA -->
+                <a href="/analyze" class="lp-example-cta">
+                    Analyse et améliore ton GA
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 4: LIVE STATS ===== -->
+<div class="lp-live-bg">
+    {# ── L3 Graph Decoration: Stats ──
+       Tighter cluster inspired by immunomod_ga_graph.yaml zone structure.
+       Offset right so it doesn't compete with counter numbers. #}
+    <svg class="graph-decoration graph-stats" viewBox="0 0 550 420" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+            <filter id="glow-s" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2.5" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+        </defs>
+        <g stroke="#94a3b8" stroke-width="0.7" opacity="0.28">
+            <line x1="90"  y1="65"  x2="180" y2="115"/>
+            <line x1="180" y1="115" x2="275" y2="85"/>
+            <line x1="275" y1="85"  x2="370" y2="128"/>
+            <line x1="370" y1="128" x2="460" y2="78"/>
+            <line x1="90"  y1="65"  x2="135" y2="178"/>
+            <line x1="180" y1="115" x2="220" y2="198"/>
+            <line x1="275" y1="85"  x2="295" y2="208"/>
+            <line x1="370" y1="128" x2="385" y2="218"/>
+            <line x1="460" y1="78"  x2="430" y2="188"/>
+            <line x1="135" y1="178" x2="220" y2="198"/>
+            <line x1="220" y1="198" x2="295" y2="208"/>
+            <line x1="295" y1="208" x2="385" y2="218"/>
+            <line x1="385" y1="218" x2="430" y2="188"/>
+            <line x1="135" y1="178" x2="165" y2="290"/>
+            <line x1="220" y1="198" x2="250" y2="300"/>
+            <line x1="295" y1="208" x2="310" y2="312"/>
+            <line x1="385" y1="218" x2="370" y2="322"/>
+            <line x1="165" y1="290" x2="250" y2="300"/>
+            <line x1="250" y1="300" x2="310" y2="312"/>
+            <line x1="310" y1="312" x2="370" y2="322"/>
+            <line x1="250" y1="300" x2="275" y2="388"/>
+            <line x1="310" y1="312" x2="275" y2="388"/>
+            <line x1="220" y1="198" x2="385" y2="218"/>
+            <line x1="275" y1="85"  x2="220" y2="198"/>
+        </g>
+        <g stroke="#0d9488" stroke-width="0.9" opacity="0.18">
+            <line x1="275" y1="85"  x2="295" y2="208" class="gl-dash" style="animation-delay:-3s"/>
+            <line x1="295" y1="208" x2="275" y2="388" class="gl-dash" style="animation-delay:-8s"/>
+        </g>
+        <g filter="url(#glow-s)">
+            <circle cx="90"  cy="65"  r="9"  fill="#0d9488" opacity="0.5"  class="gn-pulse-c"/>
+            <circle cx="180" cy="115" r="14" fill="#0d9488" opacity="0.6"  class="gn-pulse"/>
+            <circle cx="275" cy="85"  r="19" fill="#0d9488" opacity="0.7"  class="gn-pulse-b"/>
+            <circle cx="370" cy="128" r="12" fill="#0d9488" opacity="0.55" class="gn-pulse-c"/>
+            <circle cx="460" cy="78"  r="8"  fill="#0d9488" opacity="0.4"  class="gn-pulse"/>
+            <circle cx="135" cy="178" r="10" fill="#0d9488" opacity="0.5"  class="gn-pulse-b"/>
+            <circle cx="220" cy="198" r="16" fill="#0d9488" opacity="0.65" class="gn-pulse"/>
+            <circle cx="295" cy="208" r="11" fill="#0d9488" opacity="0.5"  class="gn-pulse-c"/>
+            <circle cx="385" cy="218" r="13" fill="#0d9488" opacity="0.55" class="gn-pulse-b"/>
+            <circle cx="430" cy="188" r="7"  fill="#0d9488" opacity="0.35" class="gn-pulse"/>
+            <circle cx="165" cy="290" r="8"  fill="#0d9488" opacity="0.4"  class="gn-pulse-c"/>
+            <circle cx="250" cy="300" r="12" fill="#0d9488" opacity="0.5"  class="gn-pulse-b"/>
+            <circle cx="310" cy="312" r="10" fill="#0d9488" opacity="0.45" class="gn-pulse"/>
+            <circle cx="370" cy="322" r="7"  fill="#0d9488" opacity="0.35" class="gn-pulse-c"/>
+            <circle cx="275" cy="388" r="17" fill="#0d9488" opacity="0.45" class="gn-pulse-b"/>
+            <circle cx="45"  cy="138" r="4"  fill="#0d9488" opacity="0.15"/>
+            <circle cx="500" cy="158" r="5"  fill="#0d9488" opacity="0.15"/>
+            <circle cx="110" cy="350" r="4"  fill="#0d9488" opacity="0.12"/>
+        </g>
+    </svg>
+
+    <div class="lp-section">
+        <div class="lp-section-header">
+            <h2>{% if landing.total_tests > 0 %}{{ t('live_title_active', lang) }}{% else %}{{ t('live_title_empty', lang) }}{% endif %}</h2>
+            <p>{% if landing.total_tests > 0 %}{{ t('live_subtitle_active', lang) }}{% else %}{{ t('live_subtitle_empty', lang) }}{% endif %}</p>
+        </div>
+
+        {% if landing.total_tests > 0 %}
+        <div class="lp-counters">
+            <div class="lp-counter-card">
+                <div class="lp-counter-value counter-animate" data-target="{{ landing.total_tests }}">0</div>
+                <div class="lp-counter-label">{{ t('tests_completed_label', lang) }}</div>
+            </div>
+
+            <div class="lp-counter-card">
+                {% if landing.avg_glance is not none %}
+                <div class="lp-counter-value teal counter-animate-pct" data-target="{{ (landing.avg_glance * 100) | round(0) | int }}">0%</div>
+                <div class="lp-counter-label">{{ t('avg_glance_label', lang) }}</div>
+                {% else %}
+                <div class="lp-counter-value teal">{{ landing.total_domains }}</div>
+                <div class="lp-counter-label">{{ t('domains_covered', lang) }}</div>
+                {% endif %}
+            </div>
+
+            <div class="lp-counter-card">
+                {% if landing.best_ga %}
+                <div class="lp-counter-value amber counter-animate-pct" data-target="{{ (landing.best_ga.avg_glance * 100) | round(0) | int }}">0%</div>
+                <div class="lp-counter-label">{{ t('best_ga_label', lang) }}</div>
+                {% else %}
+                <div class="lp-counter-value amber">47</div>
+                <div class="lp-counter-label">{{ t('calibrated_images', lang) }}</div>
+                {% endif %}
+            </div>
+
+            <div class="lp-counter-card">
+                <div class="lp-counter-value counter-animate" data-target="{{ landing.total_domains }}">0</div>
+                <div class="lp-counter-label">{{ t('domains_label', lang) }}</div>
+            </div>
+        </div>
+        {% else %}
+        <div class="lp-counters">
+            <div class="lp-counter-card">
+                <div class="lp-counter-value counter-animate" data-target="{{ landing.total_gas }}">0</div>
+                <div class="lp-counter-label">GAs analysés</div>
+            </div>
+            <div class="lp-counter-card">
+                <div class="lp-counter-value teal counter-animate" data-target="{{ landing.total_domains }}">0</div>
+                <div class="lp-counter-label">{{ t('domains_label', lang) }}</div>
+            </div>
+            <div class="lp-counter-card">
+                <div class="lp-counter-value amber">23</div>
+                <div class="lp-counter-label">Paires VEC/contrôle</div>
+            </div>
+            <div class="lp-counter-card">
+                <div class="lp-counter-value">75</div>
+                <div class="lp-counter-label">Canaux visuels</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ===== SECTION 5: DOMAIN GRID ===== -->
+<div class="lp-domains-bg">
+    {# ── L3 Graph Decoration: Domains ──
+       Sparse constellation, bottom-left. Uses darker teal for light bg. #}
+    <svg class="graph-decoration graph-domains" viewBox="0 0 480 360" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+            <filter id="glow-d" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+        </defs>
+        <g stroke="#0d9488" stroke-width="0.6" opacity="0.18">
+            <line x1="75"  y1="55"  x2="190" y2="95"/>
+            <line x1="190" y1="95"  x2="315" y2="65"/>
+            <line x1="315" y1="65"  x2="410" y2="115"/>
+            <line x1="75"  y1="55"  x2="118" y2="158"/>
+            <line x1="190" y1="95"  x2="220" y2="178"/>
+            <line x1="315" y1="65"  x2="292" y2="168"/>
+            <line x1="410" y1="115" x2="365" y2="198"/>
+            <line x1="118" y1="158" x2="220" y2="178"/>
+            <line x1="220" y1="178" x2="292" y2="168"/>
+            <line x1="292" y1="168" x2="365" y2="198"/>
+            <line x1="118" y1="158" x2="148" y2="258"/>
+            <line x1="220" y1="178" x2="240" y2="268"/>
+            <line x1="292" y1="168" x2="322" y2="278"/>
+            <line x1="148" y1="258" x2="240" y2="268"/>
+            <line x1="240" y1="268" x2="322" y2="278"/>
+            <line x1="240" y1="268" x2="228" y2="338"/>
+            <line x1="190" y1="95"  x2="292" y2="168"/>
+            <line x1="118" y1="158" x2="292" y2="168"/>
+        </g>
+        <g stroke="#0d9488" stroke-width="0.8" opacity="0.12">
+            <line x1="190" y1="95"  x2="220" y2="178" class="gl-dash" style="animation-delay:-5s"/>
+            <line x1="220" y1="178" x2="240" y2="268" class="gl-dash" style="animation-delay:-10s"/>
+        </g>
+        <g filter="url(#glow-d)">
+            <circle cx="75"  cy="55"  r="8"  fill="#0d9488" opacity="0.35" class="gn-pulse"/>
+            <circle cx="190" cy="95"  r="14" fill="#0d9488" opacity="0.45" class="gn-pulse-b"/>
+            <circle cx="315" cy="65"  r="10" fill="#0d9488" opacity="0.38" class="gn-pulse-c"/>
+            <circle cx="410" cy="115" r="7"  fill="#0d9488" opacity="0.3"  class="gn-pulse"/>
+            <circle cx="118" cy="158" r="11" fill="#0d9488" opacity="0.4"  class="gn-pulse-b"/>
+            <circle cx="220" cy="178" r="16" fill="#0d9488" opacity="0.5"  class="gn-pulse-c"/>
+            <circle cx="292" cy="168" r="9"  fill="#0d9488" opacity="0.35" class="gn-pulse"/>
+            <circle cx="365" cy="198" r="7"  fill="#0d9488" opacity="0.28" class="gn-pulse-b"/>
+            <circle cx="148" cy="258" r="8"  fill="#0d9488" opacity="0.3"  class="gn-pulse-c"/>
+            <circle cx="240" cy="268" r="12" fill="#0d9488" opacity="0.4"  class="gn-pulse"/>
+            <circle cx="322" cy="278" r="9"  fill="#0d9488" opacity="0.32" class="gn-pulse-b"/>
+            <circle cx="228" cy="338" r="13" fill="#0d9488" opacity="0.3"  class="gn-pulse-c"/>
+            <circle cx="35"  cy="125" r="4"  fill="#0d9488" opacity="0.12"/>
+            <circle cx="445" cy="68"  r="4"  fill="#0d9488" opacity="0.12"/>
+        </g>
+    </svg>
+
+    <div class="lp-section">
+        <div class="lp-section-header">
+            <h2>{{ t('explore_domains', lang) }}</h2>
+            <p>{{ domain_list | length }} {{ t('disciplines_represented', lang) }}</p>
+        </div>
+
+        <div class="lp-domain-grid">
+            {% for d in domain_list %}
+            <a href="/leaderboard/{{ d.key }}" class="lp-domain-card">
+                <div class="lp-domain-dot"></div>
+                <div class="lp-domain-card-name">{{ d.label }}</div>
+                <div class="lp-domain-card-count">{{ d.n_gas }} GA{{ 's' if d.n_gas != 1 else '' }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 6: FOOTER ===== -->
+<div class="lp-footer">
+    <div class="lp-footer-links">
+        <a href="/analyze">Note mon GA</a>
+        <a href="/pricing">{{ t('pricing_nav', lang) }}</a>
+        <a href="/leaderboard">{{ t('footer_leaderboard', lang) }}</a>
+        {# TODO: unhide when N >= 10 #}{# <a href="/participants">Classement participants</a> #}
+        <a href="/dashboard">{{ t('footer_dashboard', lang) }}</a>
+        <a href="/spin">{{ t('footer_spin', lang) }}</a>
+        <a href="/onboard">{{ t('footer_start', lang) }}</a>
+    </div>
+    <div class="lp-footer-brand">GLANCE &mdash; SciSense &middot; Making Science Make Sense</div>
+    <div class="lp-footer-paper">Paper reference: PLOS ONE (in preparation)</div>
+    <div class="lp-footer-legal" style="margin-top: 0.75rem; font-size: 0.8125rem; color: #64748b;">
+        <a href="/privacy" style="color: #64748b; text-decoration: none;">Confidentialité</a>
+        <span style="margin: 0 0.5rem;">|</span>
+        <a href="/terms" style="color: #64748b; text-decoration: none;">Conditions d'utilisation</a>
+    </div>
+</div>
+
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    // Fallback: break out of .container for browsers without :has() support
+    var lp = document.querySelector('.landing-page');
+    if (lp && lp.parentElement && lp.parentElement.classList.contains('container')) {
+        lp.parentElement.classList.add('landing-container');
+    }
+
+    // Counter animation for integers
+    var counters = document.querySelectorAll('.counter-animate');
+    var pctCounters = document.querySelectorAll('.counter-animate-pct');
+
+    function animateCounter(el, suffix) {
+        var target = parseInt(el.getAttribute('data-target'), 10);
+        if (isNaN(target) || target === 0) {
+            el.textContent = '0' + suffix;
+            return;
+        }
+        var duration = 800;
+        var steps = 40;
+        var increment = target / steps;
+        var interval = duration / steps;
+        var current = 0;
+        var timer = setInterval(function() {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            el.textContent = Math.round(current) + suffix;
+        }, interval);
+    }
+
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                var el = entry.target;
+                var suffix = el.classList.contains('counter-animate-pct') ? '%' : '';
+                animateCounter(el, suffix);
+                observer.unobserve(el);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    counters.forEach(function(el) { observer.observe(el); });
+    pctCounters.forEach(function(el) { observer.observe(el); });
+
+    // Score bar animation
+    var bars = document.querySelectorAll('.score-bar-animate');
+    var barObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                var bar = entry.target;
+                var w = bar.getAttribute('data-width');
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        bar.style.width = w;
+                    });
+                });
+                barObserver.unobserve(bar);
+            }
+        });
+    }, { threshold: 0.2 });
+
+    bars.forEach(function(bar) { barObserver.observe(bar); });
+
+    // ── Example Analysis Radar Chart ──
+    (function() {
+        var DIMS = [
+            {label: 'S9a', value: {{ example.s9a }}},
+            {label: 'S9b', value: {{ example.s9b }}},
+            {label: 'S9c', value: {{ example.s9c }}},
+            {label: 'Fluence', value: {{ example.fluency }}},
+            {label: 'S2', value: {{ example.s2_coverage }}}
+        ];
+        var cx = 140, cy = 130, R = 100, n = 5;
+        var START = -Math.PI / 2, STEP = 2 * Math.PI / n;
+
+        function pt(i, r) {
+            var a = START + i * STEP;
+            return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+        }
+        function poly(pts) {
+            return pts.map(function(p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+        }
+
+        var wrap = document.getElementById('exampleRadarWrap');
+        if (!wrap) return;
+
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '280');
+        svg.setAttribute('height', '270');
+        svg.setAttribute('viewBox', '0 0 280 270');
+
+        // Grid rings
+        [0.25, 0.5, 0.75, 1.0].forEach(function(lv) {
+            var pts = [];
+            for (var i = 0; i < n; i++) pts.push(pt(i, R * lv));
+            var pg = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            pg.setAttribute('points', poly(pts));
+            pg.setAttribute('class', 'lp-radar-grid');
+            svg.appendChild(pg);
+        });
+
+        // Axis lines
+        for (var i = 0; i < n; i++) {
+            var p2 = pt(i, R);
+            var ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            ln.setAttribute('x1', cx);
+            ln.setAttribute('y1', cy);
+            ln.setAttribute('x2', p2[0].toFixed(1));
+            ln.setAttribute('y2', p2[1].toFixed(1));
+            ln.setAttribute('class', 'lp-radar-axis');
+            svg.appendChild(ln);
+        }
+
+        // Data shape
+        var dpts = [];
+        for (var i = 0; i < n; i++) {
+            var v = Math.max(0, Math.min(1, DIMS[i].value));
+            dpts.push(pt(i, R * v));
+        }
+        var shape = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        shape.setAttribute('points', poly(dpts));
+        shape.setAttribute('class', 'lp-radar-shape');
+        svg.appendChild(shape);
+
+        // Data dots + labels
+        for (var i = 0; i < n; i++) {
+            var v = Math.max(0, Math.min(1, DIMS[i].value));
+            var dp = pt(i, R * v);
+            var c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            c.setAttribute('cx', dp[0].toFixed(1));
+            c.setAttribute('cy', dp[1].toFixed(1));
+            c.setAttribute('r', '4');
+            c.setAttribute('class', 'lp-radar-dot');
+            svg.appendChild(c);
+
+            var lp2 = pt(i, R + 20);
+            var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            t.setAttribute('x', lp2[0].toFixed(1));
+            t.setAttribute('y', (lp2[1] + 4).toFixed(1));
+            t.setAttribute('class', 'lp-radar-text');
+            t.textContent = DIMS[i].label + ' ' + Math.round(DIMS[i].value * 100) + '%';
+            svg.appendChild(t);
+        }
+
+        wrap.appendChild(svg);
+    })();
+})();
+</script>
 {% endblock %}

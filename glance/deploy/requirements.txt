@@ -7,3 +7,7 @@ sentence-transformers
 numpy
 matplotlib
 networkx
+Pillow
+google-generativeai
+stripe
+praw

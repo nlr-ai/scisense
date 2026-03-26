@@ -1,7 +1,9 @@
 {% extends "base.html" %}
+{% from "_ga_score_macros.html" import score_badge, verdict_label, verdict_color %}
 {% block title %}Dashboard — GLANCE{% endblock %}
 
 {% block head %}
+{# OG meta tags are now handled via base.html + backend variables (og_title, og_description, og_image) #}
 <style>
 /* ===== GLANCE Dashboard — Redesign =====
    Uses app-wide dark blue theme from style.css variables.
@@ -458,6 +460,40 @@
     background: var(--surface-hover);
 }
 
+/* --- KPI Evolution Badge --- */
+.evo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    line-height: 1.4;
+    margin-top: var(--sp-2);
+}
+.evo-badge--up {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.12);
+}
+.evo-badge--down {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+.evo-badge--flat {
+    color: var(--text-dim);
+    background: rgba(100, 116, 139, 0.12);
+}
+.evo-badge--none {
+    color: var(--text-dim);
+    background: transparent;
+    font-weight: 400;
+}
+.evo-arrow {
+    font-size: 0.85em;
+}
+
 /* --- Responsive --- */
 @media (max-width: 900px) {
     .score-grid {
@@ -510,6 +546,136 @@
         gap: var(--sp-3);
     }
 }
+
+/* --- My Test History Section --- */
+.my-history-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+.my-history-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--sp-4) var(--sp-5);
+    display: grid;
+    grid-template-columns: 64px 1fr auto;
+    gap: var(--sp-4);
+    align-items: center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.my-history-card:hover {
+    border-color: var(--border);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.my-history-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg-subtle);
+    flex-shrink: 0;
+}
+.my-history-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.my-history-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    min-width: 0;
+}
+.my-history-title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.my-history-meta {
+    font-size: var(--text-xs);
+    color: var(--text-dim);
+}
+.my-history-answer {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--text-xs);
+    flex-wrap: wrap;
+}
+.my-history-label {
+    color: var(--text-dim);
+}
+.my-history-q2 {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text);
+}
+.my-history-verdict {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: var(--radius-pill);
+}
+.my-history-correct {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.12);
+}
+.my-history-wrong {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.10);
+}
+.my-history-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+    min-width: 56px;
+}
+.my-history-score-num {
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: var(--text-xl);
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+.my-history-score-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+/* Verdict pill in test history */
+.my-history-score .ga-verdict-pill {
+    font-size: 0.5625rem;
+    padding: 0.1rem 0.4rem;
+}
+.my-history-score .ga-score-badge {
+    gap: 0.25rem;
+}
+
+@media (max-width: 560px) {
+    .my-history-card {
+        grid-template-columns: 48px 1fr auto;
+        gap: var(--sp-3);
+        padding: var(--sp-3) var(--sp-4);
+    }
+    .my-history-thumb {
+        width: 48px;
+        height: 48px;
+    }
+    .my-history-title {
+        font-size: var(--text-xs);
+    }
+    .my-history-score-num {
+        font-size: var(--text-lg);
+    }
+}
 </style>
 {% endblock %}
 
@@ -517,6 +683,21 @@
 
 {# ── Helper macros for score color ── #}
 {% macro score_color(pct) %}{% if pct >= 80 %}green{% elif pct >= 60 %}yellow{% elif pct >= 40 %}orange{% else %}red{% endif %}{% endmacro %}
+
+{# ── Evolution badge: shows week-over-week delta ── #}
+{% macro evo_badge(evo) %}
+{% if evo and evo.label is not none %}
+    {% if evo.arrow == "up" %}
+        <span class="evo-badge evo-badge--up"><span class="evo-arrow">&#8593;</span> {{ evo.label }}</span>
+    {% elif evo.arrow == "down" %}
+        <span class="evo-badge evo-badge--down"><span class="evo-arrow">&#8595;</span> {{ evo.label }}</span>
+    {% else %}
+        <span class="evo-badge evo-badge--flat"><span class="evo-arrow">&#8594;</span> {{ evo.label }}</span>
+    {% endif %}
+{% else %}
+    <span class="evo-badge evo-badge--none">&mdash;</span>
+{% endif %}
+{% endmacro %}
 
 <div class="db-page">
     <div class="db-header">
@@ -530,7 +711,143 @@
         <span class="active">Dashboard</span>
         <span class="sep">&#8250;</span>
         <a href="/leaderboard">Leaderboard</a>
+        <span class="sep">&#8250;</span>
+        {# TODO: unhide when N >= 10 #}{# <a href="/participants">Classement participants</a> #}
     </nav>
+
+    {# ── Share card ── #}
+    {% set dash_score = (agg.Score_GLANCE * 100) | round(0) | int %}
+    {% set dash_n_tests = stats.total or 0 %}
+    <div id="dashShareCard" style="
+        background: var(--surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-5) var(--sp-6);
+        margin-bottom: var(--sp-8);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--sp-4);
+        flex-wrap: wrap;
+    ">
+        <p style="
+            margin: 0;
+            font-size: var(--text-sm);
+            color: var(--text-muted);
+            line-height: 1.5;
+            flex: 1;
+            min-width: 200px;
+        ">
+            Mon score GLANCE : <strong style="color: var(--text);">{{ dash_score }}%</strong> sur {{ dash_n_tests }} GAs test&eacute;s.
+        </p>
+        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <button id="dashCopyBtn" title="Copier le lien" style="
+                display: inline-flex; align-items: center; justify-content: center;
+                width: 36px; height: 36px; border-radius: 8px;
+                background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+                color: var(--text-muted); cursor: pointer; transition: background 0.15s, border-color 0.15s;
+                position: relative;
+            ">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+            </button>
+            <a id="dashLinkedIn" target="_blank" rel="noopener" title="LinkedIn" style="
+                display: inline-flex; align-items: center; justify-content: center;
+                width: 36px; height: 36px; border-radius: 8px;
+                background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+                color: var(--text-muted); cursor: pointer; transition: background 0.15s, border-color 0.15s;
+                text-decoration: none;
+            ">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+            </a>
+            <a id="dashTwitter" target="_blank" rel="noopener" title="X / Twitter" style="
+                display: inline-flex; align-items: center; justify-content: center;
+                width: 36px; height: 36px; border-radius: 8px;
+                background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+                color: var(--text-muted); cursor: pointer; transition: background 0.15s, border-color 0.15s;
+                text-decoration: none;
+            ">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+            </a>
+            <a id="dashWhatsApp" target="_blank" rel="noopener" title="WhatsApp" style="
+                display: inline-flex; align-items: center; justify-content: center;
+                width: 36px; height: 36px; border-radius: 8px;
+                background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+                color: var(--text-muted); cursor: pointer; transition: background 0.15s, border-color 0.15s;
+                text-decoration: none;
+            ">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    {# ── Invite CTA card ── #}
+    <a href="/invite" style="
+        display: flex;
+        align-items: center;
+        gap: var(--sp-4, 1rem);
+        background: linear-gradient(135deg, rgba(13,148,136,0.08), rgba(14,165,233,0.06));
+        border: 1px solid rgba(13,148,136,0.25);
+        border-radius: var(--radius-lg, 12px);
+        padding: var(--sp-4, 1rem) var(--sp-6, 1.5rem);
+        margin-bottom: var(--sp-6, 1.5rem);
+        text-decoration: none;
+        transition: border-color 0.2s, background 0.2s;
+    " onmouseover="this.style.borderColor='rgba(13,148,136,0.5)';this.style.background='linear-gradient(135deg, rgba(13,148,136,0.12), rgba(14,165,233,0.1))'" onmouseout="this.style.borderColor='rgba(13,148,136,0.25)';this.style.background='linear-gradient(135deg, rgba(13,148,136,0.08), rgba(14,165,233,0.06))'">
+        <span style="font-size: 1.3rem; flex-shrink: 0;">&#x1F4E8;</span>
+        <div style="flex: 1;">
+            <div style="font-size: var(--text-sm); font-weight: 600; color: #14b8a6;">Invitez vos coll&egrave;gues</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted);">Chaque test renforce le benchmark &mdash; partagez par email, LinkedIn ou WhatsApp</div>
+        </div>
+        <span style="color: #14b8a6; font-size: var(--text-sm);">&rarr;</span>
+    </a>
+
+    {# ════════════════════════════════════════════════
+       SECTION 0 — My Test History (participant only)
+       ════════════════════════════════════════════════ #}
+
+    {% if my_tests %}
+    <h2 class="db-section-title">Mon historique</h2>
+
+    <div class="my-history-grid">
+        {% for mt in my_tests %}
+        <div class="my-history-card">
+            <div class="my-history-thumb">
+                <img src="/ga/{{ mt.filename }}" alt="{{ mt.title or mt.filename }}" loading="lazy">
+            </div>
+            <div class="my-history-body">
+                <div class="my-history-title">{{ mt.title or mt.filename }}</div>
+                <div class="my-history-meta">{{ mt.created_at[:10] }} &middot; {{ mt.domain }}</div>
+                <div class="my-history-answer">
+                    <span class="my-history-label">Votre choix (Q2) :</span>
+                    <span class="my-history-q2">{{ mt.q2_choice or '—' }}</span>
+                    {% if mt.correct_product %}
+                        {% if mt.q2_choice == mt.correct_product %}
+                            <span class="my-history-verdict my-history-correct">&#10003; Correct</span>
+                        {% else %}
+                            <span class="my-history-verdict my-history-wrong">&#10007; R&eacute;ponse : {{ mt.correct_product }}</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="my-history-score">
+                {{ score_badge(mt.glance_score or 0, 'sm') }}
+                {% set g_pct = ((mt.glance_score or 0) * 100) | round(0) | int %}
+                {% set v_color = verdict_color(mt.glance_score or 0) | trim %}
+                <span class="ga-verdict-pill" style="background:{{ v_color }}20;color:{{ v_color }};">{{ verdict_label(mt.glance_score or 0) }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     {# ════════════════════════════════════════════════
        SECTION 1 — Core Scores (S9a, S9b, S9c, GLANCE)
@@ -549,7 +866,7 @@
             <div class="sc-header">
                 <span class="sc-name">S9a — Sujet</span>
                 <span class="sc-info" tabindex="0">i
-                    <span class="sc-tooltip">Pourcentage de tests ou le lecteur a identifie le sujet de l'image</span>
+                    <span class="sc-tooltip">Pourcentage de tests où le lecteur a identifié le sujet de l'image</span>
                 </span>
             </div>
             <div class="sc-score-hero">
@@ -565,9 +882,9 @@
         {# S9b #}
         <div class="score-card">
             <div class="sc-header">
-                <span class="sc-name">S9b — Hierarchie</span>
+                <span class="sc-name">S9b — Hiérarchie</span>
                 <span class="sc-info" tabindex="0">i
-                    <span class="sc-tooltip">Pourcentage de tests ou le lecteur a identifie le resultat le plus important (chance = 25%)</span>
+                    <span class="sc-tooltip">Pourcentage de tests où le lecteur a identifié le résultat le plus important (chance = 25%)</span>
                 </span>
             </div>
             <div class="sc-score-hero">
@@ -578,7 +895,7 @@
                 <div class="sc-bar-fill bar-{{ score_color(pct_s9b) }}" style="width: {{ pct_s9b }}%;"></div>
             </div>
             <div class="sc-interp">
-                {% if pct_s9b <= 25 %}Comprehension au niveau du hasard{% elif pct_s9b < 50 %}Hierarchie partiellement percue{% elif pct_s9b < 80 %}Bonne identification de la hierarchie{% else %}Hierarchie tres bien comprise{% endif %}
+                {% if pct_s9b <= 25 %}Compréhension au niveau du hasard{% elif pct_s9b < 50 %}Hiérarchie partiellement perçue{% elif pct_s9b < 80 %}Bonne identification de la hiérarchie{% else %}Hiérarchie très bien comprise{% endif %}
             </div>
         </div>
 
@@ -587,7 +904,7 @@
             <div class="sc-header">
                 <span class="sc-name">S9c — Impact</span>
                 <span class="sc-info" tabindex="0">i
-                    <span class="sc-tooltip">Pourcentage de tests ou le lecteur a percu un impact pratique</span>
+                    <span class="sc-tooltip">Pourcentage de tests où le lecteur a perçu un impact pratique</span>
                 </span>
             </div>
             <div class="sc-score-hero">
@@ -597,7 +914,7 @@
             <div class="sc-bar">
                 <div class="sc-bar-fill bar-{{ score_color(pct_s9c) }}" style="width: {{ pct_s9c }}%;"></div>
             </div>
-            <div class="sc-interp">{{ pct_s9c }}% des lecteurs percoivent un impact concret</div>
+            <div class="sc-interp">{{ pct_s9c }}% des lecteurs perçoivent un impact concret</div>
         </div>
 
         {# GLANCE composite #}
@@ -612,11 +929,12 @@
                 <span class="sc-number score-{{ score_color(pct_glance) }}">{{ pct_glance }}</span>
                 <span class="sc-unit">%</span>
             </div>
+            {{ evo_badge(kpi_evo.avg_glance) }}
             <div class="sc-bar">
                 <div class="sc-bar-fill bar-{{ score_color(pct_glance) }}" style="width: {{ pct_glance }}%;"></div>
             </div>
             <div class="sc-interp">
-                {% if pct_glance >= 80 %}Excellent — le GA communique tres efficacement{% elif pct_glance >= 60 %}Bon — le message passe{% elif pct_glance >= 40 %}Moyen — des ameliorations necessaires{% else %}Faible — le message ne passe pas{% endif %}
+                {% if pct_glance >= 80 %}Excellent — le GA communique très efficacement{% elif pct_glance >= 60 %}Bon — le message passe{% elif pct_glance >= 40 %}Moyen — des améliorations nécessaires{% else %}Faible — le message ne passe pas{% endif %}
             </div>
         </div>
 
@@ -625,7 +943,7 @@
             <div class="sc-header">
                 <span class="sc-name">Fluency</span>
                 <span class="sc-info" tabindex="0">i
-                    <span class="sc-tooltip">Rapidite x precision — un score eleve = compris vite et bien</span>
+                    <span class="sc-tooltip">Rapidité x précision — un score élevé = compris vite et bien</span>
                 </span>
             </div>
             {% set fluency_val = (agg.Avg_Fluency * 1000) | round(1) %}
@@ -637,13 +955,29 @@
                 {% set fluency_pct = [fluency_val / 5 * 100, 100] | min | round(0) | int %}
                 <div class="sc-bar-fill bar-blue" style="width: {{ fluency_pct }}%;"></div>
             </div>
-            <div class="sc-interp">S9b / log(RT2) — mediane RT2 : {{ (agg.Mediane_RT2 / 1000) | round(1) }}s ({{ agg.RT2_class }})</div>
+            <div class="sc-interp">S9b / log(RT2) — médiane RT2 : {{ (agg.Mediane_RT2 / 1000) | round(1) }}s ({{ agg.RT2_class }})</div>
         </div>
 
         {# Total tests #}
         <div class="count-card">
             <div class="count-number">{{ stats.total or 0 }}</div>
-            <div class="count-label">tests realises</div>
+            <div class="count-label">tests réalisés</div>
+            {{ evo_badge(kpi_evo.tests_completed) }}
+        </div>
+
+        {# TODO: unhide when N >= 10 — hidden because ~2 participants looks bad #}
+        {# <div class="count-card">
+            <div class="count-number">{{ kpi_evo.unique_participants.current if kpi_evo and kpi_evo.unique_participants else '-' }}</div>
+            <div class="count-label">participants (7j)</div>
+            {{ evo_badge(kpi_evo.unique_participants) }}
+        </div> #}
+
+        {# Completion rate #}
+        <div class="count-card">
+            {% set comp_pct = ((kpi_evo.completion_rate.current or 0) * 100) | round(0) | int if kpi_evo and kpi_evo.completion_rate else 0 %}
+            <div class="count-number">{{ comp_pct }}<span style="font-size: var(--text-sm); font-weight: 400;">%</span></div>
+            <div class="count-label">taux de complétion (7j)</div>
+            {{ evo_badge(kpi_evo.completion_rate) }}
         </div>
     </div>
 
@@ -661,7 +995,7 @@
             <div class="sc-header">
                 <span class="sc-name">S10 — Saillance</span>
                 <span class="sc-info" tabindex="0">i
-                    <span class="sc-tooltip">Pourcentage de GAs qui ont capte l'attention dans le flux</span>
+                    <span class="sc-tooltip">Pourcentage de GAs qui ont capté l'attention dans le flux</span>
                 </span>
             </div>
             <div class="sc-score-hero">
@@ -679,7 +1013,7 @@
         {% set chain_pct = (s10_stats.s10_x_s9b * 100) | round(0) | int %}
         <div class="score-card">
             <div class="sc-header">
-                <span class="sc-name">S10 x S9b — Chaine complete</span>
+                <span class="sc-name">S10 x S9b — Chaîne complète</span>
             </div>
             <div class="sc-score-hero">
                 <span class="sc-number score-{{ score_color(chain_pct) }}">{{ chain_pct }}</span>
@@ -688,7 +1022,7 @@
             <div class="sc-bar">
                 <div class="sc-bar-fill bar-{{ score_color(chain_pct) }}" style="width: {{ chain_pct }}%;"></div>
             </div>
-            <div class="sc-interp">Capte l'attention ET compris correctement</div>
+            <div class="sc-interp">Capté l'attention ET compris correctement</div>
         </div>
         {% endif %}
     </div>
@@ -706,7 +1040,7 @@
             <div class="warn-body">
                 <div class="warn-title">Effort cognitif moyen</div>
                 <div class="warn-detail">
-                    {% if effort_pct > 60 %}Effort eleve — le GA demande trop de travail mental{% elif effort_pct > 40 %}Effort modere{% else %}Effort faible — bonne lisibilite{% endif %}
+                    {% if effort_pct > 60 %}Effort élevé — le GA demande trop de travail mental{% elif effort_pct > 40 %}Effort modéré{% else %}Effort faible — bonne lisibilité{% endif %}
                 </div>
             </div>
             <div class="warn-pct">{{ effort_pct }}%</div>
@@ -718,7 +1052,7 @@
             <div class="warn-body">
                 <div class="warn-title">Invalidation (tab switch)</div>
                 <div class="warn-detail">
-                    {% if invalidation_rate > 20 %}Taux eleve — beaucoup de tests invalides{% elif invalidation_rate > 5 %}Quelques changements d'onglet detectes{% else %}Tres peu d'invalidations{% endif %}
+                    {% if invalidation_rate > 20 %}Taux élevé — beaucoup de tests invalidés{% elif invalidation_rate > 5 %}Quelques changements d'onglet détectés{% else %}Très peu d'invalidations{% endif %}
                 </div>
             </div>
             <div class="warn-pct">{{ invalidation_rate | round(0) | int }}%</div>
@@ -906,7 +1240,6 @@
                 <th>Titre</th>
                 <th>Domaine</th>
                 <th>Version</th>
-                <th>Reponse correcte</th>
             </tr>
         </thead>
         <tbody>
@@ -916,11 +1249,10 @@
                 <td>{{ img.title or img.filename }}</td>
                 <td>{{ img.domain }}</td>
                 <td>{{ img.version or '-' }}</td>
-                <td>{{ img.correct_product or '-' }}</td>
             </tr>
             {% endfor %}
             {% if not images %}
-            <tr><td colspan="5" style="color: var(--text-dim); text-align: center; padding: var(--sp-6);">Aucune image. Ajoutez des PNG dans ga_library/ avec un .json de metadata.</td></tr>
+            <tr><td colspan="4" style="color: var(--text-dim); text-align: center; padding: var(--sp-6);">Aucune image. Ajoutez des PNG dans ga_library/ avec un .json de métadonnées.</td></tr>
             {% endif %}
         </tbody>
     </table>
@@ -929,7 +1261,7 @@
        SECTION 7 — Recent Tests
        ════════════════════════════════════════════════ #}
 
-    <h2 class="db-section-title">Tests recents</h2>
+    <h2 class="db-section-title">Tests récents</h2>
 
     <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
     <table class="tests-table">
@@ -948,6 +1280,7 @@
                 <th>Q2</th>
                 <th>T(Q2)</th>
                 <th title="Changement d'onglet pendant l'exposition">Tab</th>
+                <th title="Version du code lors du test">Ver.</th>
             </tr>
         </thead>
         <tbody>
@@ -955,7 +1288,7 @@
             <tr class="{{ 'row-inv' if t.tab_switched }}">
                 <td class="mono">{{ t.created_at[:16] }}</td>
                 <td>{% if t.exposure_mode == 'stream' %}<span title="Attention ambiante">Stream</span>{% else %}<span title="Attention dirigee">Spot</span>{% endif %}</td>
-                <td>{{ t.clinical_domain }} / {{ t.data_literacy }}</td>
+                <td title="{{ t.clinical_domain }} / {{ t.data_literacy }}"><span style="color: var(--primary); font-weight: 600;">@{{ t.handle or 'Anon' }}</span></td>
                 <td>{{ t.title or '-' }}</td>
                 <td class="mono {{ 't-check' if t.s9a_pass else 't-cross' }}">{{ '&#10003;' if t.s9a_pass else '&#10007;' }}</td>
                 <td class="mono {{ 't-check' if t.s9b_pass else 't-cross' }}">{{ '&#10003;' if t.s9b_pass else '&#10007;' }}</td>
@@ -966,13 +1299,58 @@
                 <td class="mono">{{ t.q2_choice or '-' }}</td>
                 <td class="mono">{{ ((t.q2_time_ms or 0) / 1000) | round(1) }}s</td>
                 <td class="mono">{% if t.tab_switched %}<span class="t-warn" title="Test invalide">&#9888;</span>{% else %}-{% endif %}</td>
+                <td class="mono" style="color: #64748b; font-size: 0.75rem;">{{ t.code_version or '-' }}</td>
             </tr>
             {% endfor %}
             {% if not tests %}
-            <tr><td colspan="13" style="color: var(--text-dim); text-align: center; padding: var(--sp-6);">Aucun test enregistre.</td></tr>
+            <tr><td colspan="14" style="color: var(--text-dim); text-align: center; padding: var(--sp-6);">Aucun test enregistre.</td></tr>
             {% endif %}
         </tbody>
     </table>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var dashScore = {{ (agg.Score_GLANCE * 100) | round(0) | int }};
+    var dashTests = {{ stats.total or 0 }};
+    var shareText = "Mon score GLANCE : " + dashScore + "% sur " + dashTests + " GAs test\u00e9s. Le scroll scientifique, c'est dur. Teste ton \u0153il \u2192 glance.scisense.fr";
+    var pageUrl = window.location.href;
+
+    // Copy
+    var copyBtn = document.getElementById('dashCopyBtn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+            navigator.clipboard.writeText(pageUrl).then(function() {
+                var toast = document.createElement('span');
+                toast.textContent = 'Copi\u00e9 !';
+                toast.style.cssText = 'position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;font-size:0.65rem;padding:2px 8px;border-radius:4px;white-space:nowrap;pointer-events:none;animation:dashToastFade 1.5s ease forwards;';
+                copyBtn.appendChild(toast);
+                setTimeout(function() { toast.remove(); }, 1600);
+            });
+        });
+    }
+
+    // LinkedIn
+    var li = document.getElementById('dashLinkedIn');
+    if (li) li.href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(pageUrl);
+
+    // Twitter
+    var tw = document.getElementById('dashTwitter');
+    if (tw) tw.href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) + '&url=' + encodeURIComponent(pageUrl);
+
+    // WhatsApp
+    var wa = document.getElementById('dashWhatsApp');
+    if (wa) wa.href = 'https://wa.me/?text=' + encodeURIComponent(shareText + ' ' + pageUrl);
+})();
+</script>
+<style>
+@keyframes dashToastFade {
+    0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    70% { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+}
+</style>
 {% endblock %}

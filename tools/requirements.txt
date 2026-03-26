@@ -1,0 +1,10 @@
+# SciSense Tools Dependencies
+
+# PDF Generator
+markdown>=3.4
+weasyprint>=59.0
+pygments>=2.15
+
+# Notion Sync
+notion-client>=2.0
+python-dotenv>=1.0

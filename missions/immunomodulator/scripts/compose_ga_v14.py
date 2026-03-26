@@ -1,0 +1,1742 @@
+"""
+Parametric GA Compositor V14 — Saliency Boost
+
+V13 recovered hierarchy (Embelli S9b=0.70) but S10 (saliency) stuck at 0.25.
+Goal: push S10 from 0.25 to 0.50+ via stronger visual focal points.
+
+Changes from V13:
+  1. Bronchus = dominant focal point: taller, subtle glow/shadow, dramatic gradient
+  2. Evidence bars = second focal point: thicker (96px), bolder title "CLINICAL EVIDENCE",
+     RCT numbers INSIDE bars in white text, OM-85 bar visually dominates
+  3. Remove legend (redundant with product pills at top) — less clutter
+  4. Reduce visual noise: fewer stipples, lighter crosshatch, lighter band labels
+  5. Deeper sick/healthy background contrast (#FFD0D0 / #D0FFEB)
+  6. Zone headers: font_weight 800 (bolder)
+  7. NEW: Outcome badges row at bottom ("↓ Recurrent RTIs", etc.)
+  8. Taller canvas (2200px) to accommodate outcome badges
+
+Reads config/layout_v14.yaml + config/palette.yaml + config/content.yaml
+Produces: wireframe_GA_v14.svg + _full.png + _delivery.png
+"""
+
+import yaml
+import svgwrite
+import os
+import sys
+import math
+import json
+import random
+
+# Add scisense root to path for vec_lib import
+_SCISENSE_ROOT = os.path.normpath(os.path.join(
+    os.path.dirname(__file__), "..", "..", ".."))
+if _SCISENSE_ROOT not in sys.path:
+    sys.path.insert(0, _SCISENSE_ROOT)
+
+from scripts.vec_lib import (
+    lighten_hex,
+    lerp_color,
+    darken_hex,
+    catmull_rom_to_bezier,
+    draw_virus_icon,
+    draw_iga_y,
+    draw_dc_cell,
+    draw_th_balance,
+    draw_child_contour,
+    draw_gradient_band,
+    draw_mucus_droplet,
+    draw_stipple_field,
+    draw_crosshatch,
+    draw_fiber_lines,
+    draw_tight_junction,
+    draw_cell_nucleus,
+    draw_macrophage,
+    draw_t_helper,
+    render_png,
+)
+
+BASE = r"C:\Users\reyno\scisense\missions\immunomodulator"
+CONFIG_DIR = os.path.join(BASE, "config")
+OUT_DIR = os.path.join(BASE, "artefacts", "wireframes")
+os.makedirs(OUT_DIR, exist_ok=True)
+
+
+# ===================================================================
+# CONFIG LOADING
+# ===================================================================
+
+def load_config():
+    config = {}
+    for name in ("palette", "content"):
+        path = os.path.join(CONFIG_DIR, f"{name}.yaml")
+        with open(path, "r", encoding="utf-8") as f:
+            config[name] = yaml.safe_load(f)
+    path = os.path.join(CONFIG_DIR, "layout_v14.yaml")
+    with open(path, "r", encoding="utf-8") as f:
+        config["layout"] = yaml.safe_load(f)
+    return config
+
+
+def resolve_color(palette, key):
+    parts = key.split(".")
+    val = palette
+    for p in parts:
+        if isinstance(val, dict):
+            val = val.get(p, "#888888")
+        else:
+            return "#888888"
+    return val
+
+
+# ===================================================================
+# CONTOUR DATA (extracted from AI images)
+# ===================================================================
+
+_CONTOUR_SICK = None
+_CONTOUR_HEALTHY = None
+
+
+def _load_contours():
+    global _CONTOUR_SICK, _CONTOUR_HEALTHY
+    contour_dir = os.path.join(BASE, "artefacts", "contours")
+    for fname, target in [("S3_sick_points.json", "sick"),
+                          ("S4_healthy_points.json", "healthy")]:
+        path = os.path.join(contour_dir, fname)
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                data = json.load(f)
+            pts = data["points"] if isinstance(data, dict) else data
+            if target == "sick":
+                _CONTOUR_SICK = pts
+            else:
+                _CONTOUR_HEALTHY = pts
+
+
+# ===================================================================
+# ACCESSIBILITY: PRODUCT HATCHING PATTERNS
+# ===================================================================
+
+def add_product_patterns(dwg, palette):
+    """Add hatching/dot patterns keyed by product for non-color differentiation."""
+    products = palette["products"]
+
+    # OM-85: diagonal lines (////)
+    pat_om85 = dwg.pattern(id="pat_om85", size=(12, 12),
+                           patternUnits="userSpaceOnUse")
+    pat_om85.add(dwg.rect((0, 0), (12, 12), fill=products["om85"], opacity=0.15))
+    pat_om85.add(dwg.line((0, 12), (12, 0), stroke="white",
+                          stroke_width=2, opacity=0.5))
+    dwg.defs.add(pat_om85)
+
+    # PMBL: dots
+    pat_pmbl = dwg.pattern(id="pat_pmbl", size=(10, 10),
+                           patternUnits="userSpaceOnUse")
+    pat_pmbl.add(dwg.rect((0, 0), (10, 10), fill=products["pmbl"], opacity=0.15))
+    pat_pmbl.add(dwg.circle((5, 5), 2, fill="white", opacity=0.5))
+    dwg.defs.add(pat_pmbl)
+
+    # MV130: cross-hatch (X)
+    pat_mv130 = dwg.pattern(id="pat_mv130", size=(12, 12),
+                            patternUnits="userSpaceOnUse")
+    pat_mv130.add(dwg.rect((0, 0), (12, 12), fill=products["mv130"], opacity=0.15))
+    pat_mv130.add(dwg.line((0, 0), (12, 12), stroke="white",
+                           stroke_width=1.5, opacity=0.5))
+    pat_mv130.add(dwg.line((12, 0), (0, 12), stroke="white",
+                           stroke_width=1.5, opacity=0.5))
+    dwg.defs.add(pat_mv130)
+
+    # CRL1505: horizontal dashes
+    pat_crl = dwg.pattern(id="pat_crl1505", size=(14, 8),
+                          patternUnits="userSpaceOnUse")
+    pat_crl.add(dwg.rect((0, 0), (14, 8), fill=products["crl1505"], opacity=0.15))
+    pat_crl.add(dwg.line((0, 4), (10, 4), stroke="white",
+                         stroke_width=2, opacity=0.5))
+    dwg.defs.add(pat_crl)
+
+
+PRODUCT_PATTERN_IDS = {
+    "om85": "pat_om85",
+    "pmbl": "pat_pmbl",
+    "mv130": "pat_mv130",
+    "crl1505": "pat_crl1505",
+}
+
+
+# ===================================================================
+# LAYOUT HELPERS
+# ===================================================================
+
+def get_zone_rect(layout, zone_key, W, H):
+    z = layout["zones"][zone_key]
+    x = int(W * z["x_pct"])
+    w = int(W * z["width_pct"])
+    return x, 0, w, H
+
+
+def get_bronchus_rect(layout, W, H):
+    bz = layout["zones"]["bronchus"]
+    bx = int(W * bz["x_pct"])
+    bw = int(W * bz["width_pct"])
+    by = int(H * layout["bronchus"]["y_start_pct"])
+    bh = int(H * (layout["bronchus"]["y_end_pct"] - layout["bronchus"]["y_start_pct"]))
+    return bx, by, bw, bh
+
+
+def get_band_rects(layout, W, H):
+    bx, by, bw, bh = get_bronchus_rect(layout, W, H)
+    bands = layout["bronchus"]["bands"]
+    result = {}
+    cum_y = by
+    for band_name in ("lumen", "epithelium", "lamina", "muscle"):
+        band_h = int(bh * bands[band_name]["height_pct"])
+        result[band_name] = (bx, cum_y, bw, band_h)
+        cum_y += band_h
+    return result
+
+
+def health_at_x(x, bx, bw):
+    if bw == 0:
+        return 0.5
+    t = (x - bx) / bw
+    return max(0.0, min(1.0, t))
+
+
+# ===================================================================
+# V13: MECHANISM BOX ICONS
+# ===================================================================
+
+def draw_icon_barrier(dwg, cx, cy, size, color):
+    """Horizontal lines = wall metaphor for epithelial barrier."""
+    half = size / 2
+    n_lines = 5
+    for i in range(n_lines):
+        y = cy - half + (i * size / (n_lines - 1))
+        x1 = cx - half * 0.8
+        x2 = cx + half * 0.8
+        sw = 3 if i % 2 == 0 else 2
+        dwg.add(dwg.line((x1, y), (x2, y),
+                         stroke=color, stroke_width=sw, opacity=0.85,
+                         stroke_linecap="round"))
+    # Vertical sides to complete the wall
+    dwg.add(dwg.line((cx - half * 0.8, cy - half), (cx - half * 0.8, cy + half),
+                     stroke=color, stroke_width=2, opacity=0.5))
+    dwg.add(dwg.line((cx + half * 0.8, cy - half), (cx + half * 0.8, cy + half),
+                     stroke=color, stroke_width=2, opacity=0.5))
+
+
+def draw_icon_innate(dwg, cx, cy, size, color):
+    """Starburst / explosion = innate immune activation."""
+    half = size / 2
+    n_rays = 8
+    for i in range(n_rays):
+        angle = math.radians(i * 360 / n_rays)
+        inner_r = half * 0.3
+        outer_r = half * 0.9
+        x1 = cx + inner_r * math.cos(angle)
+        y1 = cy + inner_r * math.sin(angle)
+        x2 = cx + outer_r * math.cos(angle)
+        y2 = cy + outer_r * math.sin(angle)
+        dwg.add(dwg.line((x1, y1), (x2, y2),
+                         stroke=color, stroke_width=2.5, opacity=0.85,
+                         stroke_linecap="round"))
+    # Central circle
+    dwg.add(dwg.circle((cx, cy), half * 0.28,
+                        fill=color, opacity=0.7))
+
+
+def draw_icon_adaptive(dwg, cx, cy, size, color):
+    """Y-shape = antibody for adaptive response."""
+    half = size / 2
+    # Stem (bottom)
+    stem_top_y = cy - half * 0.15
+    stem_bot_y = cy + half * 0.85
+    dwg.add(dwg.line((cx, stem_top_y), (cx, stem_bot_y),
+                     stroke=color, stroke_width=3, opacity=0.85,
+                     stroke_linecap="round"))
+    # Left arm
+    arm_top_y = cy - half * 0.75
+    arm_left_x = cx - half * 0.6
+    dwg.add(dwg.line((cx, stem_top_y), (arm_left_x, arm_top_y),
+                     stroke=color, stroke_width=3, opacity=0.85,
+                     stroke_linecap="round"))
+    # Right arm
+    arm_right_x = cx + half * 0.6
+    dwg.add(dwg.line((cx, stem_top_y), (arm_right_x, arm_top_y),
+                     stroke=color, stroke_width=3, opacity=0.85,
+                     stroke_linecap="round"))
+    # Tips (small circles at arm ends)
+    dwg.add(dwg.circle((arm_left_x, arm_top_y), 3.5,
+                        fill=color, opacity=0.7))
+    dwg.add(dwg.circle((arm_right_x, arm_top_y), 3.5,
+                        fill=color, opacity=0.7))
+
+
+def draw_icon_inflammation(dwg, cx, cy, size, color):
+    """Downward arrow in circle = inflammation control / suppression."""
+    half = size / 2
+    # Circle
+    dwg.add(dwg.circle((cx, cy), half * 0.85,
+                        fill="none", stroke=color, stroke_width=2.5, opacity=0.8))
+    # Down arrow shaft
+    arrow_top = cy - half * 0.45
+    arrow_bot = cy + half * 0.35
+    dwg.add(dwg.line((cx, arrow_top), (cx, arrow_bot),
+                     stroke=color, stroke_width=3, opacity=0.85,
+                     stroke_linecap="round"))
+    # Arrowhead
+    head_w = half * 0.35
+    dwg.add(dwg.polygon([
+        (cx - head_w, arrow_bot - 2),
+        (cx, arrow_bot + half * 0.25),
+        (cx + head_w, arrow_bot - 2),
+    ], fill=color, opacity=0.85))
+
+
+ICON_DRAWERS = {
+    "barrier": draw_icon_barrier,
+    "innate": draw_icon_innate,
+    "adaptive": draw_icon_adaptive,
+    "inflammation": draw_icon_inflammation,
+}
+
+
+# ===================================================================
+# V14: ZONE HEADERS (bolder — font_weight 800)
+# ===================================================================
+
+def draw_zone_headers(dwg, layout, palette, content, W, H):
+    """Draw 3 zone header pills — V14: bolder with font_weight from config."""
+    zh = layout["zone_headers"]
+    font_family = layout["font"]["family"]
+    y = int(H * zh["y_pct"])
+    pill_h = zh["height"]
+    fs = zh["font_size"]
+    fw = zh.get("font_weight", 800)
+
+    header_texts = content.get("zone_headers", {})
+    left_text = header_texts.get("left", "Early life window")
+    center_text = header_texts.get("center", "Preclinical data")
+    right_text = header_texts.get("right", "Clinical data")
+
+    # Left zone header
+    ml_x, _, ml_w, _ = get_zone_rect(layout, "margin_left", W, H)
+    left_cfg = zh["left"]
+    pill_w = ml_w - 20
+    pill_x = ml_x + 10
+    dwg.add(dwg.rect((pill_x, y), (pill_w, pill_h),
+                     fill=left_cfg["bg_color"], rx=left_cfg["pill_rx"],
+                     ry=left_cfg["pill_rx"], opacity=0.92))
+    dwg.add(dwg.text(left_text,
+                     insert=(pill_x + pill_w // 2, y + pill_h * 0.68),
+                     font_size=fs, fill=left_cfg["text_color"],
+                     font_family=font_family, font_weight=str(fw),
+                     text_anchor="middle"))
+
+    # Center zone header
+    bz_x, _, bz_w, _ = get_zone_rect(layout, "bronchus", W, H)
+    center_cfg = zh["center"]
+    pill_w_c = bz_w - 40
+    pill_x_c = bz_x + 20
+    dwg.add(dwg.rect((pill_x_c, y), (pill_w_c, pill_h),
+                     fill=center_cfg["bg_color"], rx=center_cfg["pill_rx"],
+                     ry=center_cfg["pill_rx"], opacity=0.92))
+    dwg.add(dwg.text(center_text,
+                     insert=(pill_x_c + pill_w_c // 2, y + pill_h * 0.68),
+                     font_size=fs, fill=center_cfg["text_color"],
+                     font_family=font_family, font_weight=str(fw),
+                     text_anchor="middle"))
+
+    # Right zone header
+    mr_x, _, mr_w, _ = get_zone_rect(layout, "margin_right", W, H)
+    right_cfg = zh["right"]
+    pill_w_r = mr_w - 20
+    pill_x_r = mr_x + 10
+    dwg.add(dwg.rect((pill_x_r, y), (pill_w_r, pill_h),
+                     fill=right_cfg["bg_color"], rx=right_cfg["pill_rx"],
+                     ry=right_cfg["pill_rx"], opacity=0.92))
+    dwg.add(dwg.text(right_text,
+                     insert=(pill_x_r + pill_w_r // 2, y + pill_h * 0.68),
+                     font_size=fs, fill=right_cfg["text_color"],
+                     font_family=font_family, font_weight=str(fw),
+                     text_anchor="middle"))
+
+
+# ===================================================================
+# PRODUCT PILLS (same as V13)
+# ===================================================================
+
+def draw_product_pills(dwg, layout, palette, content, W, H):
+    """Draw 4 colored product pills."""
+    pp = layout["product_pills"]
+    font_family = layout["font"]["family"]
+    y = int(H * pp["y_pct"])
+    pill_h = pp["pill_height"]
+    pill_rx = pp["pill_rx"]
+    pill_gap = pp["pill_gap"]
+    fs = pp["font_size"]
+    text_color = pp["text_color"]
+
+    products = [
+        ("OM-85", palette["products"]["om85"], "om85"),
+        ("PMBL", palette["products"]["pmbl"], "pmbl"),
+        ("MV130", palette["products"]["mv130"], "mv130"),
+        ("CRL1505", palette["products"]["crl1505"], "crl1505"),
+    ]
+
+    pill_widths = []
+    for name, _, _ in products:
+        pw = max(140, len(name) * fs * 0.65 + 40)
+        pill_widths.append(int(pw))
+
+    total_w = sum(pill_widths) + pill_gap * (len(products) - 1)
+
+    bz_x, _, bz_w, _ = get_zone_rect(layout, "bronchus", W, H)
+    start_x = bz_x + (bz_w - total_w) // 2
+
+    cx = start_x
+    for i, (name, color, key) in enumerate(products):
+        pw = pill_widths[i]
+        # Solid color base
+        dwg.add(dwg.rect((cx, y), (pw, pill_h),
+                         fill=color, rx=pill_rx, ry=pill_rx, opacity=0.92))
+        # Accessibility: overlay pattern
+        pat_id = PRODUCT_PATTERN_IDS.get(key)
+        if pat_id:
+            dwg.add(dwg.rect((cx, y), (pw, pill_h),
+                             fill=f"url(#{pat_id})", rx=pill_rx, ry=pill_rx,
+                             opacity=0.6))
+        dwg.add(dwg.text(name,
+                         insert=(cx + pw // 2, y + pill_h * 0.68),
+                         font_size=fs, fill=text_color,
+                         font_family=font_family, font_weight="bold",
+                         text_anchor="middle"))
+        cx += pw + pill_gap
+
+
+# ===================================================================
+# MECHANISM BOXES — same as V13 (restored labels + icons)
+# ===================================================================
+
+def draw_mechanism_boxes(dwg, layout, palette, content, W, H):
+    """Draw 4 mechanism boxes — V13: restored labels + 40x40 icons."""
+    mb = layout["mechanism_boxes"]
+    font_family = layout["font"]["family"]
+
+    boxes = content.get("mechanism_boxes", [])
+    if not boxes:
+        return
+
+    bz_x, _, bz_w, _ = get_zone_rect(layout, "bronchus", W, H)
+    y = int(H * mb["y_start_pct"])
+    box_h = mb["box_height"]
+    box_gap = mb["box_gap"]
+    box_rx = mb["box_rx"]
+    border_w = mb["border_left_width"]
+    title_fs = mb["title_font_size"]
+    bg_color = mb["bg_color"]
+    bg_opacity = mb["bg_opacity"]
+    border_color = mb["border_color"]
+    icon_size = mb.get("icon_size", 40)
+    icon_gap = mb.get("icon_gap", 14)
+
+    box_width = bz_w - 60
+    box_x = bz_x + 30
+
+    # Track box positions for mechanism-to-evidence arrow
+    box_positions = []
+
+    for i, box_data in enumerate(boxes):
+        box_y = y + i * (box_h + box_gap)
+
+        color_key = box_data.get("border_color_key", "om85")
+        left_border_color = palette["products"].get(color_key, "#888888")
+
+        # Background rect
+        dwg.add(dwg.rect((box_x, box_y), (box_width, box_h),
+                         fill=bg_color, opacity=bg_opacity,
+                         stroke=border_color, stroke_width=2,
+                         rx=box_rx, ry=box_rx))
+
+        # Colored left border strip
+        dwg.add(dwg.rect((box_x, box_y + 4), (border_w, box_h - 8),
+                         fill=left_border_color, rx=4, ry=4, opacity=0.92))
+
+        # Accessibility: pattern overlay on left border
+        pat_id = PRODUCT_PATTERN_IDS.get(color_key)
+        if pat_id:
+            dwg.add(dwg.rect((box_x, box_y + 4), (border_w, box_h - 8),
+                             fill=f"url(#{pat_id})", rx=4, ry=4, opacity=0.5))
+
+        # Draw icon
+        icon_key = box_data.get("icon", "")
+        icon_cx = box_x + border_w + 12 + icon_size / 2
+        icon_cy = box_y + box_h / 2
+        icon_drawer = ICON_DRAWERS.get(icon_key)
+        if icon_drawer:
+            icon_drawer(dwg, icon_cx, icon_cy, icon_size, left_border_color)
+
+        # Title — shifted right to make room for icon
+        title_x = box_x + border_w + 12 + icon_size + icon_gap
+        title_y = box_y + box_h * 0.62
+        dwg.add(dwg.text(box_data["title"],
+                         insert=(title_x, title_y),
+                         font_size=title_fs,
+                         fill=palette["text"]["primary"],
+                         font_family=font_family,
+                         font_weight="bold"))
+
+        box_positions.append((box_x, box_y, box_width, box_h))
+
+    return box_positions
+
+
+# ===================================================================
+# DISEASE CASCADE (same as V13)
+# ===================================================================
+
+def draw_disease_cascade(dwg, layout, palette, content, W, H):
+    """Draw vertical cascade with simplified labels."""
+    dc_layout = layout["disease_cascade"]
+    font_family = layout["font"]["family"]
+
+    steps = content.get("disease_cascade", {}).get("steps", [])
+    if not steps:
+        return
+
+    ml_x, _, ml_w, _ = get_zone_rect(layout, "margin_left", W, H)
+
+    y = int(H * dc_layout["y_start_pct"])
+    step_h = dc_layout["step_height"]
+    step_gap = dc_layout["step_gap"]
+    step_w = int(ml_w * dc_layout["step_width_pct"])
+    pill_rx = dc_layout["pill_rx"]
+    fs = dc_layout["font_size"]
+    arrow_size = dc_layout["arrow_size"]
+    arrow_color = dc_layout["arrow_color"]
+
+    step_x = ml_x + (ml_w - step_w) // 2
+
+    for i, step_text in enumerate(steps):
+        step_y = y + i * (step_h + step_gap + arrow_size + 4)
+
+        t = i / max(1, len(steps) - 1)
+        step_bg = lerp_color("#FEE2E2", "#FECACA", t)
+        step_border = lerp_color("#FECACA", "#F87171", t)
+        step_text_color = lerp_color("#991B1B", "#7F1D1D", t)
+
+        # Pill box
+        dwg.add(dwg.rect((step_x, step_y), (step_w, step_h),
+                         fill=step_bg, stroke=step_border, stroke_width=2,
+                         rx=pill_rx, ry=pill_rx, opacity=0.92))
+
+        # Text
+        dwg.add(dwg.text(step_text,
+                         insert=(step_x + step_w // 2, step_y + step_h * 0.68),
+                         font_size=fs, fill=step_text_color,
+                         font_family=font_family, font_weight="700",
+                         text_anchor="middle"))
+
+        # Downward arrow
+        if i < len(steps) - 1:
+            arrow_x = step_x + step_w // 2
+            arrow_top = step_y + step_h + 2
+            arrow_bottom = arrow_top + arrow_size + 2
+
+            dwg.add(dwg.line((arrow_x, arrow_top), (arrow_x, arrow_bottom),
+                             stroke=arrow_color, stroke_width=3, opacity=0.7))
+            dwg.add(dwg.polygon([
+                (arrow_x - 6, arrow_bottom - 2),
+                (arrow_x, arrow_bottom + 5),
+                (arrow_x + 6, arrow_bottom - 2),
+            ], fill=arrow_color, opacity=0.7))
+
+
+# ===================================================================
+# DRAWING: BACKGROUND + GRADIENT
+# ===================================================================
+
+def draw_background(dwg, layout, palette, W, H):
+    dwg.add(dwg.rect((0, 0), (W, H), fill=palette["background"]))
+
+    grad = layout["gradient"]
+    lg = dwg.linearGradient(("0%", "0%"), ("100%", "0%"), id="bg_grad")
+    lg.add_stop_color("0%", grad["left_color"])
+    lg.add_stop_color("50%", grad["center_color"])
+    lg.add_stop_color("100%", grad["right_color"])
+    dwg.defs.add(lg)
+    dwg.add(dwg.rect((0, 0), (W, H), fill="url(#bg_grad)", opacity=0.6))
+
+
+# ===================================================================
+# V14: BRONCHUS GLOW (shadow effect to make it float)
+# ===================================================================
+
+def draw_bronchus_glow(dwg, layout, W, H):
+    """V14: Draw a subtle shadow/glow around the bronchus to make it the focal point.
+    Uses concentric translucent rects instead of SVG filters for compatibility."""
+    bc = layout["bronchus"]
+    if not bc.get("glow_enabled", False):
+        return
+
+    bx, by, bw, bh = get_bronchus_rect(layout, W, H)
+    glow_color = bc.get("glow_color", "#000000")
+    glow_opacity = bc.get("glow_opacity", 0.08)
+    glow_blur = bc.get("glow_blur", 30)
+    cr = bc["corner_radius"]
+
+    # Simulate glow with multiple concentric translucent rects
+    n_layers = 6
+    for i in range(n_layers, 0, -1):
+        pad = int(glow_blur * i / n_layers)
+        layer_opacity = glow_opacity * (1.0 - i / (n_layers + 1)) * 0.7
+        dwg.add(dwg.rect(
+            (bx - pad, by - pad + 4), (bw + 2 * pad, bh + 2 * pad),
+            rx=cr + pad // 2, ry=cr + pad // 2,
+            fill=glow_color, opacity=layer_opacity
+        ))
+
+
+# ===================================================================
+# DRAWING: BRONCHUS FRAME + BAND SEPARATORS
+# ===================================================================
+
+def draw_bronchus_frame(dwg, layout, palette, W, H):
+    bx, by, bw, bh = get_bronchus_rect(layout, W, H)
+    bc = layout["bronchus"]
+
+    # Outer frame — V14: thicker, darker
+    dwg.add(dwg.rect(
+        (bx, by), (bw, bh),
+        rx=bc["corner_radius"], ry=bc["corner_radius"],
+        fill="none",
+        stroke=bc["border_color"],
+        stroke_width=bc["border_width"]
+    ))
+
+    # 3-stop band gradients (sick -> neutral -> healthy)
+    bands = get_band_rects(layout, W, H)
+    band_gradient_triplets = {
+        "lumen":      ("#FEF2F2", "#FAFAFA", "#F0FDF4"),
+        "epithelium": ("#FECDD3", "#F3F4F6", "#D1FAE5"),
+        "lamina":     ("#FEE2E2", "#F9FAFB", "#ECFDF5"),
+    }
+    for bname, (bx2, by2, bw2, bh2) in bands.items():
+        if bname in band_gradient_triplets:
+            sick_col, mid_col, healthy_col = band_gradient_triplets[bname]
+            grad_id = f"band_grad_{bname}"
+            band_lg = dwg.linearGradient(("0%", "0%"), ("100%", "0%"), id=grad_id)
+            band_lg.add_stop_color("0%", sick_col)
+            band_lg.add_stop_color("45%", mid_col)
+            band_lg.add_stop_color("100%", healthy_col)
+            dwg.defs.add(band_lg)
+            dwg.add(dwg.rect((bx2, by2), (bw2, bh2),
+                             fill=f"url(#{grad_id})", opacity=0.50))
+        elif bname == "muscle":
+            dwg.add(dwg.rect((bx2, by2), (bw2, bh2),
+                             fill=palette["bands"]["lamina_bg"],
+                             opacity=0.3))
+
+    # Separator lines
+    sep_w = bc["separator_width"]
+    sep_c = bc["separator_color"]
+    sep_d = bc.get("separator_dash", "8,4")
+    band_list = list(bands.values())
+    for i in range(len(band_list) - 1):
+        _, by_i, bw_i, bh_i = band_list[i]
+        y_sep = by_i + bh_i
+        dwg.add(dwg.line(
+            (bx, y_sep), (bx + bw, y_sep),
+            stroke=sep_c, stroke_width=sep_w,
+            stroke_dasharray=sep_d
+        ))
+
+
+# ===================================================================
+# BAND LABELS — V14: LIGHTER (opacity ~0.3 via color #9CA3AF)
+# ===================================================================
+
+def draw_band_labels(dwg, layout, palette, W, H):
+    bands = get_band_rects(layout, W, H)
+    font_family = layout["font"]["family"]
+
+    bl_cfg = layout.get("band_labels", {})
+    label_font_size = bl_cfg.get("font_size", 20)
+    label_color = bl_cfg.get("color", "#9CA3AF")
+
+    band_names = {
+        "lumen": "Lumen",
+        "epithelium": "Epithelium",
+        "lamina": "Lamina propria",
+        "muscle": "Muscle",
+    }
+
+    for bname, (bx, by, bw, bh) in bands.items():
+        label = band_names.get(bname, bname)
+        lx = bx + 20
+        ly = by + bh // 2
+        label_len = len(label) * label_font_size * 0.55
+        back_w = label_len
+        back_h = label_font_size + 8
+        back_x = lx - label_len / 2
+        back_y = ly - back_h / 2
+        backing = dwg.rect((back_x, back_y), (back_w, back_h),
+                           fill="white", opacity=0.72, rx=4, ry=4)
+        backing.attribs["transform"] = f"rotate(-90, {lx}, {ly})"
+        dwg.add(backing)
+        txt = dwg.text(label, insert=(lx, ly + label_font_size * 0.35),
+                       font_size=label_font_size, fill=label_color,
+                       font_family=font_family,
+                       text_anchor="middle",
+                       transform=f"rotate(-90, {lx}, {ly})")
+        dwg.add(txt)
+
+
+# ===================================================================
+# ZONE ORIENTATION TEXT
+# ===================================================================
+
+def draw_zone_orientation(dwg, layout, palette, W, H):
+    bx, by, bw, bh = get_bronchus_rect(layout, W, H)
+    font_family = layout["font"]["family"]
+    fs = 36
+
+    path_x, path_y = bx + 24, by - 14
+    dwg.add(dwg.rect((path_x - 4, path_y - 28), (220, 36),
+                     fill="white", opacity=0.7, rx=4))
+    dwg.add(dwg.text("Pathological",
+                     insert=(path_x, path_y),
+                     font_size=fs,
+                     fill="#DC2626",
+                     font_family=font_family,
+                     font_weight="bold",
+                     opacity=0.85))
+
+    prot_x = bx + bw - 24
+    dwg.add(dwg.rect((prot_x - 175, by - 42), (180, 36),
+                     fill="white", opacity=0.7, rx=4))
+    dwg.add(dwg.text("Protected",
+                     insert=(prot_x, by - 14),
+                     font_size=fs,
+                     fill="#059669",
+                     font_family=font_family,
+                     font_weight="bold",
+                     text_anchor="end",
+                     opacity=0.85))
+
+
+# ===================================================================
+# DRAWING: BAND 1 — LUMEN
+# ===================================================================
+
+def draw_lumen(dwg, layout, palette, W, H):
+    bx, by, bw, bh = get_band_rects(layout, W, H)["lumen"]
+    bc = layout["band_content"]["lumen"]
+    dc = layout.get("density", {})
+    virus_color = palette["virus"]
+
+    # Stipple texture — V14: reduced density
+    stipple_color = palette.get("density", {}).get("lumen_stipple", "#CBD5E1")
+    draw_stipple_field(dwg, bx, by, bw, bh,
+                       color=stipple_color,
+                       density=dc.get("lumen_stipple_density", 0.0005),
+                       r_min=dc.get("stipple_r_min", 1.0),
+                       r_max=dc.get("stipple_r_max", 2.0),
+                       opacity=0.10, seed=100)
+
+    # Viruses
+    random.seed(42)
+    for i in range(bc["virus_count"]):
+        vx_min = bx + int(bw * bc["virus_x_range"][0])
+        vx_max = bx + int(bw * bc["virus_x_range"][1])
+        vx = random.randint(vx_min, vx_max)
+        vy = by + int(bh * 0.3) + random.randint(0, int(bh * 0.4))
+        draw_virus_icon(dwg, vx, vy, bc["virus_radius"], virus_color)
+
+    # Extra small virus particles
+    extra_count = dc.get("virus_count_extra", 4)
+    extra_r = dc.get("virus_extra_radius", 16)
+    extra_x_range = dc.get("virus_extra_x_range", [0.02, 0.38])
+    random.seed(200)
+    for i in range(extra_count):
+        vx = bx + int(bw * extra_x_range[0]) + random.randint(
+            0, int(bw * (extra_x_range[1] - extra_x_range[0])))
+        vy = by + int(bh * 0.15) + random.randint(0, int(bh * 0.7))
+        draw_virus_icon(dwg, vx, vy, extra_r, virus_color)
+
+    # Red arrows
+    for i in range(2):
+        ax = bx + int(bw * 0.15) + i * int(bw * 0.12)
+        ay = by + int(bh * 0.5)
+        dwg.add(dwg.line((ax, ay), (ax + 40, ay),
+                         stroke=virus_color, stroke_width=3, opacity=0.5))
+        dwg.add(dwg.polygon(
+            [(ax + 40, ay - 6), (ax + 52, ay), (ax + 40, ay + 6)],
+            fill=virus_color, opacity=0.5
+        ))
+
+    # Mucus droplets
+    random.seed(99)
+    for i in range(8):
+        mx = bx + int(bw * 0.03) + random.randint(0, int(bw * 0.28))
+        my = by + int(bh * 0.15) + random.randint(0, int(bh * 0.65))
+        mr = random.randint(3, 9)
+        draw_mucus_droplet(dwg, mx, my, mr, color="#D97706", opacity=0.40)
+
+    # Convergence lines from product locations
+    bands = get_band_rects(layout, W, H)
+    epi_bx, epi_by, epi_bw, epi_bh = bands["epithelium"]
+    lam_bx, lam_by, lam_bw, lam_bh = bands["lamina"]
+
+    epi_bc = layout["band_content"]["epithelium"]
+    lam_bc = layout["band_content"]["lamina"]
+
+    convergence_x = bx + int(bw * 0.65)
+    convergence_y = by + int(bh * 0.55)
+
+    product_colors = [
+        palette["products"]["om85"],
+        palette["products"]["pmbl"],
+        palette["products"]["mv130"],
+        palette["products"]["crl1505"],
+    ]
+
+    shield_x = epi_bx + int(epi_bw * epi_bc["shield_x_pct"]) + 60
+    shield_y = epi_by + epi_bh // 2
+    staple_x = epi_bx + int(epi_bw * 0.68)
+    staple_y = epi_by + epi_bh // 2
+    dc_healthy_x = lam_bx + int(lam_bw * lam_bc["dc_healthy_x_pct"])
+    dc_y_center = lam_by + int(lam_bh * 0.72)
+    crl_relay = layout["crl1505_relay"]
+    crl_target_x = lam_bx + int(lam_bw * crl_relay["target_x_pct"])
+    crl_target_y = lam_by + lam_bh
+
+    line_origins = [
+        (shield_x, shield_y),
+        (staple_x, staple_y),
+        (dc_healthy_x, dc_y_center),
+        (crl_target_x, crl_target_y),
+    ]
+    for (ox, oy), color in zip(line_origins, product_colors):
+        ctrl_x = (ox + convergence_x) * 0.5 + 15
+        ctrl_y = (oy + convergence_y) * 0.5
+        path_d = f"M {ox},{oy} Q {ctrl_x},{ctrl_y} {convergence_x},{convergence_y}"
+        dwg.add(dwg.path(d=path_d, fill="none",
+                         stroke=color, stroke_width=2.5,
+                         opacity=0.45, stroke_linecap="round"))
+
+    # IgA Y shapes
+    iga_count = 6
+    iga_colors = [
+        palette["products"]["om85"],
+        palette["products"]["pmbl"],
+        palette["products"]["mv130"],
+        palette["products"]["crl1505"],
+    ]
+    for i in range(iga_count):
+        ix_start = convergence_x + 10
+        ix_end = bx + int(bw * bc["iga_x_range"][1])
+        ix = ix_start + int((ix_end - ix_start) * i / max(1, iga_count - 1))
+        iy = by + int(bh * 0.75)
+        color_i = iga_colors[i % len(iga_colors)]
+        draw_iga_y(dwg, ix, iy, bc["iga_height"], color_i)
+
+    # Convergence glow
+    dwg.add(dwg.circle((convergence_x, convergence_y), 14,
+                       fill="#FFFFFF", opacity=0.45))
+    dwg.add(dwg.circle((convergence_x, convergence_y), 9,
+                       fill="#059669", opacity=0.18))
+
+
+# ===================================================================
+# DRAWING: BAND 2 — EPITHELIUM
+# ===================================================================
+
+def draw_epithelium(dwg, layout, palette, W, H):
+    bx, by, bw, bh = get_band_rects(layout, W, H)["epithelium"]
+    bc = layout["band_content"]["epithelium"]
+    dc = layout.get("density", {})
+
+    stipple_color = palette.get("density", {}).get("epithelium_stipple", "#9CA3AF")
+    draw_stipple_field(dwg, bx, by, bw, bh,
+                       color=stipple_color,
+                       density=dc.get("epithelium_stipple_density", 0.0010),
+                       r_min=dc.get("stipple_r_min", 1.0),
+                       r_max=dc.get("stipple_r_max", 2.0),
+                       opacity=0.08, seed=101)
+
+    n_cells = dc.get("epithelium_cells", 42)
+    cell_w = bw / n_cells
+    cell_h = int(bh * bc["cell_height_pct"])
+    cell_y = by + (bh - cell_h) // 2
+
+    gap_indices = set()
+    random.seed(7)
+    sick_cell_limit = n_cells // 3
+    candidates = list(range(sick_cell_limit))
+    random.shuffle(candidates)
+    for g in candidates[:bc["gap_count_sick"]]:
+        gap_indices.add(g)
+
+    om85_color = palette["products"]["om85"]
+    pmbl_color = palette["products"]["pmbl"]
+    nucleus_color = palette.get("density", {}).get("epithelium_nucleus", "#6B7280")
+    tj_color = palette.get("density", {}).get("tight_junction", "#374151")
+    nucleus_prob = dc.get("nucleus_probability", 0.7)
+    n_cilia_cfg = dc.get("cilia_per_cell", 6)
+    tj_n_zigs = dc.get("tight_junction_n_zigs", 6)
+    tj_amplitude = dc.get("tight_junction_amplitude", 3)
+
+    random.seed(300)
+
+    for i in range(n_cells):
+        cx = bx + int(i * cell_w)
+        t = i / max(1, n_cells - 1)
+
+        cell_base = lerp_color(
+            palette["bands"]["epithelium_sick"],
+            palette["bands"]["epithelium_healthy"],
+            t
+        )
+        cell_top = cell_base
+        cell_bottom = darken_hex(cell_base, 0.08)
+
+        grad_id = f"cell_grad_{i}"
+        cell_lg = dwg.linearGradient(("0%", "0%"), ("0%", "100%"), id=grad_id)
+        cell_lg.add_stop_color("0%", cell_top)
+        cell_lg.add_stop_color("100%", cell_bottom)
+        dwg.defs.add(cell_lg)
+
+        if i in gap_indices:
+            gap_size = int(cell_w * 0.35)
+            dwg.add(dwg.rect(
+                (cx, cell_y), (int(cell_w) - gap_size, cell_h),
+                fill=f"url(#{grad_id})", stroke="#D1D5DB", stroke_width=1,
+                rx=2, ry=2
+            ))
+            dwg.add(dwg.rect(
+                (cx + int(cell_w) - gap_size, cell_y + int(cell_h * 0.1)),
+                (gap_size - 2, int(cell_h * 0.8)),
+                fill=palette["virus"], opacity=0.2
+            ))
+        else:
+            cell_rx = 2 + int(t * 2)
+            dwg.add(dwg.rect(
+                (cx + 1, cell_y), (int(cell_w) - 2, cell_h),
+                fill=f"url(#{grad_id})", stroke="#D1D5DB", stroke_width=1,
+                rx=cell_rx, ry=cell_rx
+            ))
+
+            if random.random() < nucleus_prob:
+                nuc_cx = cx + cell_w * 0.5
+                nuc_cy = cell_y + cell_h * 0.55
+                nuc_rx = cell_w * 0.22
+                nuc_ry = cell_h * 0.18
+                draw_cell_nucleus(dwg, nuc_cx, nuc_cy, nuc_rx, nuc_ry,
+                                  nucleus_color, opacity=0.25)
+
+            if t > 0.25:
+                cilia_h_base = int(cell_h * 0.20)
+                cilia_scale = 0.35 + 0.65 * ((t - 0.25) / 0.75)
+                cilia_h = max(2, int(cilia_h_base * cilia_scale))
+                cilia_color = lerp_color(cell_base, "#1F2937", 0.3)
+                wave_amp = dc.get("cilia_wave_amplitude", 2)
+                for c in range(n_cilia_cfg):
+                    cx_cilia = cx + int(cell_w * (c + 0.5) / n_cilia_cfg)
+                    wave_offset = wave_amp * math.sin(c * 1.2 + i * 0.7)
+                    dwg.add(dwg.line(
+                        (cx_cilia, cell_y - 1),
+                        (cx_cilia + wave_offset, cell_y - cilia_h),
+                        stroke=cilia_color,
+                        stroke_width=1.3, stroke_linecap="round"
+                    ))
+
+            if t > 0.50 and i > 0 and (i - 1) not in gap_indices:
+                draw_tight_junction(dwg, cx, cell_y + int(cell_h * 0.1),
+                                    cell_y + int(cell_h * 0.9),
+                                    tj_color, n_zigs=tj_n_zigs,
+                                    amplitude=tj_amplitude,
+                                    stroke_width=1.0,
+                                    opacity=0.3 + 0.3 * t)
+
+            if t > 0.45 and i > 0 and i not in gap_indices:
+                staple_x = cx
+                staple_y1 = cell_y + int(cell_h * 0.25)
+                staple_y2 = cell_y + int(cell_h * 0.75)
+                dwg.add(dwg.line(
+                    (staple_x, staple_y1), (staple_x, staple_y2),
+                    stroke=pmbl_color, stroke_width=3, opacity=0.7
+                ))
+                dwg.add(dwg.line(
+                    (staple_x - 3, staple_y1), (staple_x + 3, staple_y1),
+                    stroke=pmbl_color, stroke_width=2
+                ))
+                dwg.add(dwg.line(
+                    (staple_x - 3, staple_y2), (staple_x + 3, staple_y2),
+                    stroke=pmbl_color, stroke_width=2
+                ))
+
+    # OM-85 shield
+    shield_x = bx + int(bw * bc["shield_x_pct"])
+    shield_y = cell_y - 25
+    shield_w, shield_h = 120, 130
+
+    shield_path = f"M {shield_x},{shield_y} "
+    shield_path += f"L {shield_x + shield_w},{shield_y} "
+    shield_path += f"L {shield_x + shield_w},{shield_y + shield_h * 0.7} "
+    shield_path += f"Q {shield_x + shield_w / 2},{shield_y + shield_h} {shield_x},{shield_y + shield_h * 0.7} Z"
+    dwg.add(dwg.path(d=shield_path, fill=om85_color, opacity=0.6,
+                     stroke=om85_color, stroke_width=2))
+
+    lock_cx = shield_x + shield_w / 2
+    lock_cy = shield_y + shield_h * 0.4
+    dwg.add(dwg.circle((lock_cx, lock_cy), 12, fill="none",
+                       stroke="white", stroke_width=3))
+    dwg.add(dwg.rect((lock_cx - 10, lock_cy + 8), (20, 16),
+                     fill="white", rx=2))
+    dwg.add(dwg.text("OM-85",
+                     insert=(lock_cx, lock_cy + 38),
+                     font_size=18, fill="white",
+                     font_family=layout["font"]["family"],
+                     font_weight="bold",
+                     text_anchor="middle",
+                     opacity=0.9))
+
+
+# ===================================================================
+# DRAWING: BAND 3 — LAMINA PROPRIA
+# ===================================================================
+
+def draw_lamina_propria(dwg, layout, palette, W, H):
+    bx, by, bw, bh = get_band_rects(layout, W, H)["lamina"]
+    bc = layout["band_content"]["lamina"]
+    dc_cfg = layout.get("density", {})
+
+    split_y = by + int(bh * bc["split_pct"])
+
+    om85_color = palette["products"]["om85"]
+    mv130_color = palette["products"]["mv130"]
+    crl1505_color = palette["products"]["crl1505"]
+    pmbl_color = palette["products"]["pmbl"]
+
+    density_pal = palette.get("density", {})
+
+    # V14: reduced stipple density
+    stipple_color = density_pal.get("lamina_stipple", "#D1D5DB")
+    draw_stipple_field(dwg, bx, by, bw, bh,
+                       color=stipple_color,
+                       density=dc_cfg.get("lamina_stipple_density", 0.0008),
+                       r_min=dc_cfg.get("stipple_r_min", 1.0),
+                       r_max=dc_cfg.get("stipple_r_max", 2.0),
+                       opacity=0.10, seed=102)
+
+    # V14: reduced crosshatch
+    draw_crosshatch(dwg, bx, by, bw, bh,
+                    color=stipple_color,
+                    spacing=dc_cfg.get("lamina_crosshatch_spacing", 36),
+                    stroke_width=0.6,
+                    opacity=dc_cfg.get("lamina_crosshatch_opacity", 0.04))
+
+    dc_radius = bc.get("dc_radius", 48)
+
+    # Dormant DC (sick side)
+    dc_x_sick = bx + int(bw * bc["dc_sick_x_pct"])
+    dc_y = split_y + int((by + bh - split_y) * 0.5)
+    dormant_color = "#6B7280"
+
+    dwg.add(dwg.circle((dc_x_sick, dc_y), dc_radius * 1.5,
+                       fill="#DC2626", opacity=0.06))
+    dwg.add(dwg.circle((dc_x_sick, dc_y), dc_radius * 1.2,
+                       fill="#DC2626", opacity=0.08))
+    draw_dc_cell(dwg, dc_x_sick, dc_y, dc_radius, dormant_color,
+                 active=False, helix_color=None)
+
+    # Active DC with MV130 helix (right side)
+    dc_x_healthy = bx + int(bw * bc["dc_healthy_x_pct"])
+    draw_dc_cell(dwg, dc_x_healthy, dc_y, dc_radius * 1.2,
+                 mv130_color, active=True, helix_color=mv130_color)
+
+    # OM-85 blue halo
+    dwg.add(dwg.circle((dc_x_healthy, dc_y), dc_radius * 1.6,
+                       fill="none", stroke=om85_color, stroke_width=2,
+                       stroke_dasharray="4,3", opacity=0.5))
+
+    # PMBL secondary mark
+    pmbl_dot_x = dc_x_healthy + dc_radius * 1.3
+    pmbl_dot_y = dc_y - dc_radius * 0.5
+    dwg.add(dwg.circle((pmbl_dot_x, pmbl_dot_y), 7,
+                       fill=pmbl_color, opacity=0.6))
+
+    # Arrow dormant -> active
+    arrow_y = dc_y
+    arrow_x1 = dc_x_sick + dc_radius * 1.5
+    arrow_x2 = dc_x_healthy - dc_radius * 1.8
+    dwg.add(dwg.line((arrow_x1, arrow_y), (arrow_x2, arrow_y),
+                     stroke="#9CA3AF", stroke_width=2, stroke_dasharray="6,3"))
+    dwg.add(dwg.polygon(
+        [(arrow_x2, arrow_y - 5), (arrow_x2 + 10, arrow_y), (arrow_x2, arrow_y + 5)],
+        fill="#9CA3AF"
+    ))
+
+    # Macrophages
+    mac_r = dc_cfg.get("macrophage_radius", 20)
+    mac_dormant_color = density_pal.get("macrophage_dormant", "#9CA3AF")
+    mac_active_color = density_pal.get("macrophage_active", "#3B82F6")
+
+    mac_sick_count = dc_cfg.get("macrophage_count_sick", 2)
+    random.seed(400)
+    for m in range(mac_sick_count):
+        mx = bx + int(bw * 0.08) + random.randint(0, int(bw * 0.18))
+        my = split_y + random.randint(int((by + bh - split_y) * 0.15),
+                                       int((by + bh - split_y) * 0.85))
+        draw_macrophage(dwg, mx, my, mac_r, mac_dormant_color,
+                        active=False, opacity=0.45, seed=m + 400)
+
+    mac_healthy_count = dc_cfg.get("macrophage_count_healthy", 3)
+    for m in range(mac_healthy_count):
+        mx = bx + int(bw * 0.55) + random.randint(0, int(bw * 0.30))
+        my = split_y + random.randint(int((by + bh - split_y) * 0.15),
+                                       int((by + bh - split_y) * 0.85))
+        draw_macrophage(dwg, mx, my, mac_r, mac_active_color,
+                        active=True, opacity=0.45, seed=m + 410)
+
+    # T-helper cells
+    th_color = density_pal.get("t_helper", "#60A5FA")
+    th_count = dc_cfg.get("t_helper_count", 4)
+    th_r = dc_cfg.get("t_helper_radius", 14)
+    random.seed(500)
+    for t_i in range(th_count):
+        tx = bx + int(bw * 0.30) + random.randint(0, int(bw * 0.55))
+        ty = by + random.randint(int((split_y - by) * 0.15),
+                                  int((split_y - by) * 0.85))
+        draw_t_helper(dwg, tx, ty, th_r, th_color, opacity=0.5,
+                      font_family=layout["font"]["family"])
+
+    # Treg cells
+    treg_color = density_pal.get("treg", "#34D399")
+    treg_count = dc_cfg.get("treg_count", 2)
+    treg_r = dc_cfg.get("treg_radius", 16)
+    for t_i in range(treg_count):
+        tx = bx + int(bw * 0.65) + random.randint(0, int(bw * 0.25))
+        ty = by + random.randint(int((split_y - by) * 0.2),
+                                  int((split_y - by) * 0.8))
+        draw_t_helper(dwg, tx, ty, treg_r, treg_color, label="Treg",
+                      opacity=0.55, font_family=layout["font"]["family"])
+
+    # Immune cell scatter dots
+    scatter_density = dc_cfg.get("immune_scatter_density", 0.0006)
+    scatter_r_min = dc_cfg.get("immune_scatter_r_min", 3)
+    scatter_r_max = dc_cfg.get("immune_scatter_r_max", 6)
+    draw_stipple_field(dwg, bx, by, int(bw * 0.35), bh,
+                       color="#F87171",
+                       density=scatter_density * 0.8,
+                       r_min=scatter_r_min, r_max=scatter_r_max,
+                       opacity=0.12, seed=600)
+    draw_stipple_field(dwg, bx + int(bw * 0.55), by, int(bw * 0.45), bh,
+                       color=om85_color,
+                       density=scatter_density * 0.5,
+                       r_min=scatter_r_min, r_max=scatter_r_max,
+                       opacity=0.08, seed=601)
+
+    # UPPER: Adaptive Balance
+    bal_x_sick = bx + int(bw * 0.22)
+    bal_y = by + int((split_y - by) * 0.5)
+    draw_th_balance(dwg, bal_x_sick, bal_y, bc["balance_width"] * 0.8,
+                    "#9CA3AF", balanced=False,
+                    text_color=palette["text"]["secondary"],
+                    font_family=layout["font"]["family"])
+
+    bal_x_healthy = bx + int(bw * bc["balance_x_pct"])
+    draw_th_balance(dwg, bal_x_healthy, bal_y, bc["balance_width"],
+                    om85_color, balanced=True,
+                    text_color=palette["text"]["secondary"],
+                    font_family=layout["font"]["family"])
+
+
+# ===================================================================
+# DRAWING: BAND 4 — MUSCLE LISSE
+# ===================================================================
+
+def draw_muscle(dwg, layout, palette, W, H):
+    bx, by, bw, bh = get_band_rects(layout, W, H)["muscle"]
+    bc = layout["band_content"]["muscle"]
+    dc_cfg = layout.get("density", {})
+    density_pal = palette.get("density", {})
+
+    draw_gradient_band(dwg, bx, by, bw, bh,
+                       palette["bands"]["muscle_sick"],
+                       palette["bands"]["muscle_healthy"],
+                       n_slices=40, opacity=0.7,
+                       thickness_left=bc["thickness_sick_pct"],
+                       thickness_right=bc["thickness_healthy_pct"])
+
+    # V14: reduced fiber count and opacity
+    fiber_color = density_pal.get("muscle_fiber", "#92400E")
+    n_fibers = dc_cfg.get("muscle_fiber_count", 12)
+    fiber_opacity = dc_cfg.get("muscle_fiber_opacity", 0.08)
+    draw_fiber_lines(dwg, bx, by, bw, bh,
+                     color=fiber_color,
+                     n_fibers=n_fibers,
+                     stroke_width=1.2,
+                     opacity=fiber_opacity,
+                     seed=700)
+
+
+# ===================================================================
+# DRAWING: VICIOUS CYCLE
+# ===================================================================
+
+def draw_vicious_cycle(dwg, layout, palette, W, H):
+    ml_x, _, ml_w, _ = get_zone_rect(layout, "margin_left", W, H)
+    vc = layout["vicious_cycle"]
+
+    bx_bronch, by_bronch, bw_bronch, bh_bronch = get_bronchus_rect(layout, W, H)
+    cx = bx_bronch
+    cy = by_bronch + bh_bronch // 2
+    rx, ry = vc["radius_x"], vc["radius_y"]
+    font_family = layout["font"]["family"]
+
+    # Red circle arc
+    path_d = f"M {cx},{cy - ry} "
+    path_d += f"A {rx},{ry} 0 1 1 {cx - 1},{cy - ry}"
+    dwg.add(dwg.path(d=path_d, fill="none",
+                     stroke=palette["virus"], stroke_width=3.5, opacity=0.65))
+
+    for station in vc["stations"]:
+        angle = math.radians(station["angle_deg"])
+        sx = cx + (rx + 24) * math.cos(angle)
+        sy = cy + (ry + 24) * math.sin(angle)
+        anchor = "middle"
+        if abs(station["angle_deg"]) < 45:
+            anchor = "start" if station["angle_deg"] >= 0 else "middle"
+        elif station["angle_deg"] == 180:
+            anchor = "end"
+        dwg.add(dwg.text(station["label"],
+                         insert=(sx, sy),
+                         font_size=vc["font_size"],
+                         fill=palette["text"]["primary"],
+                         font_family=font_family,
+                         text_anchor=anchor))
+
+    # Bottom label
+    dwg.add(dwg.text(vc["bottom_label"],
+                     insert=(cx, cy + ry + 50),
+                     font_size=vc["font_size"] + 4,
+                     fill=palette["virus"],
+                     font_family=font_family,
+                     font_weight="bold",
+                     text_anchor="middle"))
+
+
+# ===================================================================
+# DRAWING: CYCLE-BREAK VISUAL
+# ===================================================================
+
+def draw_cycle_break(dwg, layout, palette, W, H):
+    bx_bronch, by_bronch, bw_bronch, bh_bronch = get_bronchus_rect(layout, W, H)
+    bronchus_right_x = bx_bronch
+
+    ml_x, _, ml_w, _ = get_zone_rect(layout, "margin_left", W, H)
+    vc = layout["vicious_cycle"]
+    cycle_cx = ml_x + int(ml_w * vc["center_x_pct"])
+    cycle_cy = int(H * vc["center_y_pct"])
+    cycle_rx = vc["radius_x"]
+
+    arrow_start_x = bronchus_right_x
+    arrow_start_y = by_bronch + bh_bronch // 2
+
+    arrow_end_x = cycle_cx + cycle_rx - 10
+    arrow_end_y = cycle_cy
+
+    arrow_color = "#059669"
+
+    ctrl_x = (arrow_start_x + arrow_end_x) * 0.5
+    ctrl_y = min(arrow_start_y, arrow_end_y) - 40
+
+    path_d = f"M {arrow_start_x},{arrow_start_y} Q {ctrl_x},{ctrl_y} {arrow_end_x},{arrow_end_y}"
+    dwg.add(dwg.path(d=path_d, fill="none",
+                     stroke=arrow_color, stroke_width=12,
+                     opacity=0.75, stroke_linecap="round"))
+
+    head_size = 22
+    dwg.add(dwg.polygon([
+        (arrow_end_x, arrow_end_y),
+        (arrow_end_x + head_size, arrow_end_y - head_size * 0.6),
+        (arrow_end_x + head_size, arrow_end_y + head_size * 0.6),
+    ], fill=arrow_color, opacity=0.8))
+
+    dwg.add(dwg.circle((arrow_start_x, arrow_start_y), 16,
+                       fill=arrow_color, opacity=0.2))
+
+    fracture_color = palette["virus"]
+    fracture_marks = [
+        (arrow_end_x + 5, arrow_end_y - 18, arrow_end_x + 30, arrow_end_y - 36),
+        (arrow_end_x + 2, arrow_end_y + 16, arrow_end_x + 28, arrow_end_y + 36),
+        (arrow_end_x + 14, arrow_end_y - 6, arrow_end_x + 40, arrow_end_y + 6),
+        (arrow_end_x + 10, arrow_end_y + 5, arrow_end_x + 34, arrow_end_y + 20),
+    ]
+    for x1, y1, x2, y2 in fracture_marks:
+        dwg.add(dwg.line((x1, y1), (x2, y2),
+                         stroke=fracture_color, stroke_width=6,
+                         opacity=0.8, stroke_linecap="round"))
+
+    label_x = arrow_end_x + 28
+    label_y = arrow_end_y + 50
+    dwg.add(dwg.text("break",
+                     insert=(label_x, label_y),
+                     font_size=30,
+                     fill=arrow_color,
+                     font_family="Helvetica, Arial, sans-serif",
+                     font_style="italic",
+                     font_weight="bold",
+                     opacity=0.7))
+
+
+# ===================================================================
+# V14: EVIDENCE BARS — thicker, bolder, RCT inside bars
+# ===================================================================
+
+def draw_evidence_bars(dwg, layout, palette, W, H):
+    """V14: More prominent evidence bars — thicker, bolder title, RCT inside."""
+    mr_x, _, mr_w, _ = get_zone_rect(layout, "margin_right", W, H)
+    ev = layout["evidence"]
+    font_family = layout["font"]["family"]
+
+    y = int(H * ev["y_start_pct"])
+    max_bar_w = int(mr_w * ev["max_width_pct"])
+
+    title_y = y - 20
+
+    # Title — V14: bigger, bolder
+    title_fw = ev.get("title_font_weight", 800)
+    dwg.add(dwg.text(ev["title"],
+                     insert=(mr_x + mr_w // 2, title_y),
+                     font_size=ev["title_font_size"],
+                     fill=palette["text"]["primary"],
+                     font_family=font_family,
+                     font_weight=str(title_fw),
+                     text_anchor="middle"))
+
+    # Title underline
+    if ev.get("title_underline", False):
+        title_text_w = len(ev["title"]) * ev["title_font_size"] * 0.5
+        ul_x1 = mr_x + mr_w // 2 - title_text_w // 2
+        ul_x2 = mr_x + mr_w // 2 + title_text_w // 2
+        ul_y = title_y + 8
+        dwg.add(dwg.line((ul_x1, ul_y), (ul_x2, ul_y),
+                         stroke=palette["text"]["primary"],
+                         stroke_width=3, opacity=0.6))
+
+    evidence_opacity = {
+        "om85": 1.0,
+        "pmbl": 0.85,
+        "mv130": 0.70,
+        "crl1505": 0.55,
+    }
+
+    rct_inside = ev.get("rct_inside_bars", True)
+
+    for item in ev["items"]:
+        bar_w = int(max_bar_w * item["width_pct"])
+        color = resolve_color(palette, f"products.{item['product']}")
+        bar_x = mr_x + 10
+        bar_h = ev["bar_height"]
+
+        bar_opacity = evidence_opacity.get(item["product"], 0.85)
+
+        # Draw bar
+        dwg.add(dwg.rect((bar_x, y), (bar_w, bar_h),
+                         fill=color, rx=8, ry=8, opacity=bar_opacity))
+
+        # Accessibility: pattern overlay
+        pat_id = PRODUCT_PATTERN_IDS.get(item["product"])
+        if pat_id:
+            dwg.add(dwg.rect((bar_x, y), (bar_w, bar_h),
+                             fill=f"url(#{pat_id})", rx=8, ry=8,
+                             opacity=0.4))
+
+        product_name = item.get("name", item["product"].upper())
+        label = item["label"]
+
+        name_fs = 34   # V14: slightly bigger
+        label_fs = 30  # V14: slightly bigger
+
+        if rct_inside:
+            # V14: ALL text inside the bar in white
+            if bar_w > 180:
+                # Name on left, RCT count on right — both inside
+                dwg.add(dwg.text(product_name,
+                                 insert=(bar_x + 18, y + bar_h * 0.62),
+                                 font_size=name_fs, fill="white",
+                                 font_family=font_family, font_weight="bold"))
+                dwg.add(dwg.text(label,
+                                 insert=(bar_x + bar_w - 18, y + bar_h * 0.62),
+                                 font_size=label_fs, fill="white",
+                                 font_family=font_family, font_weight="bold",
+                                 text_anchor="end",
+                                 opacity=0.95))
+            elif bar_w > 100:
+                # Name inside, label just outside (bar too narrow for both)
+                dwg.add(dwg.text(product_name,
+                                 insert=(bar_x + 12, y + bar_h * 0.62),
+                                 font_size=name_fs - 2, fill="white",
+                                 font_family=font_family, font_weight="bold"))
+                dwg.add(dwg.text(label,
+                                 insert=(bar_x + bar_w + 12, y + bar_h * 0.62),
+                                 font_size=label_fs,
+                                 fill=palette["text"]["secondary"],
+                                 font_family=font_family, font_weight="bold"))
+            else:
+                # Small bar: name inside, label outside
+                dwg.add(dwg.text(product_name,
+                                 insert=(bar_x + 8, y + bar_h * 0.62),
+                                 font_size=26, fill="white",
+                                 font_family=font_family, font_weight="bold"))
+                dwg.add(dwg.text(label,
+                                 insert=(bar_x + bar_w + 10, y + bar_h * 0.62),
+                                 font_size=label_fs,
+                                 fill=palette["text"]["secondary"],
+                                 font_family=font_family, font_weight="bold"))
+        else:
+            # Fallback: V13 style
+            if bar_w > 180:
+                dwg.add(dwg.text(product_name,
+                                 insert=(bar_x + 18, y + bar_h * 0.62),
+                                 font_size=name_fs, fill="white",
+                                 font_family=font_family, font_weight="bold"))
+                dwg.add(dwg.text(label,
+                                 insert=(bar_x + bar_w - 18, y + bar_h * 0.62),
+                                 font_size=label_fs, fill="white",
+                                 font_family=font_family,
+                                 text_anchor="end", opacity=0.92))
+            elif bar_w > 100:
+                dwg.add(dwg.text(product_name,
+                                 insert=(bar_x + 12, y + bar_h * 0.62),
+                                 font_size=name_fs - 2, fill="white",
+                                 font_family=font_family, font_weight="bold"))
+                dwg.add(dwg.text(label,
+                                 insert=(bar_x + bar_w + 12, y + bar_h * 0.62),
+                                 font_size=label_fs,
+                                 fill=palette["text"]["secondary"],
+                                 font_family=font_family))
+            else:
+                dwg.add(dwg.text(product_name,
+                                 insert=(bar_x + 8, y + bar_h * 0.62),
+                                 font_size=24, fill="white",
+                                 font_family=font_family, font_weight="bold"))
+                dwg.add(dwg.text(label,
+                                 insert=(bar_x + bar_w + 10, y + bar_h * 0.62),
+                                 font_size=label_fs,
+                                 fill=palette["text"]["secondary"],
+                                 font_family=font_family))
+
+        y += bar_h + ev["bar_gap"]
+
+    # Return the final y position for mechanism-to-evidence arrow
+    return y
+
+
+# ===================================================================
+# V13: MECHANISM -> EVIDENCE CONNECTING ARROW
+# ===================================================================
+
+def draw_mechanism_to_evidence_arrow(dwg, layout, palette, W, H,
+                                      mech_box_positions, evidence_top_y):
+    """Draw a subtle connecting arrow from mechanism boxes area to evidence bars."""
+    arrow_cfg = layout.get("mechanism_to_evidence_arrow", {})
+    if not arrow_cfg.get("enabled", False):
+        return
+    if not mech_box_positions:
+        return
+
+    # Arrow starts from middle of mechanism boxes area (bottom of bronchus)
+    bz_x, _, bz_w, _ = get_zone_rect(layout, "bronchus", W, H)
+    mech_center_x = bz_x + bz_w // 2
+
+    # Bottom of last mechanism box
+    last_box = mech_box_positions[-1]
+    mech_bottom_y = last_box[1] + last_box[3] + 10
+
+    # Evidence bars are in margin_right
+    mr_x, _, mr_w, _ = get_zone_rect(layout, "margin_right", W, H)
+    ev_center_x = mr_x + mr_w // 2
+    ev_top_y = evidence_top_y - 40
+
+    stroke_w = arrow_cfg.get("stroke_width", 3)
+    color = arrow_cfg.get("color", "#9CA3AF")
+    opacity = arrow_cfg.get("opacity", 0.5)
+    dash = arrow_cfg.get("dash", "8,4")
+
+    # Curved path from mechanism bottom to evidence top
+    ctrl_x = (mech_center_x + ev_center_x) * 0.5
+    ctrl_y = max(mech_bottom_y, ev_top_y) + 20
+
+    path_d = f"M {mech_center_x},{mech_bottom_y} Q {ctrl_x},{ctrl_y} {ev_center_x},{ev_top_y}"
+    dwg.add(dwg.path(d=path_d, fill="none",
+                     stroke=color, stroke_width=stroke_w,
+                     stroke_dasharray=dash, opacity=opacity,
+                     stroke_linecap="round"))
+
+    # Small arrowhead at evidence end
+    head_size = 10
+    dwg.add(dwg.polygon([
+        (ev_center_x - head_size * 0.5, ev_top_y - head_size),
+        (ev_center_x, ev_top_y),
+        (ev_center_x + head_size * 0.5, ev_top_y - head_size),
+    ], fill=color, opacity=opacity))
+
+    # Label on the arrow
+    label_x = (mech_center_x + ev_center_x) * 0.5
+    label_y = ctrl_y - 8
+    dwg.add(dwg.text("mechanism \u2192 evidence",
+                     insert=(label_x, label_y),
+                     font_size=22,
+                     fill=color,
+                     font_family="Helvetica, Arial, sans-serif",
+                     font_style="italic",
+                     text_anchor="middle",
+                     opacity=opacity * 0.8))
+
+
+# ===================================================================
+# DRAWING: CRL1505 RELAY ARC
+# ===================================================================
+
+def draw_crl1505_relay(dwg, layout, palette, W, H):
+    relay = layout["crl1505_relay"]
+    bands = get_band_rects(layout, W, H)
+    bx_bronch, _, bw_bronch, _ = get_bronchus_rect(layout, W, H)
+
+    crl_color = palette["products"]["crl1505"]
+
+    gut_x = bx_bronch + int(bw_bronch * relay["gut_icon_x_pct"])
+    gut_y = int(H * relay["gut_icon_y_pct"])
+
+    lam_x, lam_y, lam_w, lam_h = bands["lamina"]
+    target_x = lam_x + int(lam_w * relay["target_x_pct"])
+    target_y = lam_y + lam_h
+
+    # Intestine icon
+    squig_w = 40
+    squig_path = f"M {gut_x - squig_w},{gut_y} "
+    for j in range(6):
+        sy = gut_y + (12 if j % 2 == 0 else -12)
+        sx = gut_x - squig_w + (j + 1) * squig_w * 2 / 6
+        squig_path += f"S {sx - 5},{sy} {sx},{gut_y} "
+    dwg.add(dwg.path(d=squig_path, fill="none",
+                     stroke=crl_color, stroke_width=3.5, opacity=0.7))
+    dwg.add(dwg.text("gut", insert=(gut_x + squig_w + 8, gut_y + 10),
+                     font_size=32, fill=crl_color, opacity=0.8,
+                     font_family="Helvetica, Arial, sans-serif"))
+
+    # Arc from gut to lamina
+    mid_x = (gut_x + target_x) / 2 + 60
+    mid_y = (gut_y + target_y) / 2
+    arc_path = f"M {gut_x},{gut_y - 15} Q {mid_x},{mid_y} {target_x},{target_y}"
+    dwg.add(dwg.path(d=arc_path, fill="none",
+                     stroke=crl_color, stroke_width=relay["arc_width"],
+                     stroke_dasharray="10,5", opacity=0.55))
+    dwg.add(dwg.polygon(
+        [(target_x - 7, target_y + 2), (target_x, target_y - 12), (target_x + 7, target_y + 2)],
+        fill=crl_color, opacity=0.55
+    ))
+
+
+# ===================================================================
+# V14: OUTCOME BADGES — bottom row anchoring the narrative
+# ===================================================================
+
+def draw_outcome_badges(dwg, layout, palette, W, H):
+    """V14 NEW: Draw 3 outcome badges at the bottom of the canvas."""
+    ob = layout.get("outcome_badges")
+    if not ob:
+        return
+
+    font_family = layout["font"]["family"]
+    y = int(H * ob["y_pct"])
+    badge_h = ob["badge_height"]
+    badge_rx = ob["badge_rx"]
+    badge_gap = ob["badge_gap"]
+    fs = ob["font_size"]
+    bg_color = ob["bg_color"]
+    text_color = ob["text_color"]
+    border_color = ob.get("border_color", bg_color)
+
+    items = ob.get("items", [])
+    if not items:
+        return
+
+    # Calculate badge widths based on text
+    badge_widths = []
+    for item in items:
+        text = item["text"]
+        bw = max(200, int(len(text) * fs * 0.55 + 60))
+        badge_widths.append(bw)
+
+    total_w = sum(badge_widths) + badge_gap * (len(items) - 1)
+    start_x = (W - total_w) // 2
+
+    cx = start_x
+    for i, item in enumerate(items):
+        bw = badge_widths[i]
+        text = item["text"]
+
+        # Badge background with border
+        dwg.add(dwg.rect((cx, y), (bw, badge_h),
+                         fill=bg_color, rx=badge_rx, ry=badge_rx,
+                         stroke=border_color, stroke_width=2,
+                         opacity=0.92))
+
+        # Badge text
+        dwg.add(dwg.text(text,
+                         insert=(cx + bw // 2, y + badge_h * 0.65),
+                         font_size=fs, fill=text_color,
+                         font_family=font_family, font_weight="bold",
+                         text_anchor="middle"))
+
+        cx += bw + badge_gap
+
+
+# ===================================================================
+# MAIN
+# ===================================================================
+
+def main():
+    print("Loading config...")
+    config = load_config()
+    layout = config["layout"]
+    palette = config["palette"]
+    content = config["content"]
+
+    W = layout["canvas"]["width"]
+    H = layout["canvas"]["height"]
+    dw = layout["canvas"]["delivery_width"]
+    dh = layout["canvas"]["delivery_height"]
+
+    print("Loading contours...")
+    _load_contours()
+
+    svg_path = os.path.join(OUT_DIR, "wireframe_GA_v14.svg")
+    full_png = os.path.join(OUT_DIR, "wireframe_GA_v14_full.png")
+    delivery_png = os.path.join(OUT_DIR, "wireframe_GA_v14_delivery.png")
+
+    print(f"Canvas: {W}x{H}, delivery: {dw}x{dh}")
+
+    dwg = svgwrite.Drawing(svg_path, size=(f"{W}px", f"{H}px"),
+                           viewBox=f"0 0 {W} {H}")
+    dwg.attribs["xmlns"] = "http://www.w3.org/2000/svg"
+
+    # 0. Accessibility patterns
+    print("  Adding accessibility patterns...")
+    add_product_patterns(dwg, palette)
+
+    # 1. Background gradient — V14: deeper contrast
+    print("  Drawing background...")
+    draw_background(dwg, layout, palette, W, H)
+
+    # 2. Zone headers — V14: bolder
+    print("  Drawing zone headers...")
+    draw_zone_headers(dwg, layout, palette, content, W, H)
+
+    # 3. Product pills (legend removed — pills are sufficient)
+    print("  Drawing product pills...")
+    draw_product_pills(dwg, layout, palette, content, W, H)
+
+    # 4. V14: Bronchus glow (shadow to make it float)
+    print("  Drawing bronchus glow...")
+    draw_bronchus_glow(dwg, layout, W, H)
+
+    # 5. Bronchus frame + band separators — V14: thicker, darker border
+    print("  Drawing bronchus frame...")
+    draw_bronchus_frame(dwg, layout, palette, W, H)
+
+    # 6. Band 4: Muscle (bottom, behind everything)
+    print("  Drawing muscle band...")
+    draw_muscle(dwg, layout, palette, W, H)
+
+    # 7. Band 2: Epithelium
+    print("  Drawing epithelium...")
+    draw_epithelium(dwg, layout, palette, W, H)
+
+    # 8. Band 1: Lumen
+    print("  Drawing lumen...")
+    draw_lumen(dwg, layout, palette, W, H)
+
+    # 9. Band 3: Lamina propria
+    print("  Drawing lamina propria...")
+    draw_lamina_propria(dwg, layout, palette, W, H)
+
+    # 10. CRL1505 relay arc
+    print("  Drawing CRL1505 relay...")
+    draw_crl1505_relay(dwg, layout, palette, W, H)
+
+    # 11. Child silhouettes
+    print("  Drawing children...")
+    ml_x, _, ml_w, _ = get_zone_rect(layout, "margin_left", W, H)
+    mr_x, _, mr_w, _ = get_zone_rect(layout, "margin_right", W, H)
+
+    cs = layout["child_sick"]
+    child_sick_x = ml_x + int(ml_w * cs["x_pct"])
+    child_sick_y = int(H * cs["y_pct"])
+    draw_child_contour(dwg, child_sick_x, child_sick_y, cs["scale"],
+                       _CONTOUR_SICK, palette["virus"], is_sick=True)
+
+    ch = layout["child_healthy"]
+    child_healthy_x = mr_x + int(mr_w * ch["x_pct"])
+    child_healthy_y = int(H * ch["y_pct"])
+    draw_child_contour(dwg, child_healthy_x, child_healthy_y, ch["scale"],
+                       _CONTOUR_HEALTHY, palette["products"]["crl1505"],
+                       is_sick=False)
+
+    # 12. Disease cascade
+    print("  Drawing disease cascade...")
+    draw_disease_cascade(dwg, layout, palette, content, W, H)
+
+    # 13. Vicious cycle
+    print("  Drawing vicious cycle...")
+    draw_vicious_cycle(dwg, layout, palette, W, H)
+
+    # 14. Cycle-break visual
+    print("  Drawing cycle break...")
+    draw_cycle_break(dwg, layout, palette, W, H)
+
+    # 15. Evidence bars — V14: thicker, bolder, RCT inside
+    print("  Drawing evidence bars...")
+    evidence_bottom_y = draw_evidence_bars(dwg, layout, palette, W, H)
+
+    # 16. Mechanism boxes
+    print("  Drawing mechanism boxes...")
+    mech_box_positions = draw_mechanism_boxes(dwg, layout, palette, content, W, H)
+
+    # 17. Mechanism -> Evidence connecting arrow
+    print("  Drawing mechanism-to-evidence arrow...")
+    evidence_top_y = int(H * layout["evidence"]["y_start_pct"])
+    draw_mechanism_to_evidence_arrow(dwg, layout, palette, W, H,
+                                      mech_box_positions, evidence_top_y)
+
+    # 18. Band labels — V14: lighter
+    print("  Drawing band labels...")
+    draw_band_labels(dwg, layout, palette, W, H)
+
+    # 19. Zone orientation text
+    print("  Drawing zone orientation...")
+    draw_zone_orientation(dwg, layout, palette, W, H)
+
+    # 20. V14 NEW: Outcome badges
+    print("  Drawing outcome badges...")
+    draw_outcome_badges(dwg, layout, palette, W, H)
+
+    # V14: NO legend draw (removed — product pills at top are sufficient)
+
+    # Save SVG
+    dwg.save()
+    print(f"\nSVG saved: {svg_path}")
+
+    # Render PNG
+    print("Rendering PNG...")
+    render_png(svg_path, full_png, delivery_png, W, H, dw, dh)
+
+    print("\nV14 compilation complete.")
+
+
+if __name__ == "__main__":
+    main()

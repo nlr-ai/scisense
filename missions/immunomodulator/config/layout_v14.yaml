@@ -1,0 +1,273 @@
+# Layout V14 — Saliency Boost
+# V13 recovered hierarchy (Embelli S9b=0.70) but S10 (saliency) stuck at 0.25.
+# V14 strategy: push S10 from 0.25 to 0.50+ via:
+#   1. Bronchus = dominant focal point (taller, glow, dramatic gradient)
+#   2. Evidence bars = second focal point (thicker, bolder, RCT numbers inside bars)
+#   3. Remove legend (redundant with product pills), reduce stipple noise
+#   4. Deeper sick/healthy background contrast
+#   5. Outcome badges row anchoring the narrative
+# All positions in fractions of canvas (0.0-1.0)
+
+canvas:
+  width: 3600
+  height: 2200         # V14: taller canvas (+200) to fit outcome badges
+  delivery_width: 1200
+  delivery_height: 733
+
+zones:
+  margin_left:
+    x_pct: 0.0
+    width_pct: 0.18
+  bronchus:
+    x_pct: 0.18
+    width_pct: 0.58
+  margin_right:
+    x_pct: 0.76
+    width_pct: 0.24
+
+# Bronchus vertical bounds — V14: TALLER (+18% height via lower y_end)
+bronchus:
+  y_start_pct: 0.11
+  y_end_pct: 0.62        # was 0.64 on 2000px = 52% height. Now 0.62 on 2200px = 51%, but absolute px bigger
+  corner_radius: 22
+  border_width: 5         # V14: slightly thicker border for prominence
+  border_color: "#4B5563"  # V14: darker border (#6B7280 -> #4B5563)
+  glow_enabled: true       # V14: NEW — subtle shadow/glow around bronchus
+  glow_color: "#000000"
+  glow_opacity: 0.08
+  glow_blur: 30
+  bands:
+    lumen:
+      height_pct: 0.15
+    epithelium:
+      height_pct: 0.28
+    lamina:
+      height_pct: 0.35
+    muscle:
+      height_pct: 0.22
+  separator_width: 5
+  separator_color: "#6B7280"
+  separator_dash: "12,6"
+
+# Gradient background — V14: MORE DRAMATIC contrast
+gradient:
+  left_color: "#FFD0D0"     # V14: deeper red (#FFE5E5 -> #FFD0D0)
+  center_color: "#FFFFFF"
+  right_color: "#D0FFEB"    # V14: deeper green (#E5FFF5 -> #D0FFEB)
+
+# Zone headers — V14: BOLDER (font_weight 800)
+zone_headers:
+  y_pct: 0.022
+  height: 64              # V14: slightly taller
+  font_size: 48            # V14: bigger
+  font_weight: 800         # V14: extra bold
+  left:
+    bg_color: "#DC2626"
+    text_color: "#FFFFFF"
+    pill_rx: 22
+  center:
+    bg_color: "#E5E7EB"
+    text_color: "#1F2937"
+    pill_rx: 22
+  right:
+    bg_color: "#059669"
+    text_color: "#FFFFFF"
+    pill_rx: 22
+
+# Product pills — same as V13
+product_pills:
+  y_pct: 0.068
+  pill_height: 52
+  pill_rx: 24
+  pill_gap: 28
+  font_size: 34
+  text_color: "#FFFFFF"
+
+# Child silhouettes — same as V13
+child_sick:
+  x_pct: 0.50
+  y_pct: 0.13
+  scale: 2.7
+
+child_healthy:
+  x_pct: 0.50
+  y_pct: 0.13
+  scale: 2.25
+
+# Disease cascade — same as V13
+disease_cascade:
+  y_start_pct: 0.45
+  step_height: 44
+  step_gap: 8
+  step_width_pct: 0.88
+  pill_rx: 12
+  font_size: 30
+  arrow_size: 14
+  bg_color: "#FEE2E2"
+  text_color: "#991B1B"
+  border_color: "#FECACA"
+  arrow_color: "#DC2626"
+
+# Vicious cycle — same as V13
+vicious_cycle:
+  center_x_pct: 0.50
+  center_y_pct: 0.64
+  radius_x: 150
+  radius_y: 118
+  stations:
+    - label: "Viral RTIs"
+      angle_deg: -90
+    - label: "Th2 bias"
+      angle_deg: 0
+    - label: "Remodeling"
+      angle_deg: 90
+    - label: "Re-suscept."
+      angle_deg: 170
+  bottom_label: "Wheezing/Asthma"
+  font_size: 32
+
+# Evidence bars — V14: MUCH MORE PROMINENT
+evidence:
+  y_start_pct: 0.32         # V14: moved up further
+  bar_height: 96             # V14: thicker bars (88 -> 96)
+  bar_gap: 26                # V14: more breathing room
+  max_width_pct: 0.94
+  title: "CLINICAL EVIDENCE"  # V14: ALL CAPS for impact
+  title_font_size: 52         # V14: bigger title (48 -> 52)
+  title_underline: true
+  title_font_weight: 800      # V14: extra bold
+  rct_inside_bars: true        # V14: RCT numbers INSIDE bars in white
+  items:
+    - product: om85
+      width_pct: 1.0
+      label: "18 RCTs"
+      name: "OM-85"
+    - product: pmbl
+      width_pct: 0.55
+      label: "5 RCTs"
+      name: "PMBL"
+    - product: mv130
+      width_pct: 0.30
+      label: "1 RCT"
+      name: "MV130"
+    - product: crl1505
+      width_pct: 0.15
+      label: "Preclinical"
+      name: "CRL1505"
+
+# Mechanism boxes — same as V13
+mechanism_boxes:
+  y_start_pct: 0.65
+  box_height: 68
+  box_gap: 12
+  box_rx: 12
+  border_left_width: 8
+  title_font_size: 34
+  subtitle_font_size: 0
+  icon_size: 40
+  icon_gap: 14
+  bg_color: "#FFFFFF"
+  bg_opacity: 0.94
+  border_color: "#D1D5DB"
+
+# V13: connecting arrow from mechanism boxes to evidence bars
+mechanism_to_evidence_arrow:
+  enabled: true
+  stroke_width: 3
+  color: "#9CA3AF"
+  opacity: 0.5
+  dash: "8,4"
+
+# V14: LEGEND REMOVED — product pills are sufficient
+# legend section deleted (was redundant with product pills at top)
+
+# CRL1505 relay arc — adjusted for taller canvas
+crl1505_relay:
+  gut_icon_y_pct: 0.87       # V14: adjusted for taller canvas
+  gut_icon_x_pct: 0.60
+  target_band: "lamina"
+  target_x_pct: 0.75
+  arc_width: 7
+
+# Band content parameters — same as V13
+band_content:
+  lumen:
+    virus_count: 3
+    virus_radius: 28
+    virus_x_range: [0.05, 0.30]
+    iga_count: 4
+    iga_height: 40
+    iga_x_range: [0.70, 0.95]
+  epithelium:
+    cell_count: 24
+    cell_height_pct: 0.60
+    gap_count_sick: 6
+    gap_count_healthy: 0
+    shield_x_pct: 0.55
+    staple_x_range: [0.50, 0.85]
+  lamina:
+    split_pct: 0.45
+    dc_sick_x_pct: 0.20
+    dc_healthy_x_pct: 0.75
+    dc_radius: 48
+    helix_scale: 0.5
+    balance_x_pct: 0.70
+    balance_width: 130
+  muscle:
+    thickness_sick_pct: 1.0
+    thickness_healthy_pct: 0.45
+
+# Band labels — V14: even lighter (opacity 0.3 effect via color)
+band_labels:
+  font_size: 20              # V14: smaller (22 -> 20)
+  color: "#9CA3AF"           # V14: lighter (#6B7280 -> #9CA3AF)
+
+# V10.5 organic density parameters — V14: REDUCED stipple/crosshatch
+density:
+  lumen_stipple_density: 0.0005     # V14: reduced (0.0008 -> 0.0005)
+  epithelium_stipple_density: 0.0010 # V14: reduced (0.0015 -> 0.0010)
+  lamina_stipple_density: 0.0008    # V14: reduced (0.0012 -> 0.0008)
+  stipple_r_min: 1.0
+  stipple_r_max: 2.0               # V14: smaller max (2.5 -> 2.0)
+  lamina_crosshatch_spacing: 36    # V14: wider spacing (28 -> 36) = less noise
+  lamina_crosshatch_opacity: 0.04  # V14: more subtle (0.06 -> 0.04)
+  muscle_fiber_count: 12           # V14: fewer fibers (16 -> 12)
+  muscle_fiber_opacity: 0.08       # V14: more subtle (0.12 -> 0.08)
+  epithelium_cells: 42
+  tight_junction_n_zigs: 6
+  tight_junction_amplitude: 3
+  nucleus_probability: 0.7
+  cilia_per_cell: 6
+  cilia_wave_amplitude: 2
+  virus_count_extra: 4
+  virus_extra_radius: 16
+  virus_extra_x_range: [0.02, 0.38]
+  macrophage_count_sick: 2
+  macrophage_count_healthy: 3
+  macrophage_radius: 20
+  t_helper_count: 4
+  t_helper_radius: 14
+  treg_count: 2
+  treg_radius: 16
+  immune_scatter_density: 0.0006
+  immune_scatter_r_min: 3
+  immune_scatter_r_max: 6
+
+# V14: OUTCOME BADGES — bottom row anchoring the narrative
+outcome_badges:
+  y_pct: 0.92               # near bottom of canvas
+  badge_height: 60
+  badge_rx: 30               # fully rounded
+  badge_gap: 40
+  font_size: 34
+  bg_color: "#059669"        # green
+  text_color: "#FFFFFF"
+  border_color: "#047857"
+  items:
+    - text: "\u2193 Recurrent RTIs"
+    - text: "\u2193 Wheezing Episodes"
+    - text: "\u2713 Potential Asthma Prevention"
+
+font:
+  family: "Helvetica, Arial, sans-serif"
+  min_size: 36

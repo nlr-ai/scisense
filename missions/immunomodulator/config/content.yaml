@@ -34,5 +34,54 @@ other_labels:
   # "Broken Cycle" removed — now visual via F10 (line fracture), not text
   # "IFN" removed — now visual via F8 (arrow icons only), not text
 
-# TOTAL: 28 words — V3 PASS (2 words under limit)
+# TOTAL: ~32 words — V13 PASS (soft limit 35-40, hierarchy > parsimony)
 # Budget freed by F10 (visual cycle fracture) and F8 (visual IFN arrows).
+# V13: restored mechanism box labels from cryptic single words to short phrases (+4 words)
+
+# ===================================================================
+# V11 additions — Aurore's 3-column + mechanism boxes design
+# ===================================================================
+
+zone_headers:
+  left: "Early life window"
+  center: "Preclinical data"
+  right: "Clinical data"
+
+mechanism_boxes:
+  - title: "Epithelial Barrier \u2191"
+    subtitle: ""
+    border_color_key: "om85"
+    icon: "barrier"
+  - title: "Innate Immunity \u2191"
+    subtitle: ""
+    border_color_key: "mv130"
+    icon: "innate"
+  - title: "Adaptive Response \u2191"
+    subtitle: ""
+    border_color_key: "pmbl"
+    icon: "adaptive"
+  - title: "Inflammation Control \u2193"
+    subtitle: ""
+    border_color_key: "crl1505"
+    icon: "inflammation"
+
+disease_cascade:
+  steps:
+    - "Injury"
+    - "Remodeling"
+    - "Wheezing"
+    - "Asthma"
+
+evidence_products:
+  - product: "om85"
+    name: "OM-85"
+    label: "18 RCTs"
+  - product: "pmbl"
+    name: "PMBL"
+    label: "5 RCTs"
+  - product: "mv130"
+    name: "MV130"
+    label: "1 RCT"
+  - product: "crl1505"
+    name: "CRL1505"
+    label: "Preclinical"

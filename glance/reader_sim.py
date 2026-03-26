@@ -40,15 +40,31 @@ logger = logging.getLogger("reader_sim")
 # ── Layout estimation ────────────────────────────────────────────────
 
 def _estimate_positions(graph):
-    """Estimate 2D positions for nodes based on graph structure.
+    """Get positions for nodes — prefer bbox from Gemini, fallback to estimation.
 
-    Since we don't have actual pixel coordinates, we infer positions from:
-    1. Node order in the YAML (Gemini lists top→bottom, left→right)
-    2. Space containment (things inside spaces cluster together)
-    3. Node type (spaces = large regions, things = points within)
+    If nodes have a `bbox` field [x, y, w, h] (normalized 0-1), use the center
+    of the bbox as position. Otherwise, estimate from graph structure.
 
     Returns: dict of node_id → (x, y) normalized to [0, 1]
     """
+    # First pass: extract positions from bbox where available
+    bbox_positions = {}
+    for node in graph.get("nodes", []):
+        bbox = node.get("bbox")
+        if bbox and isinstance(bbox, list) and len(bbox) == 4:
+            try:
+                x, y, w, h = [float(v) for v in bbox]
+                # Center of bbox
+                cx = min(1, max(0, x + w / 2))
+                cy = min(1, max(0, y + h / 2))
+                bbox_positions[node["id"]] = (cx, cy)
+            except (ValueError, TypeError):
+                pass
+
+    # If all nodes have bbox, skip estimation entirely
+    all_ids = {n["id"] for n in graph.get("nodes", [])}
+    if all_ids and all_ids <= set(bbox_positions.keys()):
+        return bbox_positions
     nodes = graph.get("nodes", [])
     links = graph.get("links", [])
 
@@ -105,6 +121,9 @@ def _estimate_positions(graph):
             (i + 0.5) / max(len(orphans), 1),
             0.9,
         )
+
+    # Override estimated positions with bbox-derived positions where available
+    positions.update(bbox_positions)
 
     return positions
 
@@ -528,10 +547,12 @@ def simulate_reading(graph, total_ticks=50, tick_ms=100, verbose=False, debug=Fa
                 "OVERLOADED"
             ),
         },
-        "prompts": _generate_prompts(
+        "recommendations": (recs := _generate_prompts(
             dead_spaces, orphan_narratives, heatmap, normalized_narrative,
             narratives, skipped_nodes, budget_pressure
-        ),
+        )),
+        # Flat text list for backward compat (auto-improve intent, CLI)
+        "prompts": [r["text"] for r in recs],
     }
 
     if debug:
@@ -554,46 +575,63 @@ def simulate_reading(graph, total_ticks=50, tick_ms=100, verbose=False, debug=Fa
 
 def _generate_prompts(dead_spaces, orphan_narratives, heatmap, narrative_attention,
                       narratives, skipped_nodes, budget_pressure):
-    """Generate FACT → PROBLEM → QUESTION prompts from simulation results."""
-    prompts = []
+    """Generate structured recommendations from simulation results.
+
+    Each recommendation is a dict with:
+      - source: what simulation finding triggered this (links to narrative)
+      - finding: the factual observation (FACT)
+      - problem: why this matters (PROBLEM)
+      - question: open question for improvement (QUESTION)
+      - text: full text (FACT → PROBLEM → QUESTION concatenated)
+    """
+    recs = []
 
     # Budget overload
     if budget_pressure > 1.0:
-        prompts.append(
-            f"Le visuel contient plus de contenu que le lecteur ne peut absorber en 5 secondes "
-            f"(pression={budget_pressure:.1f}x). "
-            f"{len(skipped_nodes)} éléments ne seront jamais vus. "
-            f"Quels éléments peuvent être fusionnés ou supprimés sans perdre de message ?")
+        recs.append({
+            "source": "budget_overload",
+            "finding": f"Pression={budget_pressure:.1f}x — {len(skipped_nodes)} éléments jamais vus.",
+            "problem": "Le visuel contient plus de contenu que le lecteur ne peut absorber.",
+            "question": "Quels éléments peuvent être fusionnés ou supprimés sans perdre de message ?",
+        })
 
     # Dead spaces
     for ds in dead_spaces:
-        prompts.append(
-            f"La zone '{ds['name']}' n'a reçu aucune attention du lecteur. "
-            f"Son contenu est invisible dans le temps imparti. "
-            f"Qu'est-ce qui attirerait le regard vers cette zone ?")
+        recs.append({
+            "source": f"dead_space:{ds['id']}",
+            "finding": f"La zone '{ds['name']}' n'a reçu aucune attention du lecteur.",
+            "problem": "Son contenu est invisible dans le temps imparti.",
+            "question": "Qu'est-ce qui attirerait le regard vers cette zone ?",
+        })
 
     # Skipped nodes
-    for sn in skipped_nodes[:3]:  # top 3 by weight
-        prompts.append(
-            f"L'élément '{sn['name']}' (poids={sn['weight']}) n'a jamais été atteint. "
-            f"Le lecteur a épuisé son budget attentionnel avant d'y arriver. "
-            f"Comment le rendre prioritaire ou l'intégrer à un élément déjà vu ?")
+    for sn in skipped_nodes[:3]:
+        recs.append({
+            "source": f"skipped_node:{sn['name']}",
+            "finding": f"L'élément '{sn['name']}' (poids={sn['weight']}) n'a pas été lu par le lecteur (pas le temps).",
+            "problem": "Le lecteur a épuisé son budget attentionnel avant d'y arriver.",
+            "question": "Comment le rendre prioritaire ou l'intégrer à un élément déjà vu ?",
+        })
 
     # Orphan narratives
     for on in orphan_narratives:
-        prompts.append(
-            f"Le message '{on['name']}' n'a reçu aucune attention. "
-            f"Aucun élément visuel ne transmet ce message au lecteur. "
-            f"Quel élément concret porterait ce message ?")
+        recs.append({
+            "source": f"orphan_narrative:{on['id']}",
+            "finding": f"Le message '{on['name']}' n'a reçu aucune attention.",
+            "problem": "Aucun élément visuel ne transmet ce message au lecteur.",
+            "question": "Quel élément concret porterait ce message ?",
+        })
 
     # Narratives with low attention
     for n in narratives:
         att = narrative_attention.get(n["id"], 0)
         if 0 < att < 0.3:
-            prompts.append(
-                f"Le message '{n['name']}' ne reçoit que {att:.0%} de l'attention. "
-                f"Les éléments qui le portent sont soit trop petits, soit mal positionnés. "
-                f"Comment renforcer la transmission vers ce message ?")
+            recs.append({
+                "source": f"weak_narrative:{n['id']}",
+                "finding": f"Le message '{n['name']}' ne reçoit que {att:.0%} de l'attention.",
+                "problem": "Les éléments qui le portent sont soit trop petits, soit mal positionnés.",
+                "question": "Comment renforcer la transmission vers ce message ?",
+            })
 
     # Attention concentration (top node gets >50% of total)
     if heatmap and len(heatmap) > 1:
@@ -601,12 +639,18 @@ def _generate_prompts(dead_spaces, orphan_narratives, heatmap, narrative_attenti
         if total_att > 0:
             top_pct = heatmap[0]["attention"] / total_att
             if top_pct > 0.5:
-                prompts.append(
-                    f"'{heatmap[0]['name']}' absorbe {top_pct:.0%} de l'attention totale. "
-                    f"Les autres éléments sont écrasés. "
-                    f"Comment redistribuer le poids visuel sans perdre ce point focal ?")
+                recs.append({
+                    "source": f"attention_monopoly:{heatmap[0]['id']}",
+                    "finding": f"'{heatmap[0]['name']}' absorbe {top_pct:.0%} de l'attention totale.",
+                    "problem": "Les autres éléments sont écrasés.",
+                    "question": "Comment redistribuer le poids visuel sans perdre ce point focal ?",
+                })
 
-    return prompts
+    # Build full text for each rec
+    for r in recs:
+        r["text"] = f"{r['finding']} {r['problem']} {r['question']}"
+
+    return recs
 
 
 # ── Narrative generator ──────────────────────────────────────────────
@@ -947,11 +991,14 @@ if __name__ == "__main__":
     print(f"\n── LECTURE SIMULÉE ──")
     print(narrative_text)
 
-    # Prompts
-    if result["prompts"]:
+    # Recommendations (structured)
+    if result["recommendations"]:
         print(f"\n── AXES D'AMÉLIORATION SUGGÉRÉS ──")
-        for p in result["prompts"]:
-            print(f"  → {p}")
+        for r in result["recommendations"]:
+            print(f"\n  [{r['source']}]")
+            print(f"  FAIT: {r['finding']}")
+            print(f"  PROBLÈME: {r['problem']}")
+            print(f"  QUESTION: {r['question']}")
 
     # Debug trace
     if args.debug and "debug_trace" in result:

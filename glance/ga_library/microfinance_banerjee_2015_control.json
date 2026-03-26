@@ -29,5 +29,49 @@
             "six-country RCT shows heterogeneous microfinance effects across contexts"
         ]
     },
-    "is_control": true
+    "is_control": true,
+    "ocr_text": "Microfinance Impact on Business Profits\nPie chart (control)\nIndia (27)\nMexico (20)\nMongolia (11)\nEthiopia (5)\nBanerjee; A. et al. (2015). Six Randomized Evaluations of Microcredit. AEJ:Applied.",
+    "ocr_words": [
+        "Microfinance",
+        "Impact",
+        "on",
+        "Business",
+        "Profits",
+        "Pie",
+        "chart",
+        "control",
+        "India",
+        "27",
+        "Mexico",
+        "20",
+        "Mongolia",
+        "11",
+        "Ethiopia",
+        "5",
+        "Banerjee",
+        "A",
+        "et",
+        "al",
+        "2015",
+        "Six",
+        "Randomized",
+        "Evaluations",
+        "of",
+        "Microcredit",
+        "AEJ:Applied"
+    ],
+    "ocr_word_count": 27,
+    "raw_ocr_text": "Microfinance Impact on Business Profits\nPie chart (control)\nIndia (27)\nMexico (20)\nMongolia (11)\nEthiopia (5)\nBanerjee; A. et al. (2015). Six Randomized Evaluations of Microcredit. AEJ:Applied.",
+    "raw_ocr_lines": [
+        "Microfinance Impact on Business Profits",
+        "Pie chart (control)",
+        "India (27)",
+        "Mexico (20)",
+        "Mongolia (11)",
+        "Ethiopia (5)",
+        "Banerjee; A. et al. (2015). Six Randomized Evaluations of Microcredit. AEJ:Applied."
+    ],
+    "ocr_languages": [
+        "en"
+    ]
 }

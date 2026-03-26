@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Blog — GLANCE{% endblock %}
+
+{% block head %}
+<style>
+.blog-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+}
+.blog-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+.blog-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1a2332;
+    margin: 0 0 0.5rem;
+}
+.blog-header p {
+    font-size: 1rem;
+    color: #64748b;
+}
+.blog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+.blog-card {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+.blog-card:hover {
+    box-shadow: 0 4px 16px rgba(26,35,50,0.1);
+    border-color: #2A9D8F;
+}
+.blog-card-img {
+    width: 180px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+    background: #f1f5f9;
+}
+.blog-card-body {
+    flex: 1;
+    min-width: 0;
+}
+.blog-card-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+.blog-card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a2332;
+    margin-bottom: 0.4rem;
+    line-height: 1.3;
+}
+.blog-card-excerpt {
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+}
+.blog-card-meta {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+@media (max-width: 600px) {
+    .blog-card { flex-direction: column; }
+    .blog-card-img { width: 100%; height: 160px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="blog-page">
+    <div class="blog-header">
+        <h1>Blog</h1>
+        <p>Comment on construit GLANCE — et ce qu'on apprend en route</p>
+    </div>
+
+    <div class="blog-list">
+        <!-- Post 1: The GA That Tests Itself -->
+        <a href="/blog/ga-tests-itself" class="blog-card">
+            <img src="/ga/immunomod_v2a4_infographic.png" alt="The GA That Tests Itself" class="blog-card-img" loading="lazy">
+            <div class="blog-card-body">
+                <span class="blog-card-tag" style="background:rgba(42,157,143,0.1);color:#2A9D8F;">Build Log</span>
+                <div class="blog-card-title">The GA That Tests Itself</div>
+                <div class="blog-card-excerpt">
+                    On a construit un GA pour le paper GLANCE. Puis on l'a passe dans notre propre pipeline d'analyse.
+                    7 versions, de la premiere esquisse au design final — chaque iteration guidee par les metriques.
+                </div>
+                <div class="blog-card-meta">Mars 2026 &middot; 5 min</div>
+            </div>
+        </a>
+
+        <!-- Post 2: Reader Simulation -->
+        <a href="/blog/reader-simulation" class="blog-card">
+            <div class="blog-card-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">&#x1F441;</div>
+            <div class="blog-card-body">
+                <span class="blog-card-tag" style="background:rgba(245,158,11,0.1);color:#f59e0b;">Deep Dive</span>
+                <div class="blog-card-title">Comment un lecteur scanne votre GA en 5 secondes</div>
+                <div class="blog-card-excerpt">
+                    On a construit un simulateur de lecture qui predit ou le regard va — et ce qu'il rate.
+                    La physique derriere le reader sim, et pourquoi votre bas-droite est probablement invisible.
+                </div>
+                <div class="blog-card-meta">Mars 2026 &middot; 8 min</div>
+            </div>
+        </a>
+
+        <!-- Post 3: 7 Archetypes -->
+        <a href="/blog/7-archetypes" class="blog-card">
+            <div class="blog-card-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">&#x1F48E;</div>
+            <div class="blog-card-body">
+                <span class="blog-card-tag" style="background:rgba(99,102,241,0.1);color:#6366f1;">Deep Dive</span>
+                <div class="blog-card-title">Les 7 types de Graphical Abstracts — lequel est le votre ?</div>
+                <div class="blog-card-excerpt">
+                    Cristallin, Spectacle, Tresor Enfoui, Encyclopedie, Desequilibre, Embelli, Fantome.
+                    7 archetypes recurrents, 7 diagnostics, 7 strategies de correction.
+                </div>
+                <div class="blog-card-meta">Mars 2026 &middot; 10 min</div>
+            </div>
+        </a>
+
+        <!-- Post 4: Redesigning Ozempic -->
+        <a href="/blog/redesign-ozempic" class="blog-card" style="opacity:0.6;pointer-events:none;">
+            <div class="blog-card-img" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">&#x1F52C;</div>
+            <div class="blog-card-body">
+                <span class="blog-card-tag" style="background:rgba(239,68,68,0.1);color:#ef4444;">Case Study</span>
+                <div class="blog-card-title">Redesigning Ozempic: What Would GLANCE Change?</div>
+                <div class="blog-card-excerpt">
+                    Le GA du STEP trial (semaglutide, NEJM 2021) analyse par GLANCE. Ce qu'il transmet, ce qu'il rate,
+                    et notre proposition de redesign — avec les metriques avant/apres.
+                </div>
+                <div class="blog-card-meta">Bientot</div>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

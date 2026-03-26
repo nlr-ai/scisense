@@ -1,0 +1,234 @@
+# Layout V11 — "La Bronche Vivante" + Aurore's 3-column design
+# Inherits V10.5 bronchus structure
+# Adds: zone headers, mechanism boxes, product pills, disease cascade, bigger evidence bars
+# All positions in fractions of canvas (0.0-1.0)
+
+canvas:
+  width: 3600          # wider to accommodate 3-column clarity
+  height: 2000         # taller for mechanism boxes below bronchus
+  delivery_width: 1200
+  delivery_height: 667
+
+zones:
+  margin_left:
+    x_pct: 0.0
+    width_pct: 0.18
+  bronchus:
+    x_pct: 0.18
+    width_pct: 0.58
+  margin_right:
+    x_pct: 0.76
+    width_pct: 0.24    # wider for bigger evidence bars
+
+# Bronchus vertical bounds (relative to canvas height)
+bronchus:
+  y_start_pct: 0.14    # pushed down to make room for zone headers + product pills
+  y_end_pct: 0.62      # shorter to leave room for mechanism boxes below
+  corner_radius: 20
+  border_width: 3
+  border_color: "#9CA3AF"
+  bands:
+    lumen:
+      height_pct: 0.15
+    epithelium:
+      height_pct: 0.28
+    lamina:
+      height_pct: 0.35
+    muscle:
+      height_pct: 0.22
+  separator_width: 4
+  separator_color: "#9CA3AF"
+  separator_dash: "12,6"
+
+# Gradient background (L->R across full canvas)
+gradient:
+  left_color: "#FFF0F0"
+  center_color: "#FFFFFF"
+  right_color: "#F0FFFB"
+
+# Zone headers (V11 new: 3-column section headers)
+zone_headers:
+  y_pct: 0.035         # top of canvas
+  height: 44
+  font_size: 34
+  left:
+    bg_color: "#DC2626"
+    text_color: "#FFFFFF"
+    pill_rx: 18
+  center:
+    bg_color: "#F3F4F6"
+    text_color: "#374151"
+    pill_rx: 18
+  right:
+    bg_color: "#059669"
+    text_color: "#FFFFFF"
+    pill_rx: 18
+
+# Product pills (V11 new: horizontal row at top center)
+product_pills:
+  y_pct: 0.085
+  pill_height: 40
+  pill_rx: 20
+  pill_gap: 24
+  font_size: 28
+  text_color: "#FFFFFF"
+
+# Child silhouettes
+child_sick:
+  x_pct: 0.50
+  y_pct: 0.16
+  scale: 1.8
+
+child_healthy:
+  x_pct: 0.50
+  y_pct: 0.16
+  scale: 1.5
+
+# Disease cascade (V11 new: below sick child, left margin)
+disease_cascade:
+  y_start_pct: 0.46
+  step_height: 38
+  step_gap: 6
+  step_width_pct: 0.85   # of margin width
+  pill_rx: 10
+  font_size: 24
+  arrow_size: 12
+  bg_color: "#FEE2E2"
+  text_color: "#991B1B"
+  border_color: "#FECACA"
+  arrow_color: "#DC2626"
+
+# Vicious cycle (below sick child, in margin_left) — kept but repositioned
+vicious_cycle:
+  center_x_pct: 0.50
+  center_y_pct: 0.68
+  radius_x: 140
+  radius_y: 110
+  stations:
+    - label: "Viral RTIs"
+      angle_deg: -90
+    - label: "Th2 bias"
+      angle_deg: 0
+    - label: "Remodeling"
+      angle_deg: 90
+    - label: "Re-suscept."
+      angle_deg: 170
+  bottom_label: "Wheezing/Asthma"
+  font_size: 28
+
+# Evidence bars (V11: BIGGER, in margin_right)
+evidence:
+  y_start_pct: 0.40
+  bar_height: 64       # was 42 — bigger
+  bar_gap: 18           # was 14
+  max_width_pct: 0.88   # was 0.80 — wider
+  title: "Clinical evidence"
+  title_font_size: 38   # was 34
+  items:
+    - product: om85
+      width_pct: 1.0
+      label: "18 RCTs"
+      name: "OM-85"
+    - product: pmbl
+      width_pct: 0.55
+      label: "5 RCTs"
+      name: "PMBL"
+    - product: mv130
+      width_pct: 0.30
+      label: "1 RCT"
+      name: "MV130"
+    - product: crl1505
+      width_pct: 0.15
+      label: "Preclinical"
+      name: "CRL1505"
+
+# Mechanism boxes (V11 new: below bronchus, center zone)
+mechanism_boxes:
+  y_start_pct: 0.65     # just below bronchus end
+  box_height: 68
+  box_gap: 10
+  box_rx: 10
+  border_left_width: 6
+  title_font_size: 28
+  subtitle_font_size: 22
+  bg_color: "#FFFFFF"
+  bg_opacity: 0.92
+  border_color: "#E5E7EB"
+
+# Product legend (below mechanism boxes)
+legend:
+  y_pct: 0.93
+  square_size: 34
+  gap: 40
+  font_size: 36
+
+# CRL1505 relay arc
+crl1505_relay:
+  gut_icon_y_pct: 0.95
+  gut_icon_x_pct: 0.60
+  target_band: "lamina"
+  target_x_pct: 0.75
+  arc_width: 6
+
+# Band content parameters (same as V10.5)
+band_content:
+  lumen:
+    virus_count: 3
+    virus_radius: 24
+    virus_x_range: [0.05, 0.30]
+    iga_count: 4
+    iga_height: 35
+    iga_x_range: [0.70, 0.95]
+  epithelium:
+    cell_count: 24
+    cell_height_pct: 0.60
+    gap_count_sick: 6
+    gap_count_healthy: 0
+    shield_x_pct: 0.55
+    staple_x_range: [0.50, 0.85]
+  lamina:
+    split_pct: 0.45
+    dc_sick_x_pct: 0.20
+    dc_healthy_x_pct: 0.75
+    dc_radius: 42
+    helix_scale: 0.5
+    balance_x_pct: 0.70
+    balance_width: 120
+  muscle:
+    thickness_sick_pct: 1.0
+    thickness_healthy_pct: 0.45
+
+# V10.5 organic density parameters (carried forward)
+density:
+  lumen_stipple_density: 0.0008
+  epithelium_stipple_density: 0.0015
+  lamina_stipple_density: 0.0012
+  stipple_r_min: 1.0
+  stipple_r_max: 2.5
+  lamina_crosshatch_spacing: 28
+  lamina_crosshatch_opacity: 0.06
+  muscle_fiber_count: 16
+  muscle_fiber_opacity: 0.12
+  epithelium_cells: 42
+  tight_junction_n_zigs: 6
+  tight_junction_amplitude: 3
+  nucleus_probability: 0.7
+  cilia_per_cell: 6
+  cilia_wave_amplitude: 2
+  virus_count_extra: 4
+  virus_extra_radius: 14
+  virus_extra_x_range: [0.02, 0.38]
+  macrophage_count_sick: 2
+  macrophage_count_healthy: 3
+  macrophage_radius: 18
+  t_helper_count: 4
+  t_helper_radius: 12
+  treg_count: 2
+  treg_radius: 14
+  immune_scatter_density: 0.0006
+  immune_scatter_r_min: 3
+  immune_scatter_r_max: 6
+
+font:
+  family: "Helvetica, Arial, sans-serif"
+  min_size: 28
