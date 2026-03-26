@@ -2293,20 +2293,28 @@ async def analyze_activity(ga_slug: str):
         return JSONResponse({"error": "not_found"}, status_code=404)
     ga_id = image["id"]
     db = get_db()
-    graphs = [dict(r) for r in db.execute(
-        "SELECT id, graph_type, source, created_at, node_count, link_count, avg_effectiveness, anti_pattern_count FROM ga_graphs WHERE ga_image_id = ? ORDER BY id", (ga_id,)
-    ).fetchall()]
+    graph_row = db.execute(
+        "SELECT id, graph_type, source, created_at, node_count, link_count, avg_effectiveness, anti_pattern_count, graph_version, mutations FROM ga_graphs WHERE ga_image_id = ?", (ga_id,)
+    ).fetchone()
     sims = [dict(r) for r in db.execute(
         "SELECT id, graph_id, mode, created_at, complexity_verdict, budget_pressure, nodes_visited, nodes_total, narrative_coverage, dead_space_count FROM reading_simulations WHERE ga_image_id = ? ORDER BY id", (ga_id,)
     ).fetchall()]
     db.close()
     events = []
-    for g in graphs:
-        events.append({"type": "graph", "time": g["created_at"], "icon": "📊",
-            "title": f"Graph {g['graph_type']} ({g['source']})", "detail": f"{g['node_count']} nodes, {g['link_count']} links"})
+    if graph_row:
+        g = dict(graph_row)
+        # Show graph creation event
+        events.append({"type": "graph", "time": g["created_at"], "icon": "\U0001f4ca",
+            "title": f"Graph {g['graph_type']} ({g['source']})", "detail": f"{g['node_count']} nodes, {g['link_count']} links, v{g.get('graph_version', 1)}"})
+        # Show each mutation as a separate event
+        mutations = json.loads(g["mutations"]) if g.get("mutations") else []
+        for m in mutations:
+            events.append({"type": "mutation", "time": m.get("timestamp", g["created_at"]), "icon": "\U0001f504",
+                "title": f"Mutation: {m.get('tool', '?')} ({m.get('source', '?')})",
+                "detail": f"{m.get('nodes_before', '?')} \u2192 {m.get('nodes_after', '?')} nodes (+{m.get('nodes_added', '?')})"})
     for s in sims:
-        events.append({"type": "sim", "time": s["created_at"], "icon": "👀" if s["mode"] == "system1" else "🔍",
-            "title": f"Lecture {'5s' if s['mode'] == 'system1' else '90s'} — {s['complexity_verdict']}",
+        events.append({"type": "sim", "time": s["created_at"], "icon": "\U0001f440" if s["mode"] == "system1" else "\U0001f50d",
+            "title": f"Lecture {'5s' if s['mode'] == 'system1' else '90s'} \u2014 {s['complexity_verdict']}",
             "detail": f"{s['nodes_visited']}/{s['nodes_total']} lus, {round((s['narrative_coverage'] or 0)*100)}% messages"})
     events.sort(key=lambda e: e.get("time", ""))
     return JSONResponse({"ga_id": ga_id, "total_events": len(events), "timeline": events})
@@ -2974,6 +2982,413 @@ async def checkout_success(request: Request, session_id: str, ga_id: int):
 
     # Payment not completed — redirect back without unlocking
     return RedirectResponse(url=f"/ga-detail/{redirect_key}", status_code=303)
+
+
+# ── Self-Analysis endpoints ──────────────────────────────────────────
+
+
+SELF_ANALYZE_PAGES = {
+    "homepage": "/",
+    "analyze": "/analyze",
+    "leaderboard": "/leaderboard",
+    "ga_detail": "/ga/coral-reef-recovery-2023",
+    "blog": "/blog",
+}
+
+
+@app.post("/admin/self-analyze")
+async def admin_self_analyze(request: Request):
+    """Screenshot a GLANCE page with Playwright and run the full analysis pipeline.
+
+    JSON body: {"pwd": "...", "page": "homepage|analyze|leaderboard|ga_detail|blog"}
+    Returns immediately; analysis runs in background.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    pwd = body.get("pwd", "")
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    page = body.get("page", "homepage")
+    if page not in SELF_ANALYZE_PAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown page '{page}'. Valid: {', '.join(SELF_ANALYZE_PAGES.keys())}",
+        )
+
+    base_url = os.environ.get("GLANCE_BASE_URL", "https://glance.scisense.fr")
+    page_url = base_url.rstrip("/") + SELF_ANALYZE_PAGES[page]
+    timestamp = int(time.time())
+    ts_human = time.strftime("%Y-%m-%d %H:%M")
+    safe_page = re.sub(r'[^\w\-]', '_', page)
+    screenshot_filename = f"self_analysis/{timestamp}_{safe_page}.png"
+
+    # Pre-create directories
+    local_dir = os.path.join(BASE, "ga_library", "self_analysis")
+    persist_dir = os.path.join(
+        os.environ.get("GLANCE_DATA_DIR", os.path.join(BASE, "ga_library")),
+        "self_analysis",
+    )
+    os.makedirs(local_dir, exist_ok=True)
+    os.makedirs(persist_dir, exist_ok=True)
+
+    local_path = os.path.join(BASE, "ga_library", screenshot_filename)
+    persist_path = os.path.join(persist_dir, f"{timestamp}_{safe_page}.png")
+
+    # Create DB entry upfront so we can return the slug
+    title = f"Self-Analysis: {page} — {ts_human}"
+    try:
+        from db import _generate_unique_slug
+        db = get_db()
+        slug = _generate_unique_slug(db, f"self-analysis-{safe_page}-{timestamp}")
+        import hashlib
+        # Placeholder hash — will be updated after screenshot
+        placeholder_hash = hashlib.sha256(f"self_analysis_{page}_{timestamp}".encode()).hexdigest()
+        db.execute(
+            """INSERT INTO ga_images
+               (filename, domain, version, is_control, correct_product, products,
+                title, description, slug, image_hash, public)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                screenshot_filename,
+                "self_analysis",
+                f"selfanalyze_{timestamp}",
+                0, None, None,
+                title,
+                f"Automated self-analysis of GLANCE {page} page",
+                slug,
+                placeholder_hash,
+                0,
+            ),
+        )
+        db.commit()
+        ga_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+        db.close()
+    except Exception as e:
+        logger.error(f"Self-analyze DB insert failed: {e}")
+        raise HTTPException(status_code=500, detail=f"DB error: {str(e)}")
+
+    # Launch background thread: screenshot + vision + channels + reader_sim
+    import threading
+
+    def _self_analyze_bg(ga_img_id, url, local_p, persist_p, scr_filename, ga_slug):
+        log = logging.getLogger("self_analyze")
+        try:
+            # Step 1: Screenshot with Playwright
+            log.info(f"Self-analyze: screenshotting {url}")
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                browser = p.chromium.launch()
+                ctx = browser.new_context(viewport={"width": 1200, "height": 733})
+                pg = ctx.new_page()
+                pg.goto(url, wait_until="networkidle", timeout=30000)
+                pg.screenshot(path=local_p, full_page=False)
+                browser.close()
+
+            # Copy to persist dir
+            import shutil
+            shutil.copy2(local_p, persist_p)
+
+            # Update image_hash with real hash
+            with open(local_p, "rb") as f:
+                real_hash = hashlib.sha256(f.read()).hexdigest()
+            db2 = get_db()
+            db2.execute("UPDATE ga_images SET image_hash = ? WHERE id = ?", (real_hash, ga_img_id))
+            db2.commit()
+            db2.close()
+
+            log.info(f"Self-analyze: screenshot saved ({local_p})")
+
+            # Step 2: Vision analysis
+            with open(local_p, "rb") as f:
+                image_bytes = f.read()
+
+            from vision_scorer import analyze_ga_image
+            result = analyze_ga_image(image_bytes, filename=os.path.basename(scr_filename))
+            graph = result["graph"]
+            graph_path = result["saved_path"]
+            metadata = result.get("metadata", {})
+
+            # Update title/description from vision analysis
+            main_finding = metadata.get("main_finding", "")
+            executive_summary = metadata.get("executive_summary_fr", "")
+            if main_finding or executive_summary:
+                db3 = get_db()
+                desc = executive_summary or main_finding or ""
+                db3.execute(
+                    "UPDATE ga_images SET description = ? WHERE id = ?",
+                    (desc, ga_img_id),
+                )
+                if main_finding or executive_summary:
+                    abstract_text = ""
+                    if main_finding:
+                        abstract_text += f"Finding: {main_finding}\n"
+                    if executive_summary:
+                        abstract_text += f"Summary: {executive_summary}"
+                    db3.execute(
+                        "UPDATE ga_images SET abstract = ? WHERE id = ?",
+                        (abstract_text.strip(), ga_img_id),
+                    )
+                db3.commit()
+                db3.close()
+
+            # Step 3: Save graph (triggers async reader sim S1+S2)
+            graph_id = save_graph(graph, ga_image_id=ga_img_id,
+                                  graph_type="vision", source="self_analyze",
+                                  yaml_path=graph_path)
+            log.info(f"Self-analyze: graph saved for GA {ga_img_id} (graph {graph_id})")
+
+            # Step 4: Channel analysis
+            time.sleep(5)
+            from channel_analyzer import analyze_ga_channels
+            enriched = analyze_ga_channels(local_p, graph_path, prior_graph=True)
+            if enriched:
+                save_graph(enriched, ga_image_id=ga_img_id,
+                           graph_type="enriched", source="self_analyze_channels")
+                log.info(f"Self-analyze: enriched GA {ga_img_id}")
+
+            # Step 5: Advise
+            time.sleep(4)
+            from db import get_latest_graph as _glg, get_reading_sims as _grs
+            latest = _glg(ga_img_id)
+            if latest:
+                sims = _grs(graph_id=latest["id"])
+                s1 = next((s for s in sims if s["mode"] == "system1"), None)
+                intent = ""
+                if s1 and s1.get("narrative_text"):
+                    intent = s1["narrative_text"]
+                    prompts = json.loads(s1.get("prompts_json", "[]"))
+                    if prompts:
+                        intent += "\n\n" + "\n".join(f"- {p}" for p in prompts[:3])
+                if not intent:
+                    intent = "Proposer des ameliorations de clarte visuelle."
+
+                _tmp = os.path.join(BASE, "data", f"selfanalyze_{ga_img_id}_{int(time.time())}.yaml")
+                os.makedirs(os.path.dirname(_tmp), exist_ok=True)
+                with open(_tmp, "w", encoding="utf-8") as f:
+                    yaml.dump(latest["graph"], f, default_flow_style=False, allow_unicode=True)
+                try:
+                    from ga_advisor import advise
+                    advised = advise(local_p, _tmp, intent, prior_graph=True)
+                    if advised:
+                        save_graph(advised, ga_image_id=ga_img_id,
+                                   graph_type="advised", source="self_analyze_advise")
+                        log.info(f"Self-analyze: advised GA {ga_img_id}")
+                finally:
+                    try:
+                        os.remove(_tmp)
+                    except OSError:
+                        pass
+
+            log.info(f"Self-analyze complete for GA {ga_img_id} ({url})")
+
+        except Exception as e:
+            log.error(f"Self-analyze background failed for GA {ga_img_id}: {e}")
+
+    t = threading.Thread(
+        target=_self_analyze_bg,
+        args=(ga_id, page_url, local_path, persist_path, screenshot_filename, slug),
+        daemon=True,
+    )
+    t.start()
+
+    return JSONResponse({
+        "status": "started",
+        "ga_slug": slug,
+        "ga_id": ga_id,
+        "page": page,
+        "url": page_url,
+    })
+
+
+@app.post("/admin/self-analyze-all")
+async def admin_self_analyze_all(request: Request):
+    """Run self-analyze for ALL pages sequentially with 30s gaps.
+
+    JSON body: {"pwd": "..."}
+    Returns immediately; all analyses run in a single background thread.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    pwd = body.get("pwd", "")
+    admin_pwd = os.environ.get("GLANCE_ADMIN_PWD", "glance")
+    if pwd != admin_pwd:
+        raise HTTPException(status_code=403, detail="Admin password required")
+
+    base_url = os.environ.get("GLANCE_BASE_URL", "https://glance.scisense.fr")
+    pages = list(SELF_ANALYZE_PAGES.keys())
+
+    import threading
+    import hashlib
+
+    def _self_analyze_all_bg():
+        log = logging.getLogger("self_analyze_all")
+        log.info(f"Self-analyze-all: starting {len(pages)} pages")
+
+        for idx, page in enumerate(pages):
+            try:
+                page_url = base_url.rstrip("/") + SELF_ANALYZE_PAGES[page]
+                timestamp = int(time.time())
+                ts_human = time.strftime("%Y-%m-%d %H:%M")
+                safe_page = re.sub(r'[^\w\-]', '_', page)
+                screenshot_filename = f"self_analysis/{timestamp}_{safe_page}.png"
+
+                local_dir = os.path.join(BASE, "ga_library", "self_analysis")
+                persist_dir = os.path.join(
+                    os.environ.get("GLANCE_DATA_DIR", os.path.join(BASE, "ga_library")),
+                    "self_analysis",
+                )
+                os.makedirs(local_dir, exist_ok=True)
+                os.makedirs(persist_dir, exist_ok=True)
+
+                local_path = os.path.join(BASE, "ga_library", screenshot_filename)
+                persist_path = os.path.join(persist_dir, f"{timestamp}_{safe_page}.png")
+
+                title = f"Self-Analysis: {page} — {ts_human}"
+
+                # Screenshot
+                log.info(f"Self-analyze-all [{idx+1}/{len(pages)}]: screenshotting {page_url}")
+                from playwright.sync_api import sync_playwright
+                with sync_playwright() as p:
+                    browser = p.chromium.launch()
+                    ctx = browser.new_context(viewport={"width": 1200, "height": 733})
+                    pg = ctx.new_page()
+                    pg.goto(page_url, wait_until="networkidle", timeout=30000)
+                    pg.screenshot(path=local_path, full_page=False)
+                    browser.close()
+
+                import shutil
+                shutil.copy2(local_path, persist_path)
+
+                with open(local_path, "rb") as f:
+                    image_bytes = f.read()
+                real_hash = hashlib.sha256(image_bytes).hexdigest()
+
+                # DB entry
+                from db import _generate_unique_slug
+                db = get_db()
+                slug = _generate_unique_slug(db, f"self-analysis-{safe_page}-{timestamp}")
+                db.execute(
+                    """INSERT INTO ga_images
+                       (filename, domain, version, is_control, correct_product, products,
+                        title, description, slug, image_hash, public)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        screenshot_filename,
+                        "self_analysis",
+                        f"selfanalyze_{timestamp}",
+                        0, None, None,
+                        title,
+                        f"Automated self-analysis of GLANCE {page} page",
+                        slug,
+                        real_hash,
+                        0,
+                    ),
+                )
+                db.commit()
+                ga_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+                db.close()
+
+                # Vision analysis
+                from vision_scorer import analyze_ga_image
+                result = analyze_ga_image(image_bytes, filename=os.path.basename(screenshot_filename))
+                graph = result["graph"]
+                graph_path = result["saved_path"]
+                metadata = result.get("metadata", {})
+
+                main_finding = metadata.get("main_finding", "")
+                executive_summary = metadata.get("executive_summary_fr", "")
+                if main_finding or executive_summary:
+                    db3 = get_db()
+                    desc = executive_summary or main_finding or ""
+                    db3.execute("UPDATE ga_images SET description = ? WHERE id = ?", (desc, ga_id))
+                    abstract_text = ""
+                    if main_finding:
+                        abstract_text += f"Finding: {main_finding}\n"
+                    if executive_summary:
+                        abstract_text += f"Summary: {executive_summary}"
+                    if abstract_text.strip():
+                        db3.execute("UPDATE ga_images SET abstract = ? WHERE id = ?",
+                                    (abstract_text.strip(), ga_id))
+                    db3.commit()
+                    db3.close()
+
+                # Save graph (triggers reader sim)
+                graph_id = save_graph(graph, ga_image_id=ga_id,
+                                      graph_type="vision", source="self_analyze",
+                                      yaml_path=graph_path)
+                log.info(f"Self-analyze-all [{idx+1}/{len(pages)}]: graph saved for GA {ga_id}")
+
+                # Channel analysis
+                time.sleep(5)
+                from channel_analyzer import analyze_ga_channels
+                enriched = analyze_ga_channels(local_path, graph_path, prior_graph=True)
+                if enriched:
+                    save_graph(enriched, ga_image_id=ga_id,
+                               graph_type="enriched", source="self_analyze_channels")
+
+                # Advise
+                time.sleep(4)
+                from db import get_latest_graph as _glg, get_reading_sims as _grs
+                latest = _glg(ga_id)
+                if latest:
+                    sims = _grs(graph_id=latest["id"])
+                    s1 = next((s for s in sims if s["mode"] == "system1"), None)
+                    intent = ""
+                    if s1 and s1.get("narrative_text"):
+                        intent = s1["narrative_text"]
+                        prompts = json.loads(s1.get("prompts_json", "[]"))
+                        if prompts:
+                            intent += "\n\n" + "\n".join(f"- {p}" for p in prompts[:3])
+                    if not intent:
+                        intent = "Proposer des ameliorations de clarte visuelle."
+
+                    _tmp = os.path.join(BASE, "data", f"selfanalyze_{ga_id}_{int(time.time())}.yaml")
+                    os.makedirs(os.path.dirname(_tmp), exist_ok=True)
+                    with open(_tmp, "w", encoding="utf-8") as f:
+                        yaml.dump(latest["graph"], f, default_flow_style=False, allow_unicode=True)
+                    try:
+                        from ga_advisor import advise
+                        advised = advise(local_path, _tmp, intent, prior_graph=True)
+                        if advised:
+                            save_graph(advised, ga_image_id=ga_id,
+                                       graph_type="advised", source="self_analyze_advise")
+                    finally:
+                        try:
+                            os.remove(_tmp)
+                        except OSError:
+                            pass
+
+                log.info(f"Self-analyze-all [{idx+1}/{len(pages)}]: {page} complete (GA {ga_id})")
+
+                # Wait 30s between pages (except after the last one)
+                if idx < len(pages) - 1:
+                    log.info(f"Self-analyze-all: waiting 30s before next page...")
+                    time.sleep(30)
+
+            except Exception as e:
+                log.error(f"Self-analyze-all: failed on page '{page}': {e}")
+                # Continue to next page even if one fails
+                if idx < len(pages) - 1:
+                    time.sleep(30)
+
+        log.info("Self-analyze-all: all pages complete")
+
+    t = threading.Thread(target=_self_analyze_all_bg, daemon=True)
+    t.start()
+
+    return JSONResponse({
+        "status": "started",
+        "pages": pages,
+        "message": f"Self-analysis of {len(pages)} pages launched in background with 30s gaps.",
+    })
 
 
 @app.get("/admin", response_class=HTMLResponse)

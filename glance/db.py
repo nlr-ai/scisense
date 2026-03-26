@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS ga_images (
 
 CREATE TABLE IF NOT EXISTS ga_graphs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ga_image_id INTEGER NOT NULL,
+    ga_image_id INTEGER NOT NULL UNIQUE,
     graph_type TEXT NOT NULL DEFAULT 'vision',
     graph_yaml TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -81,6 +81,8 @@ CREATE TABLE IF NOT EXISTS ga_graphs (
     avg_effectiveness REAL,
     anti_pattern_count INTEGER,
     overlay_path TEXT,
+    graph_version INTEGER NOT NULL DEFAULT 1,
+    mutations TEXT,
     FOREIGN KEY (ga_image_id) REFERENCES ga_images(id)
 );
 
@@ -327,6 +329,19 @@ def init_db():
     _migrate_add_columns(conn, "ga_graphs", [
         ("overlay_path", "TEXT"),
     ])
+    # Migrate: add graph_version + mutations columns to ga_graphs
+    _migrate_add_columns(conn, "ga_graphs", [
+        ("graph_version", "INTEGER NOT NULL DEFAULT 1"),
+        ("mutations", "TEXT"),
+    ])
+    # Migrate: consolidate multiple graphs per GA into one (keep richest)
+    _consolidate_graphs(conn)
+    # Ensure ga_image_id UNIQUE index on ga_graphs (safe after consolidation)
+    try:
+        conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_ga_graphs_ga_image_id ON ga_graphs(ga_image_id)")
+        conn.commit()
+    except Exception:
+        pass  # index already exists or constraint violation (should not happen post-consolidation)
     # Migrate: add abstract column to ga_images
     _migrate_add_columns(conn, "ga_images", [
         ("abstract", "TEXT"),
@@ -378,6 +393,162 @@ def _backfill_slugs(conn):
         existing.add(slug)
         conn.execute("UPDATE ga_images SET slug = ? WHERE id = ?", (slug, row[0]))
     conn.commit()
+
+
+def _consolidate_graphs(conn):
+    """One-time migration: collapse multiple graphs per GA into the richest one.
+
+    For each ga_image_id that has more than one row in ga_graphs, we:
+    1. Find the row with the most nodes (richest graph)
+    2. Merge all other graphs into it (nodes + links, additive)
+    3. Delete the duplicate rows
+    4. Re-point any reading_simulations / improvement_runs FK references
+    """
+    # Find ga_image_ids with duplicates
+    dupes = conn.execute("""
+        SELECT ga_image_id, COUNT(*) as cnt
+        FROM ga_graphs
+        GROUP BY ga_image_id
+        HAVING cnt > 1
+    """).fetchall()
+    if not dupes:
+        return
+
+    for dupe in dupes:
+        ga_img_id = dupe[0]
+        rows = conn.execute(
+            "SELECT id, graph_yaml, graph_type, node_count FROM ga_graphs WHERE ga_image_id = ? ORDER BY node_count DESC, id DESC",
+            (ga_img_id,)
+        ).fetchall()
+        if len(rows) < 2:
+            continue
+
+        # Winner = row with most nodes
+        winner_id = rows[0][0]
+        winner_yaml = rows[0][1]
+        winner_graph = yaml.safe_load(winner_yaml) if winner_yaml else {"nodes": [], "links": []}
+
+        # Merge all other graphs into winner
+        mutations_log = []
+        for row in rows[1:]:
+            loser_id = row[0]
+            loser_yaml = row[1]
+            loser_type = row[2]
+            loser_graph = yaml.safe_load(loser_yaml) if loser_yaml else {"nodes": [], "links": []}
+
+            nodes_before = len(winner_graph.get("nodes", []))
+            winner_graph = merge_graphs(winner_graph, loser_graph)
+            nodes_after = len(winner_graph.get("nodes", []))
+
+            mutations_log.append({
+                "tool": loser_type or "unknown",
+                "timestamp": datetime.utcnow().isoformat(),
+                "action": "consolidation_merge",
+                "source_graph_id": loser_id,
+                "nodes_before": nodes_before,
+                "nodes_after": nodes_after,
+            })
+
+            # Re-point reading_simulations and improvement_runs
+            conn.execute("UPDATE reading_simulations SET graph_id = ? WHERE graph_id = ?",
+                         (winner_id, loser_id))
+            conn.execute("UPDATE improvement_runs SET graph_id = ? WHERE graph_id = ?",
+                         (winner_id, loser_id))
+            # Delete the loser row
+            conn.execute("DELETE FROM ga_graphs WHERE id = ?", (loser_id,))
+
+        # Update the winner row with merged graph
+        merged_yaml = yaml.dump(winner_graph, default_flow_style=False, allow_unicode=True)
+        merged_nodes = winner_graph.get("nodes", [])
+        merged_links = winner_graph.get("links", [])
+        anti_patterns = winner_graph.get("metadata", {}).get("channel_analysis", {}).get("anti_patterns", [])
+        conn.execute("""
+            UPDATE ga_graphs
+            SET graph_yaml = ?, node_count = ?, link_count = ?,
+                anti_pattern_count = ?, graph_version = 2, mutations = ?
+            WHERE id = ?
+        """, (
+            merged_yaml, len(merged_nodes), len(merged_links),
+            len(anti_patterns), json.dumps(mutations_log), winner_id,
+        ))
+
+    conn.commit()
+
+
+def merge_graphs(existing: dict, incoming: dict) -> dict:
+    """Merge incoming graph into existing graph (additive, never deletes nodes).
+
+    - New nodes (by id) are added
+    - Existing nodes have their properties updated (incoming overrides)
+    - New links (by source+target) are added
+    - Existing links have energy/weight updated from incoming
+    - Metadata is deep-merged (incoming wins on conflicts)
+    - Nodes are NEVER deleted
+
+    Returns the merged graph dict.
+    """
+    merged = dict(existing)  # shallow copy top level
+
+    # ── Merge nodes ──
+    existing_nodes = {n.get("id", n.get("name", "")): n for n in existing.get("nodes", [])}
+    for node in incoming.get("nodes", []):
+        node_id = node.get("id", node.get("name", ""))
+        if not node_id:
+            continue
+        if node_id in existing_nodes:
+            # Update existing node: incoming props override, but keep old props not in incoming
+            merged_node = dict(existing_nodes[node_id])
+            for k, v in node.items():
+                if v is not None:
+                    merged_node[k] = v
+            existing_nodes[node_id] = merged_node
+        else:
+            # New node — add it
+            existing_nodes[node_id] = dict(node)
+
+    merged["nodes"] = list(existing_nodes.values())
+
+    # ── Merge links ──
+    def link_key(lnk):
+        return (lnk.get("source", ""), lnk.get("target", ""))
+
+    existing_links = {}
+    for lnk in existing.get("links", []):
+        key = link_key(lnk)
+        existing_links[key] = lnk
+
+    for lnk in incoming.get("links", []):
+        key = link_key(lnk)
+        if key in existing_links:
+            # Update existing link
+            merged_link = dict(existing_links[key])
+            for k, v in lnk.items():
+                if v is not None:
+                    merged_link[k] = v
+            existing_links[key] = merged_link
+        else:
+            existing_links[key] = dict(lnk)
+
+    merged["links"] = list(existing_links.values())
+
+    # ── Merge metadata (deep merge, incoming wins) ──
+    existing_meta = existing.get("metadata", {})
+    incoming_meta = incoming.get("metadata", {})
+    if incoming_meta:
+        merged_meta = dict(existing_meta)
+        for k, v in incoming_meta.items():
+            if isinstance(v, dict) and isinstance(merged_meta.get(k), dict):
+                # One-level deep merge for nested dicts
+                inner = dict(merged_meta[k])
+                inner.update(v)
+                merged_meta[k] = inner
+            else:
+                merged_meta[k] = v
+        merged["metadata"] = merged_meta
+    else:
+        merged["metadata"] = existing_meta
+
+    return merged
 
 
 def _generate_unique_slug(conn, filename: str) -> str:
@@ -434,51 +605,121 @@ def save_reading_simulation(result, narrative_text, ga_image_id=None, graph_id=N
 
 def save_graph(graph, ga_image_id, graph_type="vision", source="gemini_vision",
                version=None, yaml_path=None, skip_deepen=False):
-    """Persist a graph to DB and trigger async reader simulation.
+    """Persist a graph to DB (upsert) and trigger async reader simulation.
 
-    This is the SINGLE entry point for graph persistence. Every time a graph
-    is saved, S1 + S2 reader simulations are automatically launched in a
-    background thread.
+    Each GA has exactly ONE graph row. The first call creates it; subsequent
+    calls MERGE the incoming graph into the existing one (additive — nodes
+    are never deleted, only added or updated). A graph_version counter
+    increments on each mutation, and a mutations JSON array tracks history.
 
     Args:
         graph: L3 graph dict (nodes, links, metadata)
         ga_image_id: FK to ga_images
-        graph_type: 'vision', 'enriched', 'advised'
+        graph_type: 'vision', 'enriched', 'advised', 'deepened'
         source: origin of graph ('gemini_vision', 'channel_analyzer', 'advisor')
         version: optional version string
         yaml_path: optional path to also save YAML file
         skip_deepen: when True, skip auto-deepen in post-save (prevents recursion)
 
     Returns:
-        graph_id: ID of the inserted row
+        graph_id: ID of the graph row (inserted or updated)
     """
     import threading
 
-    graph_yaml = yaml.dump(graph, default_flow_style=False, allow_unicode=True)
-    nodes = graph.get("nodes", [])
-    links = graph.get("links", [])
-    anti_patterns = graph.get("metadata", {}).get("channel_analysis", {}).get("anti_patterns", [])
-    avg_eff = graph.get("metadata", {}).get("channel_analysis", {}).get("avg_effectiveness")
-
     db = get_db()
-    db.execute("""
-        INSERT INTO ga_graphs
-        (ga_image_id, graph_type, graph_yaml, source, version,
-         node_count, link_count, avg_effectiveness, anti_pattern_count)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        ga_image_id, graph_type, graph_yaml, source, version,
-        len(nodes), len(links), avg_eff, len(anti_patterns),
-    ))
-    graph_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
-    db.commit()
-    db.close()
+
+    # Check if a graph already exists for this GA
+    existing_row = db.execute(
+        "SELECT id, graph_yaml, graph_version, mutations FROM ga_graphs WHERE ga_image_id = ?",
+        (ga_image_id,)
+    ).fetchone()
+
+    if existing_row:
+        # ── MERGE into existing graph ──
+        graph_id = existing_row[0]
+        existing_graph = yaml.safe_load(existing_row[1]) if existing_row[1] else {"nodes": [], "links": []}
+        old_version = existing_row[2] or 1
+        old_mutations = json.loads(existing_row[3]) if existing_row[3] else []
+
+        nodes_before = len(existing_graph.get("nodes", []))
+        merged = merge_graphs(existing_graph, graph)
+        nodes_after = len(merged.get("nodes", []))
+
+        # Record mutation
+        old_mutations.append({
+            "tool": graph_type,
+            "source": source,
+            "timestamp": datetime.utcnow().isoformat(),
+            "nodes_before": nodes_before,
+            "nodes_after": nodes_after,
+            "nodes_added": nodes_after - nodes_before,
+            "incoming_nodes": len(graph.get("nodes", [])),
+            "incoming_links": len(graph.get("links", [])),
+        })
+
+        merged_yaml = yaml.dump(merged, default_flow_style=False, allow_unicode=True)
+        merged_nodes = merged.get("nodes", [])
+        merged_links = merged.get("links", [])
+        anti_patterns = merged.get("metadata", {}).get("channel_analysis", {}).get("anti_patterns", [])
+        avg_eff = merged.get("metadata", {}).get("channel_analysis", {}).get("avg_effectiveness")
+        new_version = old_version + 1
+
+        db.execute("""
+            UPDATE ga_graphs
+            SET graph_type = ?, graph_yaml = ?, source = ?, version = ?,
+                node_count = ?, link_count = ?, avg_effectiveness = ?,
+                anti_pattern_count = ?, graph_version = ?, mutations = ?
+            WHERE id = ?
+        """, (
+            graph_type, merged_yaml, source, version,
+            len(merged_nodes), len(merged_links), avg_eff,
+            len(anti_patterns), new_version, json.dumps(old_mutations),
+            graph_id,
+        ))
+        db.commit()
+        db.close()
+
+        # Use the merged graph for post-save processing
+        graph = merged
+    else:
+        # ── First graph for this GA — INSERT ──
+        initial_mutation = [{
+            "tool": graph_type,
+            "source": source,
+            "timestamp": datetime.utcnow().isoformat(),
+            "nodes_before": 0,
+            "nodes_after": len(graph.get("nodes", [])),
+            "nodes_added": len(graph.get("nodes", [])),
+            "incoming_nodes": len(graph.get("nodes", [])),
+            "incoming_links": len(graph.get("links", [])),
+        }]
+
+        graph_yaml = yaml.dump(graph, default_flow_style=False, allow_unicode=True)
+        nodes = graph.get("nodes", [])
+        links = graph.get("links", [])
+        anti_patterns = graph.get("metadata", {}).get("channel_analysis", {}).get("anti_patterns", [])
+        avg_eff = graph.get("metadata", {}).get("channel_analysis", {}).get("avg_effectiveness")
+
+        db.execute("""
+            INSERT INTO ga_graphs
+            (ga_image_id, graph_type, graph_yaml, source, version,
+             node_count, link_count, avg_effectiveness, anti_pattern_count,
+             graph_version, mutations)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+        """, (
+            ga_image_id, graph_type, graph_yaml, source, version,
+            len(nodes), len(links), avg_eff, len(anti_patterns),
+            json.dumps(initial_mutation),
+        ))
+        graph_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+        db.commit()
+        db.close()
 
     # Save YAML file too if path provided
     if yaml_path:
         os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
         with open(yaml_path, "w", encoding="utf-8") as f:
-            f.write(graph_yaml)
+            yaml.dump(graph, f, default_flow_style=False, allow_unicode=True)
 
     # ── Async post-save listener ──
     def _post_save_async(graph_dict, gimg_id, gid, _skip_deepen=False):
@@ -620,18 +861,17 @@ def get_graph_by_id(graph_id):
 
 
 def get_latest_graph(ga_image_id, graph_type=None):
-    """Return the most recent graph for a GA image."""
+    """Return the single graph for a GA image.
+
+    Each GA now has exactly one graph row. The graph_type parameter is
+    accepted for backward compatibility but ignored — there is only one
+    graph to return.
+    """
     db = get_db()
-    if graph_type:
-        row = db.execute(
-            "SELECT * FROM ga_graphs WHERE ga_image_id = ? AND graph_type = ? ORDER BY id DESC LIMIT 1",
-            (ga_image_id, graph_type)
-        ).fetchone()
-    else:
-        row = db.execute(
-            "SELECT * FROM ga_graphs WHERE ga_image_id = ? ORDER BY id DESC LIMIT 1",
-            (ga_image_id,)
-        ).fetchone()
+    row = db.execute(
+        "SELECT * FROM ga_graphs WHERE ga_image_id = ? LIMIT 1",
+        (ga_image_id,)
+    ).fetchone()
     db.close()
     if row:
         result = dict(row)
