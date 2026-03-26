@@ -349,7 +349,7 @@ async def auth_send_link(request: Request, email: str = Form(...)):
         try:
             import urllib.request
             payload = json.dumps({
-                "from": "GLANCE <noreply@scisense.fr>",
+                "from": os.environ.get("RESEND_FROM", "GLANCE <onboarding@resend.dev>"),
                 "to": [email],
                 "subject": "Votre lien de connexion GLANCE",
                 "html": (
