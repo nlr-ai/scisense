@@ -329,17 +329,24 @@ def auth_login(request: Request):
 
 @app.post("/auth/send-link")
 async def auth_send_link(request: Request, email: str = Form(...)):
-    """Generate a magic link token and send it via Telegram + console."""
+    """Instant login — create token and set cookie directly (no email verification)."""
     email = email.strip().lower()
     if not email or "@" not in email:
         return RedirectResponse(url="/auth/login?error=email", status_code=303)
 
     token = create_auth_token(email)
-    base_url = os.environ.get("GLANCE_BASE_URL", "https://glance.scisense.fr")
-    magic_link = f"{base_url}/auth/verify?token={token}"
 
     logger = logging.getLogger("auth")
-    logger.info(f"[AUTH] Magic link for {email}: {magic_link}")
+    logger.info(f"[AUTH] Instant login for {email}")
+
+    # Instant login — set cookie and redirect to profile
+    response = RedirectResponse(url="/profile", status_code=303)
+    response.set_cookie("glance_token", token, max_age=86400 * 30, httponly=True, samesite="lax")
+    return response
+
+    # ── Below: email sending (kept for future use, unreachable for now) ──
+    base_url = os.environ.get("GLANCE_BASE_URL", "https://glance.scisense.fr")
+    magic_link = f"{base_url}/auth/verify?token={token}"
 
     email_sent = False
 
