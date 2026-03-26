@@ -338,11 +338,45 @@ async def auth_send_link(request: Request, email: str = Form(...)):
     base_url = os.environ.get("GLANCE_BASE_URL", "https://glance.scisense.fr")
     magic_link = f"{base_url}/auth/verify?token={token}"
 
-    # Always log to console
     logger = logging.getLogger("auth")
     logger.info(f"[AUTH] Magic link for {email}: {magic_link}")
 
-    # Send via Telegram if bot token is available
+    email_sent = False
+
+    # Send via Resend (primary)
+    resend_key = os.environ.get("RESEND_API_KEY", "")
+    if resend_key:
+        try:
+            import urllib.request
+            payload = json.dumps({
+                "from": "GLANCE <noreply@scisense.fr>",
+                "to": [email],
+                "subject": "Votre lien de connexion GLANCE",
+                "html": (
+                    f"<p>Bonjour,</p>"
+                    f"<p>Cliquez sur ce lien pour vous connecter :</p>"
+                    f"<p><a href='{magic_link}' style='display:inline-block;padding:12px 24px;"
+                    f"background:#2A9D8F;color:white;text-decoration:none;border-radius:8px;"
+                    f"font-weight:bold;'>Se connecter a GLANCE</a></p>"
+                    f"<p style='color:#666;font-size:12px;'>Ce lien expire dans 24h.</p>"
+                ),
+            }).encode("utf-8")
+            req = urllib.request.Request(
+                "https://api.resend.com/emails",
+                data=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {resend_key}",
+                },
+                method="POST",
+            )
+            urllib.request.urlopen(req, timeout=10)
+            email_sent = True
+            logger.info(f"[AUTH] Magic link sent via Resend to {email}")
+        except Exception as e:
+            logger.warning(f"Resend send failed: {e}")
+
+    # Fallback: send via Telegram
     tg_bot_token = os.environ.get("TG_BOT_TOKEN", "")
     tg_chat_id = os.environ.get("TG_ADMIN_CHAT_ID", "")
     if tg_bot_token and tg_chat_id:
