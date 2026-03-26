@@ -1,0 +1,10 @@
+# Generated wireframes — rebuild from compose scripts
+artefacts/wireframes/*.svg
+artefacts/wireframes/*.png
+artefacts/wireframes/*.gif
+
+# Slide decks (generated)
+artefacts/slide-decks/
+
+# Channel delta logs (regenerable)
+artefacts/channel_deltas/

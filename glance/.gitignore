@@ -1,20 +1,40 @@
+# Python
 __pycache__/
 *.pyc
-data/
-exports/
-imports/
 *.egg-info/
+
+# Environment
 .env
-exports/*.pdf
-exports/*.png
-exports/post_screenshots/
-exports/batch/
+
+# Runtime data — NEVER track
+data/
+*.db
+*.sqlite3
+
+# Generated exports
+exports/
 SciSense_Business_Plan.md
 SciSense_Visual_Truth.pdf
 SciSense_Visual_Validation.pdf
+
+# GA library images (runtime downloads, user uploads)
+ga_library/*.png
+ga_library/*.jpg
+ga_library/*.jpeg
+ga_library/*.gif
+ga_library/user_uploads/
+ga_library/self_analysis/
+ga_library/leurres/
+
+# Generated wireframes and artefacts
+ga_paper/output/
+
+# Media
 *.m4a
-data/*.m4a
-docs/MONETIZATION.md
+
+# Config secrets
 config/notebooklm_system_prompt.md
-data/transcript_*.md
-data/visual_channel_catalog.md
+
+# IDE
+.vscode/
+.idea/
