@@ -2651,17 +2651,20 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
                 raise HTTPException(status_code=400, detail="No graph yet — run vision first")
             from reader_sim import simulate_reading, generate_reading_narrative
             sim = simulate_reading(graph, total_ticks=50, mode="system1")
+            if "error" in sim:
+                return JSONResponse({"tool": "reader_sim", "error": sim["error"]}, status_code=400)
+            stats = sim.get("stats", {})
             narrative = generate_reading_narrative(sim, graph)
             return JSONResponse({
                 "tool": "reader_sim",
-                "verdict": sim["stats"]["complexity_verdict"],
-                "pressure": sim["stats"]["budget_pressure"],
-                "visited": sim["stats"]["unique_nodes_visited"],
-                "total": sim["stats"]["total_things"],
-                "skipped": sim["stats"]["nodes_skipped"],
-                "narrative_coverage": sim["stats"]["narrative_coverage"],
-                "dead_spaces": sim["stats"]["dead_space_count"],
-                "orphan_narratives": sim["stats"]["orphan_narrative_count"],
+                "verdict": stats.get("complexity_verdict", "unknown"),
+                "pressure": stats.get("budget_pressure", 0),
+                "visited": stats.get("unique_nodes_visited", 0),
+                "total": stats.get("total_things", 0),
+                "skipped": stats.get("nodes_skipped", 0),
+                "narrative_coverage": stats.get("narrative_coverage", 0),
+                "dead_spaces": stats.get("dead_space_count", 0),
+                "orphan_narratives": stats.get("orphan_narrative_count", 0),
                 "narrative_text": narrative,
                 "recommendations": sim.get("recommendations", []),
             })
@@ -2671,17 +2674,20 @@ async def analyze_tool(tool_name: str, ga_slug: str, request: Request, pwd: str 
                 raise HTTPException(status_code=400, detail="No graph yet — run vision first")
             from reader_sim import simulate_reading, generate_reading_narrative
             sim = simulate_reading(graph, total_ticks=900, mode="system2")
+            if "error" in sim:
+                return JSONResponse({"tool": "reader_sim_s2", "error": sim["error"]}, status_code=400)
+            stats = sim.get("stats", {})
             narrative = generate_reading_narrative(sim, graph)
             return JSONResponse({
                 "tool": "reader_sim_s2",
-                "verdict": sim["stats"]["complexity_verdict"],
-                "pressure": sim["stats"]["budget_pressure"],
-                "visited": sim["stats"]["unique_nodes_visited"],
-                "total": sim["stats"]["total_things"],
-                "skipped": sim["stats"]["nodes_skipped"],
-                "narrative_coverage": sim["stats"]["narrative_coverage"],
-                "dead_spaces": sim["stats"]["dead_space_count"],
-                "orphan_narratives": sim["stats"]["orphan_narrative_count"],
+                "verdict": stats.get("complexity_verdict", "unknown"),
+                "pressure": stats.get("budget_pressure", 0),
+                "visited": stats.get("unique_nodes_visited", 0),
+                "total": stats.get("total_things", 0),
+                "skipped": stats.get("nodes_skipped", 0),
+                "narrative_coverage": stats.get("narrative_coverage", 0),
+                "dead_spaces": stats.get("dead_space_count", 0),
+                "orphan_narratives": stats.get("orphan_narrative_count", 0),
                 "narrative_text": narrative,
                 "recommendations": sim.get("recommendations", []),
             })
